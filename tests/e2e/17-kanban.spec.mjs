@@ -275,6 +275,29 @@ test.describe('Kanban de projetos: quadro, cards e filtros', () => {
     await expect(page.locator('.kcard')).toHaveCount(8);
   });
 
+  test('a página não tem aba de Design Thinking (é método, não tela), e uma cópia antiga com "notas" ainda carrega os cards', async ({ page }) => {
+    await page.goto('/kanban.html');
+    await page.evaluate(() => {
+      const card = { id: 'K-0001', titulo: 'Card salvo antes', descricao: '', prioridade: 'alta', status: 'revisao', criado_em: '2026-10-01', historico: [] };
+      localStorage.setItem('kanban-dt:v1', JSON.stringify({ versao: 1, cards: [card], notas: [{ id: 'N-0001', etapa: 'idear', texto: 'nota antiga' }] }));
+    });
+    await page.reload();
+    await usarData(page);
+    await expect(page.locator('.kcard')).toHaveCount(1);
+    await expect(card(page, 'Card salvo antes')).toHaveCount(1);
+    await expect(page.getByRole('navigation')).toHaveCount(0); // sem barra de abas
+    await expect(page.getByText('Design Thinking')).toHaveCount(0);
+    await expect(page.locator('#form-nota, #dt-grade, [data-aba-painel]')).toHaveCount(0);
+    // ao salvar de novo, as notas somem do que fica guardado
+    await page.getByRole('button', { name: 'Novo card' }).click();
+    const d = page.getByRole('dialog', { name: 'Novo card' });
+    await d.getByLabel('Título').fill('Outro card');
+    await d.getByRole('button', { name: 'Salvar' }).click();
+    const guardado = await page.evaluate(() => JSON.parse(localStorage.getItem('kanban-dt:v1')));
+    expect(Object.keys(guardado).sort()).toEqual(['cards', 'versao']);
+    expect(guardado.cards).toHaveLength(2);
+  });
+
   test('a página cabe em 360 px, com o quadro rolando dentro da própria área', async ({ page }) => {
     await abrirKanban(page);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);

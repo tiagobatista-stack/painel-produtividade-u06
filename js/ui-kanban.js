@@ -147,20 +147,6 @@ export function desenharQuadro(hoje) {
   $('kanban-grade').replaceChildren(...STATUS_ORDEM.map((s) => coluna(s, grupos[s], hoje)));
 }
 
-// Leva ao card: limpa os filtros se eles o escondem, destaca, rola até ele e põe o foco nele.
-export function mostrarCard(id) {
-  const card = estadoK.dados.cards.find((c) => c.id === id);
-  if (!card) return;
-  if (!listarCards([card], filtrosAtuais(), hojeAtual()).length) limparFiltros();
-  estadoK.focoApos = `card-${id}`;
-  estadoK.atualizar();
-  const alvo = document.querySelector(`[data-foco="card-${id}"]`);
-  if (!alvo) return;
-  alvo.scrollIntoView({ block: 'center' });
-  alvo.classList.add('destaque');
-  setTimeout(() => alvo.classList.remove('destaque'), 2500);
-}
-
 // ---------- Formulário ----------
 
 function abrirFormulario(card, origemDoClique) {

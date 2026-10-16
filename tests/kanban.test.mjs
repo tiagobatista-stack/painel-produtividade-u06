@@ -164,11 +164,10 @@ test('persistência: chave própria, separada do painel de demandas', () => {
 test('persistência: JSON corrompido, formato errado, card inválido ou id repetido voltam ao exemplo', () => {
   const casos = [
     '{nao e json',
-    JSON.stringify({ versao: 2, cards: [], notas: [] }),
-    JSON.stringify({ versao: 1, cards: 'x', notas: [] }),
-    JSON.stringify({ versao: 1, cards: [{ id: 'K-0001', titulo: 'x', status: 'feito', prioridade: 'alta' }], notas: [] }),
-    JSON.stringify({ versao: 1, cards: [exemplo.cards[0], exemplo.cards[0]], notas: [] }),
-    JSON.stringify({ versao: 1, cards: [], notas: [{ id: 'N-1', etapa: 'sonhar', texto: 'x' }] }),
+    JSON.stringify({ versao: 2, cards: [] }),
+    JSON.stringify({ versao: 1, cards: 'x' }),
+    JSON.stringify({ versao: 1, cards: [{ id: 'K-0001', titulo: 'x', status: 'feito', prioridade: 'alta' }] }),
+    JSON.stringify({ versao: 1, cards: [exemplo.cards[0], exemplo.cards[0]] }),
   ];
   for (const bruto of casos) {
     const r = carregarKanban(armazenamentoFalso({ [CHAVE_KANBAN]: bruto }), exemplo);
@@ -181,5 +180,23 @@ test('persistência: storage indisponível ou cheio não quebra', () => {
   assert.equal(carregarKanban(null, exemplo).origem, 'exemplo');
   const quebrado = { getItem: () => { throw new Error('bloqueado'); }, setItem: () => { throw new Error('cheio'); } };
   assert.equal(carregarKanban(quebrado, exemplo).origem, 'exemplo');
-  assert.equal(salvarKanban(quebrado, { cards: [], notas: [] }), false);
+  assert.equal(salvarKanban(quebrado, { cards: [] }), false);
+});
+
+test('persistência: só os cards são gravados, e uma cópia antiga com "notas" (da aba retirada) carrega sem elas', () => {
+  const storage = armazenamentoFalso();
+  assert.equal(salvarKanban(storage, { cards: exemplo.cards, notas: [{ id: 'N-0001', etapa: 'idear', texto: 'x' }] }), true);
+  assert.deepEqual(Object.keys(JSON.parse(storage.dados[CHAVE_KANBAN])).sort(), ['cards', 'versao']);
+
+  const antiga = armazenamentoFalso({
+    [CHAVE_KANBAN]: JSON.stringify({ versao: 1, cards: exemplo.cards.slice(0, 2), notas: [{ id: 'N-0001', etapa: 'sonhar', texto: 'qualquer coisa' }] }),
+  });
+  const r = carregarKanban(antiga, exemplo);
+  assert.equal(r.origem, 'armazenamento'); // os cards salvos continuam valendo, mesmo com notas de formato qualquer
+  assert.deepEqual(r.dados, { versao: 1, cards: exemplo.cards.slice(0, 2) });
+  assert.equal('notas' in r.dados, false);
+});
+
+test('o exemplo não tem mais notas de Design Thinking: Design Thinking é método, não tela', () => {
+  assert.deepEqual(Object.keys(exemplo).sort(), ['_aviso', 'cards', 'hoje_referencia']);
 });

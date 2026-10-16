@@ -1,6 +1,6 @@
 # Melhorias de interface: Kanban e GTD (proposta M8–M10)
 
-Status: **M8 (RF15 e RF20) e M9 (RF16 a RF19 e RF21) entregues; M10 ainda é proposta**. O Kanban de projetos com Design Thinking (RF28 a RF33) é outra página, descrita em `docs/KANBAN_DESIGN_THINKING.md`. Avaliação feita em 16/10/2026 sobre a produção (https://painel-produtividade-u06.vercel.app/, janela de cerca de 800 px) e o código da `main`. Os requisitos propostos estão em `docs/REQUISITOS.md` (RF15–RF27), os critérios em `docs/CRITERIOS_ACEITE.md` e as regras novas em `docs/REGRAS_PRIORIDADE.md`. Cada marco segue a regra de condução do projeto: **plano → OK → implementação → evidência literal → commit**.
+Status: **M8 (RF15 e RF20) e M9 (RF16 a RF19 e RF21) entregues; M10 ainda é proposta**. O Kanban de projetos (RF28 a RF32) é outra página, descrita em `docs/KANBAN_PROJETOS.md`; o Design Thinking é o método de trabalho, em `docs/DESIGN_THINKING.md`. Avaliação feita em 16/10/2026 sobre a produção (https://painel-produtividade-u06.vercel.app/, janela de cerca de 800 px) e o código da `main`. Os requisitos propostos estão em `docs/REQUISITOS.md` (RF15–RF27), os critérios em `docs/CRITERIOS_ACEITE.md` e as regras novas em `docs/REGRAS_PRIORIDADE.md`. Cada marco segue a regra de condução do projeto: **plano → OK → implementação → evidência literal → commit**.
 
 ## Objetivo
 

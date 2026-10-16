@@ -5,7 +5,7 @@ import { $, mostrarAviso } from './ui-comum.js';
 // `atualizar` é definido por kanban-app.js.
 export const estadoK = {
   exemplo: null,
-  dados: null, // { versao, cards, notas }
+  dados: null, // { versao, cards }
   storage: null,
   focoApos: null, // valor de data-foco a restaurar depois de redesenhar
   atualizar: () => {},

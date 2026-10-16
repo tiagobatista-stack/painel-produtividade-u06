@@ -52,13 +52,13 @@ js/ui-cartao.js      # (M9, entregue) card compacto compartilhado pela lista e p
 tests/foco.test.mjs  # (M8, entregue) node --test sobre o seed
 tests/quadro.test.mjs  # (M9, entregue) node --test sobre o seed
 tests/e2e/13-abas, 14-foco-indicadores, 15-painel-desfazer  # (M8, entregue)
-tests/e2e/16-quadro  # (M9, entregue); 17 e 18 são do Kanban de projetos (docs/KANBAN_DESIGN_THINKING.md); os do M10 começam em 24
+tests/e2e/16-quadro  # (M9, entregue); 17 é do Kanban de projetos (docs/KANBAN_PROJETOS.md); 18 ficou vago (era a aba Design Thinking, retirada); os do M10 começam em 24
 ```
 
 - No M8 o filtro `prazo` de `listarDemandas` (`js/demandas.js`) reaproveita as listas de `itensDosIndicadores` (`js/indicadores.js`): o número de cada indicador e a fila filtrada por ele vêm da mesma fonte. `js/regras.js` não mudou.
 - `js/quadro.js` recebe o resultado de `priorizar` e não recalcula pontos.
 - O status `entrada` (M10) entra em `js/rotulos.js` e `js/demandas.js`, e `js/regras.js` só ganha a regra de tirá-lo da fila. O MCP (`tools/demandas-mcp.mjs`) passa a reconhecer o status, sem ferramenta nova.
-- O Kanban de projetos (`kanban.html`, `js/kanban*.js`, `js/design-thinking.js`, `js/ui-kanban.js`, `js/ui-dt.js`) é independente do motor: tem modelo e armazenamento próprios (`kanban-dt:v1`) e só reaproveita utilitários de data, busca e formulário. Ver `docs/KANBAN_DESIGN_THINKING.md`.
+- O Kanban de projetos (`kanban.html`, `js/kanban*.js`, `js/ui-kanban.js`) é independente do motor: tem modelo e armazenamento próprios (`kanban-dt:v1`) e só reaproveita utilitários de data, busca e formulário. Ver `docs/KANBAN_PROJETOS.md`. Design Thinking é o método de trabalho (`docs/DESIGN_THINKING.md`), não uma tela.
 - Pontos, relatórios e autos (`docs/PONTOS_RELATORIOS_AUTOS.md`): as regras ficam em `js/operacoes.js` (agrupar relatório, relatório em lote, autos, anotação do ponto), a contagem em `js/indicadores.js` (`relatoriosPendentes` conta relatórios; `autosDoPonto` trata o ponto antigo), a lista e a situação de cada ponto em `js/pontos.js`, a geometria do mapa em `js/mapa.js` (todos puros) e a interface em `js/ui-pontos.js`, `js/ui-mapa.js`, `js/ui-anotacoes.js`, `js/ui-operacao.js` e `js/ui-painel.js`. O mapa é SVG local, sem mapa-base: nada sai do navegador.
 - Tudo continua sem biblioteca externa e sem código embutido, por causa da política de conteúdo do `vercel.json`.
 
