@@ -407,6 +407,8 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
   #filtros-pontos .campo:first-child { grid-column: auto; }
 }
 @media (max-width: 420px) {
+  /* Cinco abas: com fonte mais larga (Linux, por exemplo) elas quebram em duas linhas em vez de rolar dentro da barra. */
+  .abas { flex-wrap: wrap; overflow-x: visible; }
   .abas a { padding: 6px 5px; font-size: 0.8rem; }
 }
 
