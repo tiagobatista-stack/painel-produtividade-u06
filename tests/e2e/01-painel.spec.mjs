@@ -1,4 +1,4 @@
-import { test, expect, abrir, cartao, indicadores, resumo } from './apoio.mjs';
+import { test, expect, abrir, abrirPainel, complementares, fecharPainel, indicadores, irParaAba, painel, resumo } from './apoio.mjs';
 
 test.describe('painel com o exemplo fictício', () => {
   test('abre com título, aviso de dados fictícios, indicadores, resumo da semana e agenda', async ({ page }) => {
@@ -6,11 +6,14 @@ test.describe('painel com o exemplo fictício', () => {
     await expect(page).toHaveTitle('Painel de Demandas');
     await expect(page.getByRole('heading', { level: 1, name: 'Painel de Demandas' })).toBeVisible();
     await expect(page.getByText('Exemplo didático com dados fictícios.')).toBeVisible();
-    expect(await indicadores(page)).toEqual(['10', '2', '5', '9', '2', '2', '1']);
-    expect(await resumo(page)).toEqual(['2', '5', '4', '2']);
-    await expect(page.locator('#agenda .evento')).toHaveCount(3);
+    expect(await indicadores(page)).toEqual(['2', '5', '1', '2']); // vencidas, próximos 7 dias, sobrestados, concluídas na semana
     await expect(page.locator('#aviso-afastamento')).toContainText('Férias começam em 19 dias');
     await expect(page.locator('#contagem')).toHaveText('10 demandas');
+    await irParaAba(page, 'Relatórios');
+    expect(await complementares(page)).toEqual(['10', '9', '2']); // abertas, relatórios pendentes, autos a lavrar
+    expect(await resumo(page)).toEqual(['2', '5', '4', '2']);
+    await irParaAba(page, 'Agenda');
+    await expect(page.locator('#agenda-7-dias .evento')).toHaveCount(3);
   });
 
   test('mostra os 5 tipos de demanda no exemplo', async ({ page }) => {
@@ -26,24 +29,35 @@ test.describe('painel com o exemplo fictício', () => {
 
   test('a fila vem ordenada por prioridade, com score e motivos', async ({ page }) => {
     await abrir(page);
-    const prioridades = await page.locator('#fila .prioridade').allTextContents();
+    // O card mostra só a faixa; o placar de cada demanda está no painel lateral.
+    expect(await page.locator('#fila .demanda-abrir .status').allTextContents()).toEqual([
+      'Crítica', 'Crítica', 'Alta', 'Alta', 'Alta', 'Média', 'Média', 'Baixa', 'Baixa', 'Baixa',
+    ]);
+    const prioridades = [];
+    for (let i = 0; i < 10; i++) {
+      await page.locator('#fila .demanda-abrir').nth(i).click();
+      prioridades.push(await painel(page).locator('.prioridade').textContent());
+      await fecharPainel(page);
+    }
     expect(prioridades).toEqual([
       'Prioridade Crítica · 90 pontos', 'Prioridade Crítica · 80 pontos', 'Prioridade Alta · 68 pontos', 'Prioridade Alta · 60 pontos',
       'Prioridade Alta · 55 pontos', 'Prioridade Média · 40 pontos', 'Prioridade Média · 35 pontos', 'Prioridade Baixa · 20 pontos',
       'Prioridade Baixa · 10 pontos', 'Prioridade Baixa · 0 pontos',
     ]);
-    const primeiro = cartao(page, 'Manifestação em procedimento');
-    await primeiro.getByText('Por que esta prioridade?').click();
-    await expect(primeiro.locator('details.motivos').first()).toContainText('Prazo vencido (+50)');
+    const primeiro = await abrirPainel(page, 'Manifestação em procedimento');
+    await expect(primeiro.getByRole('heading', { name: 'Por que esta prioridade?' })).toBeVisible();
+    await expect(primeiro).toContainText('Prazo vencido (+50)');
     await expect(primeiro).toContainText('vencida há 2 dias');
   });
 
   test('mudar a data de referência recalcula tudo', async ({ page }) => {
     await abrir(page);
     await page.getByLabel('Data de referência').fill('2026-10-30');
-    expect((await indicadores(page))[1]).toBe('9'); // vencidas
-    await expect(page.locator('#agenda')).toContainText('Início de férias'); // 03/11 entra na janela de 7 dias
+    expect((await indicadores(page))[0]).toBe('9'); // vencidas
+    await irParaAba(page, 'Agenda');
+    await expect(page.locator('#agenda-7-dias')).toContainText('Início de férias'); // 03/11 entra na janela de 7 dias
     await page.getByLabel('Data de referência').fill('2026-10-19');
+    await irParaAba(page, 'Relatórios');
     expect(await resumo(page)).toEqual(['0', '0', '0', '0']); // semana seguinte, nada concluído
     await expect(page.locator('#resumo-tipos')).toHaveText('Nenhuma demanda concluída nesta semana.');
   });

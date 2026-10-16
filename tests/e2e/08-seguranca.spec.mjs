@@ -1,4 +1,4 @@
-import { test, expect, abrir, cadastrarProcesso, importarExemplo } from './apoio.mjs';
+import { test, expect, abrir, abrirPainel, cadastrarProcesso, importarExemplo } from './apoio.mjs';
 
 test.describe('segurança e conteúdo publicado', () => {
   test('a página é servida com política de conteúdo e demais cabeçalhos de segurança', async ({ page }) => {
@@ -42,6 +42,10 @@ test.describe('segurança e conteúdo publicado', () => {
     const c = page.locator('#fila > li', { hasText: 'onerror=alert(1)' });
     await expect(c.locator('.demanda-titulo')).toHaveText(perigoso);
     await expect(page.locator('#fila img, #fila script, #fila b')).toHaveCount(0);
+    // o painel lateral também mostra o texto como texto
+    const painel = await abrirPainel(page, 'onerror=alert(1)');
+    await expect(painel.locator('#painel-titulo')).toHaveText(perigoso);
+    await expect(page.locator('#painel-demanda img, #painel-demanda script, #painel-demanda b')).toHaveCount(0);
     expect(alertas).toBe(0);
   });
 
@@ -59,10 +63,10 @@ test.describe('segurança e conteúdo publicado', () => {
     await expect(dialogo.locator('#imp-previa')).toContainText('Planilha válida');
     await expect(dialogo.locator('#imp-previa img, #imp-previa b, #imp-previa script')).toHaveCount(0);
     await dialogo.getByRole('button', { name: 'Importar', exact: true }).click();
-    const op = page.locator('#fila > li', { hasText: 'onerror=alert(1)' });
+    const op = await abrirPainel(page, 'onerror=alert(1)'); // os pontos ficam no painel lateral
     await op.locator('summary', { hasText: 'Pontos' }).click();
     await expect(op).toContainText('<script>alert(2)</script>'); // a nota do ponto, como texto
-    await expect(page.locator('#fila img, #fila script, #fila b')).toHaveCount(0);
+    await expect(page.locator('#fila img, #fila script, #fila b, #painel-demanda img, #painel-demanda script, #painel-demanda b')).toHaveCount(0);
     expect(alertas).toBe(0);
   });
 

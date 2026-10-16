@@ -1,4 +1,4 @@
-import { test, expect, abrir, cadastrarProcesso, cartao, indicadores, usarDataDoExemplo } from './apoio.mjs';
+import { test, expect, abrir, abrirPainel, cadastrarProcesso, cartao, fecharPainel, indicadores, usarDataDoExemplo } from './apoio.mjs';
 
 test.describe('cadastro, edição e status', () => {
   test('cadastra uma demanda e ela aparece com a prioridade calculada, e persiste ao recarregar', async ({ page }) => {
@@ -6,8 +6,11 @@ test.describe('cadastro, edição e status', () => {
     await cadastrarProcesso(page, { titulo: 'Processo novo de teste' });
     await expect(page.locator('#contagem')).toHaveText('11 demandas');
     const nova = cartao(page, 'Processo novo de teste');
-    await expect(nova.locator('.prioridade')).toHaveText('Prioridade Crítica · 90 pontos');
-    expect((await indicadores(page)).slice(0, 2)).toEqual(['11', '3']);
+    await expect(nova.locator('.status')).toHaveText('Crítica');
+    const painelNova = await abrirPainel(page, 'Processo novo de teste');
+    await expect(painelNova.locator('.prioridade')).toHaveText('Prioridade Crítica · 90 pontos');
+    await fecharPainel(page);
+    expect((await indicadores(page))[0]).toBe('3'); // vencidas: a nova tem prazo vencido
 
     await page.reload();
     await usarDataDoExemplo(page);
@@ -58,39 +61,51 @@ test.describe('cadastro, edição e status', () => {
 
   test('edita uma demanda e registra no histórico', async ({ page }) => {
     await abrir(page);
-    await page.getByRole('button', { name: /^Editar Reunião de alinhamento/ }).click();
+    const p = await abrirPainel(page, 'Reunião de alinhamento');
+    await p.getByRole('button', { name: /^Editar Reunião de alinhamento/ }).click();
     const dialogo = page.getByRole('dialog', { name: 'Editar demanda' });
     await expect(dialogo.getByLabel('Tipo')).toBeDisabled();
     await dialogo.getByLabel('Título').fill('Reunião remarcada');
     await dialogo.getByRole('button', { name: 'Salvar' }).click();
-    const c = cartao(page, 'Reunião remarcada');
-    await expect(c).toBeVisible();
-    await c.getByText(/Histórico/).click();
-    await expect(c).toContainText('Editada');
+    await expect(dialogo).toBeHidden();
+    await expect(cartao(page, 'Reunião remarcada')).toBeVisible();
+    // o painel continua aberto, com o título novo, e o foco volta ao botão Editar dele
+    await expect(p.getByRole('heading', { name: 'Reunião remarcada' })).toBeVisible();
+    await expect(p.getByRole('button', { name: /^Editar Reunião remarcada/ })).toBeFocused();
+    await p.getByText(/Histórico/).click();
+    await expect(p).toContainText('Editada');
   });
 
   test('muda o status, guarda o histórico e a demanda concluída sai da fila', async ({ page }) => {
     await abrir(page);
-    const c = cartao(page, 'Reunião de planejamento da próxima operação');
-    await c.getByLabel('Status').selectOption({ label: 'Em andamento' });
-    await c.getByText(/Histórico/).click();
-    await expect(c).toContainText('Status: A fazer → Em andamento');
-    await c.getByLabel('Status').selectOption({ label: 'Concluída' });
+    const p = await abrirPainel(page, 'Reunião de planejamento da próxima operação');
+    await p.getByLabel('Status').selectOption({ label: 'Em andamento' });
+    await p.getByText(/Histórico/).click();
+    await expect(p).toContainText('Status: A fazer → Em andamento');
+    await p.getByLabel('Status').selectOption({ label: 'Concluída' });
     await expect(page.locator('#contagem')).toHaveText('9 demandas');
-    await expect(page.locator('#titulo-fila')).toBeFocused(); // o foco não se perde quando o cartão sai da lista
-    expect((await indicadores(page))[5]).toBe('3'); // concluídas na semana
+    await expect(p.getByLabel('Status')).toBeFocused(); // o foco não se perde: o painel segue aberto na demanda concluída
+    await expect(p.locator('.prioridade')).toContainText('Concluída em');
+    await fecharPainel(page);
+    await expect(cartao(page, 'Reunião de planejamento da próxima operação')).toHaveCount(0); // saiu da fila ativa
+    expect((await indicadores(page))[3]).toBe('3'); // concluídas na semana
   });
 
   test('sobrestar um processo suspende o prazo: sai da fila e entra em "Sobrestados"', async ({ page }) => {
     await abrir(page);
-    await cartao(page, 'Resposta à chefia sobre processo').getByLabel('Status').selectOption({ label: 'Sobrestado (aguardando)' });
-    const v = await indicadores(page);
-    expect([v[0], v[6]]).toEqual(['9', '2']);
+    const p = await abrirPainel(page, 'Resposta à chefia sobre processo');
+    await p.getByLabel('Status').selectOption({ label: 'Sobrestado (aguardando)' });
+    await fecharPainel(page);
+    await expect(page.locator('#contagem')).toHaveText('9 demandas'); // abertas
+    expect((await indicadores(page))[2]).toBe('2'); // sobrestados
     await page.getByRole('search').getByLabel('Status').selectOption({ label: 'Sobrestado (aguardando)' });
     await expect(page.locator('#contagem')).toHaveText('2 demandas');
-    await expect(cartao(page, 'Resposta à chefia sobre processo')).toContainText('prazo suspenso');
+    await expect(cartao(page, 'Resposta à chefia sobre processo')).toContainText('Prazo suspenso');
     // retomar: o prazo registrado volta a valer
-    await cartao(page, 'Resposta à chefia sobre processo').getByLabel('Status').selectOption({ label: 'Em andamento' });
+    const sobrestada = await abrirPainel(page, 'Resposta à chefia sobre processo');
+    await expect(sobrestada.locator('.prioridade')).toContainText('prazo suspenso');
+    await sobrestada.getByLabel('Status').selectOption({ label: 'Em andamento' });
+    await fecharPainel(page);
     await page.getByRole('search').getByLabel('Status').selectOption({ label: 'Abertas (ativas)' });
     await expect(page.locator('#contagem')).toHaveText('10 demandas');
     await expect(cartao(page, 'Resposta à chefia sobre processo')).toContainText('Prazo: 16/10/2026');

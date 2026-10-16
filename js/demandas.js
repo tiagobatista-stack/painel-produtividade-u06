@@ -1,6 +1,6 @@
 // Cadastro, edição, status e filtros. Funções puras: não alteram os argumentos e não tocam em tela nem armazenamento.
-import { dataValida, estaConcluida, estaSobrestada, prazoDemanda } from './indicadores.js';
-import { priorizarFila } from './regras.js';
+import { dataValida, estaConcluida, estaSobrestada, itensDosIndicadores, prazoDemanda } from './indicadores.js';
+import { ErroValidacao, priorizar, priorizarFila } from './regras.js';
 import { ORIGENS, STATUS, TIPOS } from './rotulos.js';
 
 export const TIPOS_CADASTRAVEIS = ['processo', 'reuniao', 'palestra', 'outra'];
@@ -156,6 +156,30 @@ export function removerDemanda(demandas, id) {
   return demandas.filter((d) => d.id !== id);
 }
 
+// Desfaz uma exclusão: devolve a demanda à posição em que estava. Recusa se o número já foi reaproveitado por outra
+// (proximoId usa o maior id + 1, então apagar a última demanda e criar outra repete o número).
+export function restaurarDemanda(demandas, demanda, indice) {
+  if (demandas.some((d) => d.id === demanda.id)) {
+    throw new ErroCadastro({ id: `Não foi possível desfazer: o número ${demanda.id} já foi usado por outra demanda.` });
+  }
+  const i = Number.isInteger(indice) ? Math.min(Math.max(indice, 0), demandas.length) : demandas.length;
+  return [...demandas.slice(0, i), demanda, ...demandas.slice(i)];
+}
+
+// Situação de uma demanda (faixa, pontos e motivos) sem depender dos filtros da fila: usada pelo painel lateral.
+// Mesmo formato dos itens de listarDemandas; `erro` só aparece se o prazo for inválido.
+export function itemDaDemanda(demanda, hoje, contexto = {}) {
+  const prazo = prazoDemanda(demanda);
+  if (estaConcluida(demanda)) return { demanda, prazo, concluida: true };
+  if (estaSobrestada(demanda)) return { demanda, prazo, sobrestada: true };
+  try {
+    return { demanda, prazo, ...priorizar(demanda, hoje, contexto) };
+  } catch (e) {
+    if (!(e instanceof ErroValidacao)) throw e;
+    return { demanda, prazo, erro: e.message };
+  }
+}
+
 export function normalizarBusca(s) {
   return String(s ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 }
@@ -167,22 +191,30 @@ function textoPesquisavel(d) {
 }
 
 // Estado padrão dos filtros: é o que "Limpar filtros" restaura. O status padrão é a fila ativa, não "todos".
-export const FILTROS_PADRAO = Object.freeze({ busca: '', tipo: '', status: 'abertas', prioridade: '' });
+export const FILTROS_PADRAO = Object.freeze({ busca: '', tipo: '', status: 'abertas', prioridade: '', prazo: '' });
+
+// Recortes do filtro "prazo": cada um é um indicador da tela e usa a mesma lista dele (itensDosIndicadores).
+const RECORTE_DO_PRAZO = { vencidas: 'vencidas', proximos7: 'proximos7', semana: 'concluidasSemana' };
 
 // Há algum filtro diferente do padrão? Busca só com espaços não conta, porque não filtra nada.
 export function filtrosEmUso(filtros) {
   const f = { ...FILTROS_PADRAO, ...filtros };
-  return f.busca.trim() !== '' || f.tipo !== FILTROS_PADRAO.tipo || f.status !== FILTROS_PADRAO.status || f.prioridade !== FILTROS_PADRAO.prioridade;
+  return f.busca.trim() !== '' || f.tipo !== FILTROS_PADRAO.tipo || f.status !== FILTROS_PADRAO.status || f.prioridade !== FILTROS_PADRAO.prioridade || f.prazo !== FILTROS_PADRAO.prazo;
 }
 
 // Lista a fila conforme os filtros.
-// filtros: { busca, tipo, status, prioridade }
+// filtros: { busca, tipo, status, prioridade, prazo }
 //   status: 'abertas' (padrão: fila ativa) | a_fazer | em_andamento | aguardando (sobrestadas) | concluida
 //   prioridade: faixa ('Crítica' | 'Alta' | 'Média' | 'Baixa'); só existe para demandas abertas.
+//   prazo: '' | 'vencidas' | 'proximos7' (com status abertas) | 'semana' (com status concluida): os mesmos itens do indicador.
+//     Fora dessas combinações (ex.: vencidas com concluída) a lista fica vazia.
 export function listarDemandas(demandas, filtros, hoje, contexto = {}) {
-  const { busca = '', tipo = '', status = 'abertas', prioridade = '' } = filtros;
+  const { busca = '', tipo = '', status = 'abertas', prioridade = '', prazo = '' } = filtros;
   const termos = normalizarBusca(busca).split(/\s+/).filter(Boolean);
-  const confere = (d) => (!tipo || d.tipo === tipo) && termos.every((t) => textoPesquisavel(d).includes(t));
+  const chave = RECORTE_DO_PRAZO[prazo];
+  const idsDoRecorte = chave ? new Set(itensDosIndicadores(demandas, hoje)[chave].map((x) => x.demanda.id)) : null;
+  const confere = (d) =>
+    (!tipo || d.tipo === tipo) && (!idsDoRecorte || idsDoRecorte.has(d.id)) && termos.every((t) => textoPesquisavel(d).includes(t));
 
   if (status === 'concluida') {
     const itens = prioridade

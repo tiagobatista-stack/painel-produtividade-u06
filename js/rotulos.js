@@ -15,6 +15,8 @@ export const ETAPAS_PONTO = {
   encerrado_nao_constatado: 'Encerrado: não constatado',
   encerrado_nao_acessado: 'Encerrado: não acessado',
 };
+// Opções do filtro "Prazo" da fila (cada uma é um indicador da tela).
+export const FILTRO_PRAZO = { '': 'Todos', vencidas: 'Vencidas', proximos7: 'Próximos 7 dias', semana: 'Concluídas na semana' };
 export const TIPOS_AFASTAMENTO = { ferias: 'Férias', licenca_premio: 'Licença-prêmio', compensacao: 'Compensação' };
 // Tipos de evento da agenda e do calendário.
 export const ROTULOS_EVENTO = {

@@ -24,7 +24,7 @@ const dataBreve = (iso) => formatarData(iso).slice(0, 5);
 
 export function desenharAgenda(hoje) {
   const eventos = agenda(estado.dados.demandas, estado.dados.afastamentos, hoje);
-  const caixa = $('agenda');
+  const caixa = $('agenda-7-dias');
   if (eventos.length === 0) {
     caixa.replaceChildren(elemento('p', 'nota', `Nenhum compromisso nos próximos ${DIAS_AGENDA} dias.`));
     return;

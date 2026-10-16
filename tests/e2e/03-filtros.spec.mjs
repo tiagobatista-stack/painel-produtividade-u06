@@ -18,7 +18,7 @@ test.describe('busca e filtros', () => {
     await filtros(page).getByLabel('Prioridade').selectOption({ label: 'Todas' });
     await filtros(page).getByLabel('Status').selectOption({ label: 'Concluída' });
     await expect(page.locator('#contagem')).toHaveText('2 demandas');
-    await expect(page.locator('#fila .prioridade').first()).toContainText('Concluída em');
+    await expect(page.locator('#fila .demanda-prazo').first()).toContainText('Concluída em');
     await filtros(page).getByLabel('Status').selectOption({ label: 'Sobrestado (aguardando)' });
     await expect(page.locator('#contagem')).toHaveText('1 demanda');
     await expect(page.locator('#fila')).toContainText('Resposta a manifestação de ouvidoria');

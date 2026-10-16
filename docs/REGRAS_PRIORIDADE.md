@@ -36,6 +36,21 @@ Crítica ≥ 70 · Alta 45–69 · Média 25–44 · Baixa < 25.
 - Operação: prazo = retorno + `prazo_dias`; relatórios pendentes = pontos em `vistoriado` ou `relatorio_elaboracao`; status derivado das etapas.
 - Prazo de hoje (0 dias) entra na faixa de 0 a 2 dias.
 
+## Regras propostas para as melhorias (M9–M10, a validar)
+
+Nenhum peso da tabela de pontuação muda. As regras abaixo só agrupam ou retiram itens da fila; detalhes em `docs/MELHORIAS_KANBAN_GTD.md`.
+
+- **Caixa de entrada (M10):** item com status `entrada` está fora da fila, não pontua e não conta em nenhum indicador de prazo. O prazo não é validado enquanto estiver na entrada (como no sobrestamento). Ao processá-lo, passa a valer a validação normal (prazo ausente gera erro, como no T8).
+- **Classes de serviço (M9):** calculadas depois de `priorizar`, sem alterar o placar. Urgente = aberta e (vencida ou faixa Crítica); Data fixa = reunião ou palestra; Padrão = processo ou operação não urgente; Rotina = outra. Urgente prevalece sobre as demais.
+- **Cobrança do sobrestado (M10):** `cobrar_em` só destaca o item em "Foco de hoje"; ele continua sobrestado e fora do placar até mudar de status.
+- **Ordem dentro de cada coluna do quadro:** a mesma da fila (maior score, prazo mais próximo, criação).
+
+| Caso proposto | Entrada | Resultado esperado |
+|---|---|---|
+| T15 | Item em `entrada` só com título, sem tipo nem prazo | fora da fila, sem erro de validação |
+| T16 | Processo sobrestado (como T12) com `cobrar_em` = 2026-10-15 | fora da fila; listado em "Foco de hoje" como cobrança |
+| T17 | Reunião com prazo em 5 dias (como T6) | score 35, Média, classe Data fixa; fora de "Foco de hoje" |
+
 ## Casos de teste (hoje = 2026-10-15)
 
 | Caso | Entrada | Score | Faixa esperada |
