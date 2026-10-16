@@ -1,14 +1,14 @@
 N_PONTO	EQUIPE	COORD_X	COORD_Y	MUNICIPIO	DAT_SAIDA	DAT_RETOR	NOT_PLANEJ
-1	Equipe Fictícia Leste			Município Fictício A	09/11/2026	13/11/2026	Possível corte raso
-2	Equipe Fictícia Leste			Município Fictício A	09/11/2026	13/11/2026	Possível corte raso
-3	Equipe Fictícia Leste			Município Fictício A	09/11/2026	13/11/2026	Exploração seletiva
-4	Equipe Fictícia Leste			Município Fictício A	09/11/2026	13/11/2026	Fora de CAR
-5	Equipe Fictícia Leste			Município Fictício A	09/11/2026	13/11/2026	Possível corte raso
-6	Equipe Fictícia Leste			Município Fictício A	09/11/2026	13/11/2026	Exploração seletiva
-7	Equipe Fictícia Leste			Município Fictício B	09/11/2026	13/11/2026	Possível corte raso
-8	Equipe Fictícia Leste			Município Fictício B	09/11/2026	13/11/2026	Fora de CAR
-9	Equipe Fictícia Leste			Município Fictício B	09/11/2026	13/11/2026	Possível corte raso
-10	Equipe Fictícia Leste			Município Fictício B	09/11/2026	13/11/2026	Exploração seletiva
-11	Equipe Fictícia Leste			Município Fictício B	09/11/2026	13/11/2026	Possível corte raso
-12	Equipe Fictícia Leste			Município Fictício B	09/11/2026	13/11/2026	Possível corte raso
-13	Equipe Fictícia Leste			Município Fictício B	09/11/2026	13/11/2026	Fora de CAR
+1	Equipe Fictícia Leste	-20,5137	-15,5937	Município Fictício A	09/11/2026	13/11/2026	Possível corte raso
+2	Equipe Fictícia Leste	-20,5274	-15,5874	Município Fictício A	09/11/2026	13/11/2026	Possível corte raso
+3	Equipe Fictícia Leste	-20,5411	-15,5811	Município Fictício A	09/11/2026	13/11/2026	Exploração seletiva
+4	Equipe Fictícia Leste	-20,5548	-15,5748	Município Fictício A	09/11/2026	13/11/2026	Fora de CAR
+5	Equipe Fictícia Leste	-20,5685	-15,5685	Município Fictício A	09/11/2026	13/11/2026	Possível corte raso
+6	Equipe Fictícia Leste	-20,5822	-15,5622	Município Fictício A	09/11/2026	13/11/2026	Exploração seletiva
+7	Equipe Fictícia Leste	-20,5959	-15,5559	Município Fictício B	09/11/2026	13/11/2026	Possível corte raso
+8	Equipe Fictícia Leste	-20,6096	-15,5496	Município Fictício B	09/11/2026	13/11/2026	Fora de CAR
+9	Equipe Fictícia Leste	-20,6233	-15,5433	Município Fictício B	09/11/2026	13/11/2026	Possível corte raso
+10	Equipe Fictícia Leste	-20,637	-15,537	Município Fictício B	09/11/2026	13/11/2026	Exploração seletiva
+11	Equipe Fictícia Leste	-20,6507	-15,5307	Município Fictício B	09/11/2026	13/11/2026	Possível corte raso
+12	Equipe Fictícia Leste	-20,6644	-15,5244	Município Fictício B	09/11/2026	13/11/2026	Possível corte raso
+13	Equipe Fictícia Leste	-20,6781	-15,5181	Município Fictício B	09/11/2026	13/11/2026	Fora de CAR

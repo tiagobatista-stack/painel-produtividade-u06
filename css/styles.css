@@ -156,3 +156,15 @@ button:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
   .evento { grid-template-columns: 4.5rem 11rem 1fr; }
   .evento-tipo, .evento-titulo { grid-column: auto; }
 }
+
+/* ---- M5: resumo da semana e exportações ---- */
+.resumo { grid-template-columns: repeat(2, 1fr); }
+.aviso-dados { margin: 8px 0; font-size: 0.85rem; color: #78350f; background: #fffbeb; border-left: 3px solid #b45309; padding: 6px 10px; }
+.botoes-exportar { display: flex; flex-wrap: wrap; gap: 8px; }
+
+@media (min-width: 600px) {
+  .resumo { grid-template-columns: repeat(4, 1fr); }
+}
+@media (min-width: 1000px) {
+  .resumo { grid-template-columns: repeat(4, 1fr); }
+}

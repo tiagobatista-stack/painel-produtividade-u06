@@ -9,3 +9,8 @@ evidencias-privadas/
 *.xlsx
 docs/*.docx
 docs/AULA_INTERATIVA.html
+exportacoes/
+demandas-*.csv
+pontos-*.csv
+resumo-semanal-*.txt
+painel-*.json

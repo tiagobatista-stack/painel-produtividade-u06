@@ -49,6 +49,15 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 - **Autos a lavrar**: pontos em `relatorio_concluido`.
 - **Concluídas na semana**: concluídas com `concluida_em` na semana corrente (segunda a domingo).
 
+## Exportações (RF11)
+
+- **CSV de demandas:** todas as demandas, inclusive concluídas e sobrestadas, sem coordenadas; faixa e score só para as ativas.
+- **CSV de pontos:** pontos de todas as operações, com coordenadas; as 8 primeiras colunas são as da planilha da coordenação, e as linhas de uma operação podem ser coladas de volta na importação.
+- **Formato:** pensado para o Excel em português (separador `;`, UTF-8 com BOM, datas dd/mm/aaaa, vírgula decimal). Texto que começa com `=`, `+`, `-`, `@` ou tabulação recebe um apóstrofo, para não virar fórmula.
+- **JSON:** cópia completa do que está no navegador. Restaurar a partir do JSON não faz parte do RF11.
+- **Resumo semanal (TXT):** semana de segunda a domingo conforme a data de referência. Relatórios concluídos = pontos com data de relatório na semana; autos lavrados = pontos com data de auto na semana; sem auto = pontos encerrados como não constatado ou não acessado.
+- **Coordenadas do exemplo são fictícias**, em pleno Atlântico, longe de qualquer local real. Arquivos exportados com dados reais devem ficar em local institucional, nunca no repositório (o `.gitignore` ignora os nomes padrão).
+
 ## Fora do escopo
 
 Autenticação e perfis, backend e banco de dados, integração com SIGADOC e sistema de autos, cruzamento com camadas SEMA-MT, cálculo de saldo de férias e dados reais.

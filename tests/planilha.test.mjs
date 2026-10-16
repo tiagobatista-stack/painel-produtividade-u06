@@ -11,7 +11,7 @@ const linha = (n, extra = {}) => {
 };
 const erroDe = (r) => r.erros.map((e) => `${e.linha}:${e.campo}`);
 
-test('planilha de exemplo: 13 pontos, 2 municípios, viagem de 5 dias, sem coordenadas', () => {
+test('planilha de exemplo: 13 pontos, 2 municípios, viagem de 5 dias, coordenadas fictícias', () => {
   const r = lerPlanilha(exemplo);
   assert.equal(r.ok, true, JSON.stringify(r.erros));
   const op = r.operacao;
@@ -20,7 +20,10 @@ test('planilha de exemplo: 13 pontos, 2 municípios, viagem de 5 dias, sem coord
   assert.equal(op.equipe, 'Equipe Fictícia Leste');
   assert.equal(op.saida, '2026-11-09');
   assert.equal(op.retorno, '2026-11-13');
-  assert.ok(op.pontos.every((p) => p.coord_x === null && p.coord_y === null));
+  // coordenadas fictícias em pleno Atlântico, com vírgula decimal como no Excel em português
+  assert.equal(op.pontos[0].coord_x, -20.5137);
+  assert.equal(op.pontos[0].coord_y, -15.5937);
+  assert.ok(op.pontos.every((p) => p.coord_x < -20 && p.coord_x > -21 && p.coord_y < -15 && p.coord_y > -16));
   assert.equal(op.pontos[0].nota, 'Possível corte raso');
   assert.deepEqual(op.pontos.map((p) => p.n), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
 });
@@ -107,4 +110,9 @@ test('entradas inválidas: vazio, só cabeçalho, coluna obrigatória ausente, l
 test('texto da nota é limitado a 200 caracteres', () => {
   const r = lerPlanilha(`${CAB}\n${linha(1, { nota: 'x'.repeat(300) })}`);
   assert.equal(r.operacao.pontos[0].nota.length, 200);
+});
+
+test('CSV com BOM (como o Excel grava) é lido sem problema no cabeçalho', () => {
+  const r = lerPlanilha('\uFEFFN_PONTO;EQUIPE;MUNICIPIO;DAT_SAIDA;DAT_RETOR\r\n1;Eq;Cidade;01/11/2026;05/11/2026\r\n');
+  assert.equal(r.ok, true, JSON.stringify(r.erros));
 });

@@ -12,7 +12,7 @@ Painel de Demandas: fila única priorizada por prazo e criticidade para reuniõe
 
 ## Status
 
-M0 a M3 concluídos (fundação, painel, motor de prioridade, cadastro e filtros). M4 (operação de alertas, afastamentos, agenda e sobrestamento) pronto para revisão.
+M0 a M5 concluídos (fundação, painel, motor de prioridade, cadastro e filtros, operação de alertas, afastamentos, agenda, sobrestamento, resumo semanal e exportações). Próximo: M6 (MCP local).
 
 ## Aviso
 

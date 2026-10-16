@@ -28,6 +28,20 @@
       <ul id="indicadores" class="indicadores"></ul>
     </section>
 
+    <section aria-labelledby="titulo-resumo">
+      <h2 id="titulo-resumo">Resumo da semana e exportações</h2>
+      <p id="resumo-periodo" class="nota"></p>
+      <ul id="resumo-semana" class="indicadores resumo"></ul>
+      <p id="resumo-tipos" class="nota"></p>
+      <p class="aviso-dados">Os arquivos exportados contêm os dados cadastrados neste navegador, inclusive as coordenadas dos pontos. Com dados reais, guarde-os em local institucional e nunca no repositório nem na Vercel.</p>
+      <div class="botoes-exportar">
+        <button type="button" id="exp-demandas">Exportar demandas (CSV)</button>
+        <button type="button" id="exp-pontos">Exportar pontos (CSV)</button>
+        <button type="button" id="exp-resumo">Resumo semanal (TXT)</button>
+        <button type="button" id="exp-json">Cópia completa (JSON)</button>
+      </div>
+    </section>
+
     <section aria-labelledby="titulo-agenda">
       <h2 id="titulo-agenda">Agenda dos próximos 7 dias</h2>
       <div id="agenda" class="agenda"></div>

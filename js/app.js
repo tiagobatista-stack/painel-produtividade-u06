@@ -8,6 +8,7 @@ import {
 } from './ui-comum.js';
 import { abrirRetorno, blocoPontos, botaoSobrestamento, iniciarOperacoes, temPlanejados } from './ui-operacao.js';
 import { desenharAfastamentos, desenharAgenda, desenharBanner, iniciarAfastamentos } from './ui-afastamentos.js';
+import { desenharResumo, iniciarExportacao } from './ui-exportacao.js';
 
 const INDICADORES = [
   ['abertas', 'Abertas'],
@@ -150,6 +151,7 @@ function atualizar() {
   const hoje = hojeAtual();
   desenharBanner(hoje);
   desenharIndicadores(calcularIndicadores(estado.dados.demandas, hoje));
+  desenharResumo(hoje);
   desenharAgenda(hoje);
   desenharFila(hoje);
   desenharAfastamentos(hoje);
@@ -282,6 +284,7 @@ async function iniciar() {
 
   iniciarOperacoes();
   iniciarAfastamentos();
+  iniciarExportacao();
   atualizar();
 }
 

@@ -61,7 +61,8 @@ function lerNumero(valor) {
 export function lerPlanilha(texto) {
   const erros = [];
   const erro = (linha, campo, mensagem) => erros.push({ linha, campo, mensagem });
-  const linhas = tabular(String(texto ?? ''));
+  // O Excel grava CSV em UTF-8 com BOM; ele não faz parte do cabeçalho.
+  const linhas = tabular(String(texto ?? '').replace(/^\uFEFF/, ''));
   if (linhas.length === 0) return { ok: false, erros: [{ linha: 0, campo: null, mensagem: 'Cole as linhas da planilha.' }] };
 
   const nomes = linhas[0].map(chave);
