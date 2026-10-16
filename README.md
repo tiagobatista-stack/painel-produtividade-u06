@@ -12,7 +12,7 @@ Painel de Demandas: fila única priorizada por prazo e criticidade para reuniõe
 
 ## Status
 
-M0 (fundação) concluído. Próximo: M1 (painel estático).
+M0 a M3 concluídos (fundação, painel, motor de prioridade, cadastro e filtros). M4 (operação de alertas, afastamentos, agenda e sobrestamento) pronto para revisão.
 
 ## Aviso
 

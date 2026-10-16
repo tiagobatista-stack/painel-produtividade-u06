@@ -1,5 +1,5 @@
 // Cadastro, edição, status e filtros. Funções puras: não alteram os argumentos e não tocam em tela nem armazenamento.
-import { dataValida, estaConcluida, prazoDemanda } from './indicadores.js';
+import { dataValida, estaConcluida, estaSobrestada, prazoDemanda } from './indicadores.js';
 import { priorizarFila } from './regras.js';
 import { ORIGENS, STATUS, TIPOS } from './rotulos.js';
 
@@ -18,6 +18,9 @@ export class ErroCadastro extends Error {
     this.erros = erros; // { campo: mensagem }
   }
 }
+
+const PRAZO_DIAS_MAX = 365;
+const HORAS_MAX = 24;
 
 const texto = (v) => (typeof v === 'string' ? v.trim() : '');
 const vazio = (v) => v === undefined || v === null || String(v).trim() === '';
@@ -71,6 +74,39 @@ function normalizar(tipo, dados) {
   return limpo;
 }
 
+// Parâmetros editáveis da operação: prazo (dias após o retorno) e horas por relatório.
+export function validarParametros({ prazo_dias, horas_ponto }) {
+  const erros = {};
+  const dias = Number(prazo_dias);
+  const horas = Number(horas_ponto);
+  if (String(prazo_dias ?? '').trim() === '' || !Number.isInteger(dias) || dias < 0 || dias > PRAZO_DIAS_MAX) {
+    erros.prazo_dias = `Informe um número inteiro de 0 a ${PRAZO_DIAS_MAX}.`;
+  }
+  if (String(horas_ponto ?? '').trim() === '' || !Number.isFinite(horas) || horas <= 0 || horas > HORAS_MAX) {
+    erros.horas_ponto = `Informe as horas por relatório (maior que 0 e até ${HORAS_MAX}).`;
+  }
+  if (Object.keys(erros).length) throw new ErroCadastro(erros);
+  return { prazo_dias: dias, horas_ponto: horas };
+}
+
+// Edição de operação: título, origem e parâmetros. Status e prazo são derivados dos pontos.
+function editarOperacao(original, dados, hoje) {
+  const erros = {};
+  const titulo = texto(dados.titulo);
+  if (!titulo) erros.titulo = 'Informe o título.';
+  else if (titulo.length > 120) erros.titulo = 'Use no máximo 120 caracteres.';
+  if (!ORIGENS_GERAIS.includes(dados.origem)) erros.origem = 'Escolha uma origem válida para este tipo.';
+  let parametros = {};
+  try {
+    parametros = validarParametros(dados);
+  } catch (e) {
+    if (!(e instanceof ErroCadastro)) throw e;
+    Object.assign(erros, e.erros);
+  }
+  if (Object.keys(erros).length) throw new ErroCadastro(erros);
+  return { ...original, titulo, origem: dados.origem, ...parametros, historico: [...(original.historico || []), { data: hoje, evento: 'Editada' }] };
+}
+
 export function proximoId(demandas) {
   const maior = demandas.reduce((max, d) => {
     const m = /^DEM-(\d+)$/.exec(d.id || '');
@@ -90,7 +126,7 @@ export function criarDemanda(dados, existentes, hoje) {
 }
 
 export function editarDemanda(original, dados, hoje) {
-  if (original.tipo === 'operacao') throw new ErroCadastro({ tipo: 'A edição de operação ainda não está disponível.' });
+  if (original.tipo === 'operacao') return editarOperacao(original, dados, hoje);
   const limpo = normalizar(original.tipo, dados);
   const { concluida_em, ...base } = original;
   const editada = { ...base, ...limpo, historico: [...(original.historico || []), { data: hoje, evento: 'Editada' }] };
@@ -127,7 +163,7 @@ function textoPesquisavel(d) {
 
 // Lista a fila conforme os filtros.
 // filtros: { busca, tipo, status, prioridade }
-//   status: 'abertas' (padrão) | a_fazer | em_andamento | aguardando | concluida
+//   status: 'abertas' (padrão: fila ativa) | a_fazer | em_andamento | aguardando (sobrestadas) | concluida
 //   prioridade: faixa ('Crítica' | 'Alta' | 'Média' | 'Baixa'); só existe para demandas abertas.
 export function listarDemandas(demandas, filtros, hoje, contexto = {}) {
   const { busca = '', tipo = '', status = 'abertas', prioridade = '' } = filtros;
@@ -141,6 +177,16 @@ export function listarDemandas(demandas, filtros, hoje, contexto = {}) {
           .filter((d) => estaConcluida(d) && confere(d))
           .map((d) => ({ demanda: d, prazo: prazoDemanda(d), concluida: true }))
           .sort((a, b) => (b.demanda.concluida_em || '').localeCompare(a.demanda.concluida_em || ''));
+    return { itens, erros: [] };
+  }
+
+  if (status === 'aguardando') {
+    const itens = prioridade
+      ? []
+      : demandas
+          .filter((d) => estaSobrestada(d) && confere(d))
+          .map((d) => ({ demanda: d, prazo: prazoDemanda(d), sobrestada: true }))
+          .sort((a, b) => (a.prazo ?? '9999').localeCompare(b.prazo ?? '9999'));
     return { itens, erros: [] };
   }
 

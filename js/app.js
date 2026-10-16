@@ -1,7 +1,13 @@
-import { calcularIndicadores, relatoriosPendentes, autosALavrar, diasEntre, dataValida } from './indicadores.js';
+import { calcularIndicadores, relatoriosPendentes, autosALavrar } from './indicadores.js';
 import { ErroCadastro, TIPOS_CADASTRAVEIS, alterarStatus, criarDemanda, editarDemanda, listarDemandas, origensDoTipo } from './demandas.js';
-import { carregar, salvar } from './armazenamento.js';
+import { esforcoHoras } from './operacoes.js';
+import { carregar } from './armazenamento.js';
 import { ORIGENS, STATUS, TIPOS } from './rotulos.js';
+import {
+  $, criarGestorErros, elemento, estado, formatarData, hojeAtual, hojeLocal, mostrarAviso, opcoes, persistir, restaurarFoco, textoPrazo,
+} from './ui-comum.js';
+import { abrirRetorno, blocoPontos, iniciarOperacoes, temPlanejados } from './ui-operacao.js';
+import { desenharAfastamentos, desenharAgenda, desenharBanner, iniciarAfastamentos } from './ui-afastamentos.js';
 
 const INDICADORES = [
   ['abertas', 'Abertas'],
@@ -10,76 +16,23 @@ const INDICADORES = [
   ['relatoriosPendentes', 'Relatórios pendentes'],
   ['autosALavrar', 'Autos a lavrar'],
   ['concluidasSemana', 'Concluídas na semana'],
+  ['sobrestados', 'Sobrestados'],
 ];
 const FAIXAS = ['Crítica', 'Alta', 'Média', 'Baixa'];
-const CAMPOS = ['tipo', 'titulo', 'origem', 'processo', 'etapa', 'data_hora', 'local', 'publico', 'prazo', 'status', 'esforco_h'];
+const CAMPOS = ['tipo', 'titulo', 'origem', 'processo', 'etapa', 'data_hora', 'local', 'publico', 'prazo', 'status', 'esforco_h', 'prazo_dias', 'horas_ponto'];
 
-const $ = (id) => document.getElementById(id);
 const campoData = $('data-referencia');
-const aviso = $('erro');
 const dialogo = $('dialogo');
 const formulario = $('formulario');
-const resumoErros = $('resumo-erros');
 const filtroBusca = $('filtro-busca');
 const filtroTipo = $('filtro-tipo');
 const filtroStatus = $('filtro-status');
 const filtroPrioridade = $('filtro-prioridade');
+const gestor = criarGestorErros({ resumo: $('resumo-erros'), campos: CAMPOS, idCampo: (c) => `f-${c}`, idErro: (c) => `e-${c}` });
 
-let seed = null;
-let dados = null; // { versao, demandas, afastamentos }
-let storage = null;
 let editando = null; // demanda em edição, ou null quando é nova
 let gatilho = null; // elemento que abriu o formulário, para devolver o foco
-let focoApos = null; // data-foco a restaurar após redesenhar
 let salvouNoDialogo = false; // distingue salvar de cancelar ao fechar o formulário
-
-function hojeLocal() {
-  return new Date().toLocaleDateString('en-CA');
-}
-
-function hojeAtual() {
-  return dataValida(campoData.value) ? campoData.value : hojeLocal();
-}
-
-function formatarData(iso) {
-  const [a, m, d] = iso.split('-');
-  return `${d}/${m}/${a}`;
-}
-
-function textoPrazo(prazo, hoje) {
-  if (prazo === null) return { texto: 'Sem prazo válido', vencida: false };
-  const dias = diasEntre(hoje, prazo);
-  if (dias < 0) return { texto: `${formatarData(prazo)} · vencida há ${-dias} ${dias === -1 ? 'dia' : 'dias'}`, vencida: true };
-  if (dias === 0) return { texto: `${formatarData(prazo)} · vence hoje`, vencida: false };
-  return { texto: `${formatarData(prazo)} · em ${dias} ${dias === 1 ? 'dia' : 'dias'}`, vencida: false };
-}
-
-function elemento(tag, classe, texto) {
-  const el = document.createElement(tag);
-  if (classe) el.className = classe;
-  if (texto !== undefined) el.textContent = texto;
-  return el;
-}
-
-function opcoes(select, pares, selecionado) {
-  select.replaceChildren(...pares.map(([valor, rotulo]) => {
-    const o = elemento('option', '', rotulo);
-    o.value = valor;
-    return o;
-  }));
-  if (selecionado !== undefined) select.value = selecionado;
-}
-
-function mostrarAviso(mensagem) {
-  aviso.textContent = mensagem;
-  aviso.hidden = !mensagem;
-}
-
-function persistir() {
-  if (!salvar(storage, dados)) {
-    mostrarAviso('Não foi possível salvar no navegador. As alterações valem só até recarregar a página.');
-  }
-}
 
 // ---------- Indicadores e fila ----------
 
@@ -98,12 +51,13 @@ function classeFaixa(faixa) {
 }
 
 function cartao(item, hoje) {
-  const { demanda: d, prazo, score, faixa, motivos, concluida } = item;
+  const { demanda: d, prazo, score, faixa, motivos, concluida, sobrestada } = item;
   const info = textoPrazo(prazo, hoje);
   const classes = ['demanda'];
   if (faixa) classes.push(classeFaixa(faixa));
   if (concluida) classes.push('concluida');
-  if (info.vencida && !concluida) classes.push('vencida');
+  if (sobrestada) classes.push('sobrestada');
+  if (info.vencida && !concluida && !sobrestada) classes.push('vencida');
   const li = elemento('li', classes.join(' '));
 
   const topo = elemento('div', 'demanda-topo');
@@ -112,11 +66,14 @@ function cartao(item, hoje) {
 
   if (concluida) {
     li.append(elemento('p', 'prioridade', d.concluida_em ? `Concluída em ${formatarData(d.concluida_em)}` : 'Concluída'));
+  } else if (sobrestada) {
+    li.append(elemento('p', 'prioridade', 'Sobrestado: prazo suspenso, aguardando resposta do interessado'));
   } else {
     li.append(elemento('p', 'prioridade', `Prioridade ${faixa} · ${score} pontos`));
   }
   li.append(elemento('p', 'demanda-detalhe', `Origem: ${ORIGENS[d.origem]}`));
-  if (!concluida) li.append(elemento('p', 'demanda-prazo', `Prazo: ${info.texto}`));
+  if (sobrestada) li.append(elemento('p', 'demanda-detalhe', `Prazo registrado: ${formatarData(prazo)} (não conta enquanto sobrestado)`));
+  else if (!concluida) li.append(elemento('p', 'demanda-prazo', `Prazo: ${info.texto}`));
   if (d.processo) li.append(elemento('p', 'demanda-detalhe', `Processo ${d.processo}${d.etapa ? ` · etapa: ${d.etapa.replaceAll('_', ' ')}` : ''}`));
   if (d.data_hora) {
     const [dia, hora] = d.data_hora.split('T');
@@ -125,7 +82,8 @@ function cartao(item, hoje) {
   if (d.tipo === 'operacao') {
     const pend = relatoriosPendentes(d);
     const autos = autosALavrar(d);
-    li.append(elemento('p', 'demanda-detalhe', `${pend} ${pend === 1 ? 'relatório pendente' : 'relatórios pendentes'} · ${autos} ${autos === 1 ? 'auto a lavrar' : 'autos a lavrar'}`));
+    li.append(elemento('p', 'demanda-detalhe', `${d.equipe} · saída ${formatarData(d.saida)} · retorno ${formatarData(d.retorno)}`));
+    li.append(elemento('p', 'demanda-detalhe', `${pend} ${pend === 1 ? 'relatório pendente' : 'relatórios pendentes'} · ${autos} ${autos === 1 ? 'auto a lavrar' : 'autos a lavrar'} · esforço estimado ${esforcoHoras(d)} h`));
   }
 
   if (motivos) {
@@ -135,6 +93,7 @@ function cartao(item, hoje) {
     detalhes.append(elemento('summary', '', 'Por que esta prioridade?'), lista);
     li.append(detalhes);
   }
+  if (d.tipo === 'operacao') li.append(blocoPontos(d));
 
   if (d.historico?.length) {
     const detalhes = elemento('details', 'motivos');
@@ -144,8 +103,8 @@ function cartao(item, hoje) {
     li.append(detalhes);
   }
 
+  const acoes = elemento('div', 'acoes-cartao');
   if (d.tipo !== 'operacao') {
-    const acoes = elemento('div', 'acoes-cartao');
     const rotulo = elemento('label', 'rotulo-status', 'Status');
     const select = elemento('select');
     select.id = `status-${d.id}`;
@@ -153,14 +112,23 @@ function cartao(item, hoje) {
     select.dataset.foco = `status-${d.id}`;
     opcoes(select, Object.entries(STATUS), d.status);
     select.addEventListener('change', () => mudarStatus(d.id, select.value));
-    const editar = elemento('button', '', 'Editar');
-    editar.type = 'button';
-    editar.dataset.foco = `editar-${d.id}`;
-    editar.setAttribute('aria-label', `Editar ${d.titulo}`);
-    editar.addEventListener('click', () => abrirFormulario(d, editar));
-    acoes.append(rotulo, select, editar);
-    li.append(acoes);
+    acoes.append(rotulo, select);
   }
+  const editar = elemento('button', '', 'Editar');
+  editar.type = 'button';
+  editar.dataset.foco = `editar-${d.id}`;
+  editar.setAttribute('aria-label', `Editar ${d.titulo}`);
+  editar.addEventListener('click', () => abrirFormulario(d, editar));
+  acoes.append(editar);
+  if (temPlanejados(d)) {
+    const retorno = elemento('button', 'primario', 'Registrar retorno');
+    retorno.type = 'button';
+    retorno.dataset.foco = `retorno-${d.id}`;
+    retorno.setAttribute('aria-label', `Registrar retorno de ${d.titulo}`);
+    retorno.addEventListener('click', () => abrirRetorno(d, retorno));
+    acoes.append(retorno);
+  }
+  li.append(acoes);
   return li;
 }
 
@@ -169,7 +137,7 @@ function filtrosAtuais() {
 }
 
 function desenharFila(hoje) {
-  const { itens, erros } = listarDemandas(dados.demandas, filtrosAtuais(), hoje, { afastamentos: dados.afastamentos });
+  const { itens, erros } = listarDemandas(estado.dados.demandas, filtrosAtuais(), hoje, { afastamentos: estado.dados.afastamentos });
   $('fila-vazia').hidden = itens.length > 0;
   $('contagem').textContent = `${itens.length} ${itens.length === 1 ? 'demanda' : 'demandas'}`;
   $('fila').replaceChildren(...itens.map((item) => cartao(item, hoje)));
@@ -179,29 +147,29 @@ function desenharFila(hoje) {
 
 function atualizar() {
   const hoje = hojeAtual();
-  desenharIndicadores(calcularIndicadores(dados.demandas, hoje));
+  desenharBanner(hoje);
+  desenharIndicadores(calcularIndicadores(estado.dados.demandas, hoje));
+  desenharAgenda(hoje);
   desenharFila(hoje);
-  if (focoApos) {
-    document.querySelector(`[data-foco="${focoApos}"]`)?.focus();
-    focoApos = null;
-  }
+  desenharAfastamentos(hoje);
+  restaurarFoco();
 }
 
 function mudarStatus(id, novoStatus) {
-  const i = dados.demandas.findIndex((d) => d.id === id);
+  const i = estado.dados.demandas.findIndex((d) => d.id === id);
   try {
-    dados.demandas[i] = alterarStatus(dados.demandas[i], novoStatus, hojeAtual());
+    estado.dados.demandas[i] = alterarStatus(estado.dados.demandas[i], novoStatus, hojeAtual());
   } catch (e) {
     if (!(e instanceof ErroCadastro)) throw e;
     mostrarAviso(Object.values(e.erros)[0]);
     return;
   }
   persistir();
-  focoApos = `status-${id}`;
+  estado.focoApos = `status-${id}`;
   atualizar();
 }
 
-// ---------- Formulário ----------
+// ---------- Formulário de demanda ----------
 
 function atualizarCamposDoTipo(tipo) {
   for (const campo of formulario.querySelectorAll('[data-tipos]')) {
@@ -212,39 +180,11 @@ function atualizarCamposDoTipo(tipo) {
   opcoes($('f-origem'), validas.map((o) => [o, ORIGENS[o]]), validas.includes(atual) ? atual : validas[0]);
 }
 
-function limparErros() {
-  resumoErros.hidden = true;
-  resumoErros.replaceChildren();
-  for (const campo of CAMPOS) {
-    $(`e-${campo}`).textContent = '';
-    const input = $(`f-${campo}`);
-    input.removeAttribute('aria-invalid');
-    input.removeAttribute('aria-describedby');
-  }
-}
-
-function mostrarErros(erros) {
-  limparErros();
-  const lista = elemento('ul');
-  let primeiro = null;
-  for (const campo of CAMPOS.filter((c) => c in erros)) {
-    $(`e-${campo}`).textContent = erros[campo];
-    const input = $(`f-${campo}`);
-    input.setAttribute('aria-invalid', 'true');
-    input.setAttribute('aria-describedby', `e-${campo}`);
-    lista.append(elemento('li', '', erros[campo]));
-    primeiro ??= input;
-  }
-  resumoErros.append(elemento('strong', '', 'Corrija os campos abaixo:'), lista);
-  resumoErros.hidden = false;
-  (primeiro && !primeiro.closest('[hidden]') ? primeiro : resumoErros).focus();
-}
-
 function abrirFormulario(demanda, origemDoClique) {
   editando = demanda;
   gatilho = origemDoClique;
   formulario.reset();
-  limparErros();
+  gestor.limpar();
   $('dialogo-titulo').textContent = demanda ? 'Editar demanda' : 'Nova demanda';
   const tipoSelect = $('f-tipo');
   opcoes(tipoSelect, (demanda ? [demanda.tipo] : TIPOS_CADASTRAVEIS).map((t) => [t, TIPOS[t]]), demanda ? demanda.tipo : 'processo');
@@ -253,7 +193,7 @@ function abrirFormulario(demanda, origemDoClique) {
   atualizarCamposDoTipo(tipoSelect.value);
   if (demanda) {
     $('f-origem').value = demanda.origem;
-    for (const campo of ['titulo', 'processo', 'etapa', 'data_hora', 'local', 'publico', 'prazo', 'esforco_h']) {
+    for (const campo of ['titulo', 'processo', 'etapa', 'data_hora', 'local', 'publico', 'prazo', 'esforco_h', 'prazo_dias', 'horas_ponto']) {
       if (demanda[campo] !== undefined) $(`f-${campo}`).value = demanda[campo];
     }
   } else {
@@ -269,17 +209,17 @@ function enviarFormulario(evento) {
   const hoje = hojeAtual();
   try {
     if (editando) {
-      const i = dados.demandas.findIndex((d) => d.id === editando.id);
-      dados.demandas[i] = editarDemanda(editando, entrada, hoje);
-      focoApos = `editar-${editando.id}`;
+      const i = estado.dados.demandas.findIndex((d) => d.id === editando.id);
+      estado.dados.demandas[i] = editarDemanda(editando, entrada, hoje);
+      estado.focoApos = `editar-${editando.id}`;
     } else {
-      const nova = criarDemanda(entrada, dados.demandas, hoje);
-      dados.demandas.push(nova);
-      focoApos = `editar-${nova.id}`;
+      const nova = criarDemanda(entrada, estado.dados.demandas, hoje);
+      estado.dados.demandas.push(nova);
+      estado.focoApos = `editar-${nova.id}`;
     }
   } catch (e) {
     if (!(e instanceof ErroCadastro)) throw e;
-    mostrarErros(e.erros);
+    gestor.mostrar(e.erros);
     return;
   }
   persistir();
@@ -300,27 +240,28 @@ function acessarStorage() {
 
 async function iniciar() {
   campoData.value = hojeLocal();
+  estado.atualizar = atualizar;
   try {
     const resposta = await fetch('data/seed.json');
     if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
-    seed = await resposta.json();
+    estado.seed = await resposta.json();
   } catch {
     mostrarAviso('Não foi possível carregar data/seed.json. Abra o painel por "npm start" (não por arquivo local).');
     return;
   }
 
-  storage = acessarStorage();
-  const carga = carregar(storage, seed);
-  dados = carga.dados;
+  estado.storage = acessarStorage();
+  const carga = carregar(estado.storage, estado.seed);
+  estado.dados = carga.dados;
   if (carga.origem === 'seed') persistir();
 
   opcoes(filtroTipo, [['', 'Todos'], ...Object.entries(TIPOS)], '');
-  opcoes(filtroStatus, [['abertas', 'Abertas (todas)'], ...Object.entries(STATUS)], 'abertas');
+  opcoes(filtroStatus, [['abertas', 'Abertas (ativas)'], ...Object.entries(STATUS)], 'abertas');
   opcoes(filtroPrioridade, [['', 'Todas'], ...FAIXAS.map((f) => [f, f])], '');
 
-  $('usar-data-seed').textContent = `Usar data do exemplo (${formatarData(seed.hoje_referencia)})`;
+  $('usar-data-seed').textContent = `Usar data do exemplo (${formatarData(estado.seed.hoje_referencia)})`;
   $('usar-data-seed').addEventListener('click', () => {
-    campoData.value = seed.hoje_referencia;
+    campoData.value = estado.seed.hoje_referencia;
     atualizar();
   });
   campoData.addEventListener('input', atualizar);
@@ -338,6 +279,8 @@ async function iniciar() {
     salvouNoDialogo = false;
   });
 
+  iniciarOperacoes();
+  iniciarAfastamentos();
   atualizar();
 }
 

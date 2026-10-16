@@ -10,8 +10,8 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 | RF02 | Exibir campos específicos conforme o tipo escolhido | M3 |
 | RF03 | Calcular prioridade automaticamente pelo motor de regras | M2 |
 | RF04 | Listar a fila ordenada por prioridade e prazo, com busca e filtros por tipo, status e prioridade | M1/M3 |
-| RF05 | Alterar status (a fazer → em andamento → aguardando → concluída) e guardar o histórico | M3 |
-| RF06 | Mostrar indicadores: abertas, vencidas, próximos 7 dias, relatórios pendentes, autos a lavrar, concluídas | M1 |
+| RF05 | Alterar status (a fazer → em andamento → aguardando/sobrestado → concluída) e guardar o histórico | M3 |
+| RF06 | Mostrar indicadores: abertas, vencidas, próximos 7 dias, relatórios pendentes, autos a lavrar, sobrestados, concluídas | M1 |
 | RF07 | Importar operação colando as linhas da planilha da coordenação; prazo dos relatórios = retorno + N dias | M4 |
 | RF08 | Registrar a etapa de cada ponto até auto lavrado ou sem auto, com ação em lote "registrar retorno" | M4 |
 | RF09 | Agendar férias e licença-prêmio e avisar sobre prazos e viagens que caem no período | M4 |
@@ -19,6 +19,7 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 | RF11 | Exportar CSV de demandas e de pontos, JSON e resumo semanal com relatórios e autos da semana | M5 |
 | RF12 | Botão "Limpar filtros" (melhoria entregue por branch e PR) | Evolução |
 | RF13 | Persistir no navegador e carregar o exemplo fictício na primeira abertura | M3 |
+| RF14 | Sobrestar demanda aguardando resposta do interessado: status "Aguardando" suspende o prazo, tira a demanda da fila ativa e dos indicadores de prazo, e a lista no filtro e no indicador "Sobrestados" | M4 |
 
 ## Não funcionais
 
@@ -41,7 +42,8 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 
 ## Definições dos indicadores
 
-- **Abertas**: status diferente de concluída. **Vencidas**: abertas com prazo anterior a hoje.
+- **Abertas**: ativas, isto é, nem concluídas nem sobrestadas. **Vencidas**: abertas com prazo anterior a hoje.
+- **Sobrestados**: demandas com status "Aguardando" (prazo suspenso, fora da fila ativa).
 - **Próximos 7 dias**: abertas com prazo entre hoje e hoje + 7.
 - **Relatórios pendentes**: pontos em `vistoriado` ou `relatorio_elaboracao`.
 - **Autos a lavrar**: pontos em `relatorio_concluido`.

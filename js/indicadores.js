@@ -6,7 +6,10 @@ const ETAPAS_PENDENTES = ['vistoriado', 'relatorio_elaboracao'];
 const ETAPAS_ENCERRADAS = ['auto_lavrado', 'encerrado_nao_constatado', 'encerrado_nao_acessado'];
 
 export function dataValida(iso) {
-  return typeof iso === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(iso) && !Number.isNaN(Date.parse(iso + 'T00:00:00Z'));
+  if (typeof iso !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  const t = Date.parse(iso + 'T00:00:00Z');
+  // A conferência de ida e volta rejeita datas impossíveis (2026-02-31 viraria 2026-03-03).
+  return !Number.isNaN(t) && new Date(t).toISOString().slice(0, 10) === iso;
 }
 
 export function somarDias(iso, dias) {
@@ -42,9 +45,15 @@ export function estaConcluida(d) {
   return d.tipo === 'operacao' && d.pontos.length > 0 && d.pontos.every((p) => ETAPAS_ENCERRADAS.includes(p.etapa));
 }
 
+// Sobrestada: status "Aguardando" (aguarda resposta do interessado). O prazo fica suspenso:
+// a demanda sai da fila ativa e não conta como aberta, vencida ou próxima do prazo.
+export function estaSobrestada(d) {
+  return d.status === 'aguardando' && !estaConcluida(d);
+}
+
 export function filaOrdenada(demandas) {
   return demandas
-    .filter((d) => !estaConcluida(d))
+    .filter((d) => !estaConcluida(d) && !estaSobrestada(d))
     .map((d) => ({ demanda: d, prazo: prazoDemanda(d) }))
     .sort((a, b) => {
       if (a.prazo === b.prazo) return (a.demanda.criada_em || '').localeCompare(b.demanda.criada_em || '');
@@ -65,6 +74,7 @@ export function calcularIndicadores(demandas, hoje) {
     proximos7: abertas.filter((x) => x.prazo !== null && x.prazo >= hoje && x.prazo <= limite).length,
     relatoriosPendentes: abertas.reduce((soma, x) => soma + relatoriosPendentes(x.demanda), 0),
     autosALavrar: abertas.reduce((soma, x) => soma + autosALavrar(x.demanda), 0),
+    sobrestados: demandas.filter(estaSobrestada).length,
     concluidasSemana: demandas.filter(
       (d) => estaConcluida(d) && d.concluida_em >= semana && d.concluida_em <= fimSemana
     ).length,

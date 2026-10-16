@@ -58,9 +58,9 @@ test('origens: processo aceita todas; os demais só chefia e própria', () => {
   assert.deepEqual(erroCampos(() => criarDemanda({ ...reuniao, origem: 'mp' }, [], HOJE)), ['origem']);
 });
 
-test('operação não é criada nem editada por formulário', () => {
+test('operação não é criada por formulário e seu status é derivado', () => {
   assert.deepEqual(erroCampos(() => criarDemanda({ ...outra, tipo: 'operacao' }, [], HOJE)), ['tipo']);
-  assert.deepEqual(erroCampos(() => editarDemanda(seed.demandas[0], outra, HOJE)), ['tipo']);
+  assert.equal(editarDemanda(seed.demandas[0], { titulo: 'Novo título', origem: 'chefia', prazo_dias: 10, horas_ponto: 3 }, HOJE).titulo, 'Novo título'); // operação edita só título, origem e parâmetros
   assert.deepEqual(erroCampos(() => alterarStatus(seed.demandas[0], 'concluida', HOJE)), ['status']);
 });
 
@@ -91,7 +91,7 @@ test('editarDemanda preserva id, criação e histórico e registra a edição', 
   assert.equal(d1.id, d0.id);
   assert.equal(d1.criada_em, HOJE);
   assert.equal(d1.titulo, 'Reunião remarcada');
-  assert.deepEqual(d1.historico.map((h) => h.evento), ['Criada', 'Editada', 'Status: A fazer → Aguardando']);
+  assert.deepEqual(d1.historico.map((h) => h.evento), ['Criada', 'Editada', 'Status: A fazer → Sobrestado (aguardando)']);
   assert.equal(d0.titulo, 'Reunião de teste');
   assert.deepEqual(erroCampos(() => editarDemanda(d0, { ...reuniao, titulo: '' }, HOJE)), ['titulo']);
 });
@@ -105,16 +105,17 @@ test('editar mantém a data de conclusão de quem já estava concluída', () => 
 
 const ids = (r) => r.itens.map((x) => x.demanda.id);
 
-test('filtro padrão lista as 11 abertas em ordem de prioridade', () => {
+test('filtro padrão lista as 10 abertas ativas em ordem de prioridade (sobrestada fora)', () => {
   const r = listarDemandas(seed.demandas, {}, HOJE, ctx);
-  assert.equal(r.itens.length, 11);
+  assert.equal(r.itens.length, 10);
+  assert.equal(r.itens.some((x) => x.demanda.id === 'DEM-0006'), false);
   assert.equal(ids(r)[0], 'DEM-0003');
   assert.ok(r.itens.every((x) => x.faixa));
 });
 
 test('filtros de tipo, status e prioridade', () => {
   assert.deepEqual(ids(listarDemandas(seed.demandas, { tipo: 'operacao' }, HOJE, ctx)), ['DEM-0002', 'DEM-0001']);
-  assert.deepEqual(ids(listarDemandas(seed.demandas, { status: 'aguardando' }, HOJE, ctx)), ['DEM-0006']);
+  assert.deepEqual(ids(listarDemandas(seed.demandas, { status: 'aguardando' }, HOJE, ctx)), ['DEM-0006']); // lista as sobrestadas
   assert.deepEqual(ids(listarDemandas(seed.demandas, { prioridade: 'Crítica' }, HOJE, ctx)), ['DEM-0003', 'DEM-0002']);
   assert.deepEqual(ids(listarDemandas(seed.demandas, { tipo: 'processo', prioridade: 'Alta' }, HOJE, ctx)), ['DEM-0004', 'DEM-0005']);
 });
@@ -142,12 +143,35 @@ test('nova demanda entra na fila com prioridade calculada', () => {
   const item = r.itens.find((x) => x.demanda.id === nova.id);
   assert.equal(item.score, 90);
   assert.equal(item.faixa, 'Crítica');
-  assert.equal(r.itens.length, 12);
+  assert.equal(r.itens.length, 11);
 });
 
 test('demanda com prazo inválido aparece em erros, não na fila', () => {
   const ruim = { id: 'RUIM', tipo: 'outra', origem: 'propria', status: 'a_fazer', prazo: '', titulo: 'Sem prazo', criada_em: HOJE };
   const r = listarDemandas([...seed.demandas, ruim], {}, HOJE, ctx);
   assert.deepEqual(r.erros.map((x) => x.demanda.id), ['RUIM']);
-  assert.equal(r.itens.length, 11);
+  assert.equal(r.itens.length, 10);
+});
+
+test('filtro Sobrestado lista as sobrestadas pelo prazo registrado, sem pontuação, e respeita tipo e busca', () => {
+  const sobrestada = { id: 'S2', tipo: 'processo', origem: 'mp', status: 'aguardando', prazo: '2026-10-01', titulo: 'Aguardando interessado', criada_em: HOJE, processo: 'SEMA-PRO-FICT-1' };
+  const todas = [...seed.demandas, sobrestada];
+  const r = listarDemandas(todas, { status: 'aguardando' }, HOJE, ctx);
+  assert.deepEqual(ids(r), ['S2', 'DEM-0006']); // prazo mais antigo primeiro
+  assert.ok(r.itens.every((x) => x.sobrestada === true && x.score === undefined));
+  assert.deepEqual(ids(listarDemandas(todas, { status: 'aguardando', busca: 'interessado' }, HOJE, ctx)), ['S2']);
+  assert.deepEqual(ids(listarDemandas(todas, { status: 'aguardando', tipo: 'reuniao' }, HOJE, ctx)), []);
+  assert.deepEqual(ids(listarDemandas(todas, { status: 'aguardando', prioridade: 'Alta' }, HOJE, ctx)), []);
+  assert.equal(listarDemandas(todas, {}, HOJE, ctx).itens.some((x) => x.demanda.id === 'S2'), false);
+});
+
+test('sobrestar e retomar pelo status: histórico e prazo registrado preservado', () => {
+  const d0 = criarDemanda(processo, [], HOJE); // processo MP, prazo 14/10 (vencido)
+  const d1 = alterarStatus(d0, 'aguardando', HOJE);
+  assert.equal(d1.prazo, '2026-10-14');
+  assert.equal(listarDemandas([d1], {}, HOJE).itens.length, 0);
+  const d2 = alterarStatus(d1, 'em_andamento', '2026-10-20');
+  assert.equal(d2.prazo, '2026-10-14'); // sem recálculo
+  assert.deepEqual(d2.historico.map((h) => h.evento), ['Criada', 'Status: A fazer → Sobrestado (aguardando)', 'Status: Sobrestado (aguardando) → Em andamento']);
+  assert.equal(listarDemandas([d2], {}, '2026-10-20').itens[0].faixa, 'Crítica');
 });

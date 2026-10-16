@@ -93,6 +93,7 @@ São 13 requisitos funcionais e 6 não funcionais; cada um vira critério de ace
 | RF11 | Exportar CSV de demandas e de pontos, JSON e resumo semanal com relatórios e autos da semana                                                    | M5       |
 | RF12 | Botão "Limpar filtros" (melhoria entregue por branch e PR)                                                                                      | Evolução |
 | RF13 | Persistir no navegador e carregar o exemplo fictício na primeira abertura                                                                       | M3       |
+| RF14 | Sobrestar demanda aguardando resposta do interessado: o prazo fica suspenso, a demanda sai da fila ativa e aparece em "Sobrestados" | M4       |
 
 **Não funcionais:** layout responsivo até 360 px; nenhum dado real ou pessoal; funciona sem backend; navegação por teclado e contraste legível; motor de regras único usado por interface, testes e MCP; build gera public/ para a Vercel.
 
@@ -142,6 +143,7 @@ A prioridade é a soma de pontos por prazo, tipo, origem, volume de relatórios 
 
 - Os pontos se somam sem teto; "Chefia ou coordenação" vale para qualquer tipo, e "Origem do processo" só se aplica a processos SIGADOC.
 - Prazo com mais de 7 dias não pontua; prazo hoje (0 dias) entra na faixa de 0 a 2 dias.
+- Processos podem ter o prazo suspenso enquanto se aguarda resposta do interessado (sobrestamento): o status "Aguardando" tira a demanda da fila ativa e dos indicadores de prazo, e o prazo registrado volta a valer, sem recálculo, quando o status muda (RF14, casos T12 e T13).
 - Na operação, o prazo é retorno + N dias, e o status deriva das etapas dos pontos (concluída quando todos estão encerrados).
 - O afastamento só soma +20 quando o prazo cai dentro do período, inclusive nas datas de início e fim.
 

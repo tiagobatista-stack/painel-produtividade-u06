@@ -1,6 +1,6 @@
 // Motor de prioridade. Fonte das regras: docs/REGRAS_PRIORIDADE.md.
 // Módulo puro: sem DOM, sem armazenamento. Usado pela interface, pelos testes Node e pelo MCP.
-import { dataValida, diasEntre, estaConcluida, prazoDemanda, relatoriosPendentes } from './indicadores.js';
+import { dataValida, diasEntre, estaConcluida, estaSobrestada, prazoDemanda, relatoriosPendentes } from './indicadores.js';
 
 export class ErroValidacao extends Error {
   constructor(mensagem) {
@@ -35,6 +35,9 @@ export function priorizar(demanda, hoje, { afastamentos = [] } = {}) {
   if (!dataValida(hoje)) throw new ErroValidacao('Data de referência inválida');
   if (!(demanda.tipo in PONTOS_TIPO)) throw new ErroValidacao(`Tipo de demanda inválido: ${demanda.tipo}`);
   if (estaConcluida(demanda)) return { foraDaFila: true, score: null, faixa: null, motivos: [] };
+
+  // Sobrestada: prazo suspenso, fora da fila e sem pontuação (o prazo registrado não é validado).
+  if (estaSobrestada(demanda)) return { foraDaFila: true, sobrestada: true, score: null, faixa: null, motivos: [] };
 
   const prazo = prazoDemanda(demanda);
   if (prazo === null) throw new ErroValidacao('Prazo ausente ou inválido');

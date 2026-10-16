@@ -120,7 +120,7 @@ test('motivos listam cada critério que pontuou', () => {
 test('seed em 2026-10-15: scores conferidos em docs/REGRAS_PRIORIDADE.md', () => {
   const esperado = {
     'DEM-0003': 90, 'DEM-0002': 80, 'DEM-0001': 68, 'DEM-0004': 60, 'DEM-0005': 55, 'DEM-0007': 40,
-    'DEM-0008': 35, 'DEM-0006': 30, 'DEM-0010': 20, 'DEM-0009': 10, 'DEM-0011': 0,
+    'DEM-0008': 35, 'DEM-0010': 20, 'DEM-0009': 10, 'DEM-0011': 0,
   };
   const { fila, erros } = priorizarFila(seed.demandas, HOJE, { afastamentos: seed.afastamentos });
   assert.deepEqual(erros, []);
@@ -142,4 +142,24 @@ test('priorizarFila separa demandas com erro sem derrubar as demais', () => {
   const { fila, erros } = priorizarFila([ruim, boa], HOJE);
   assert.deepEqual(fila.map((x) => x.demanda.id), ['BOA']);
   assert.deepEqual(erros.map((x) => x.demanda.id), ['RUIM']);
+});
+
+test('T12 sobrestada: prazo suspenso, fora da fila e sem pontuação, mesmo vencida ou sem prazo válido', () => {
+  const vencida = simples('processo', 'mp', -5, { status: 'aguardando' });
+  assert.deepEqual(r(vencida), { foraDaFila: true, sobrestada: true, score: null, faixa: null, motivos: [] });
+  assert.equal(r(simples('processo', 'mp', 0, { status: 'aguardando', prazo: '' })).sobrestada, true); // prazo não é validado
+  assert.equal(r(simples('reuniao', 'chefia', 1, { status: 'aguardando' })).foraDaFila, true); // vale para todos os tipos
+});
+
+test('T13 ao retomar, o prazo registrado volta a valer, sem recálculo', () => {
+  const retomada = simples('processo', 'mp', -5, { status: 'em_andamento' });
+  assert.equal(r(retomada).score, 90); // vencido 50 + processo 15 + MP 25
+});
+
+test('sobrestada fica fora de priorizarFila e não é erro', () => {
+  const sobrestada = simples('processo', 'mp', 0, { id: 'SOB', status: 'aguardando', prazo: '' });
+  const normal = simples('reuniao', 'propria', 3, { id: 'NOR' });
+  const { fila, erros } = priorizarFila([sobrestada, normal], HOJE);
+  assert.deepEqual(fila.map((x) => x.demanda.id), ['NOR']);
+  assert.deepEqual(erros, []);
 });

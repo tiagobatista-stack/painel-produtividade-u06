@@ -20,16 +20,26 @@
     </section>
 
     <p id="erro" class="erro" role="alert" hidden></p>
+    <p id="mensagem" class="sucesso" role="status" hidden></p>
+    <section id="aviso-afastamento" class="aviso-caixa" aria-label="Afastamento próximo" hidden></section>
 
     <section aria-labelledby="titulo-indicadores">
       <h2 id="titulo-indicadores">Indicadores</h2>
       <ul id="indicadores" class="indicadores"></ul>
     </section>
 
+    <section aria-labelledby="titulo-agenda">
+      <h2 id="titulo-agenda">Agenda dos próximos 7 dias</h2>
+      <div id="agenda" class="agenda"></div>
+    </section>
+
     <section aria-labelledby="titulo-fila">
       <div class="fila-cabecalho">
         <h2 id="titulo-fila">Fila de demandas</h2>
-        <button type="button" id="nova-demanda" class="primario">Nova demanda</button>
+        <div class="botoes-cabecalho">
+          <button type="button" id="importar-operacao">Importar operação</button>
+          <button type="button" id="nova-demanda" class="primario">Nova demanda</button>
+        </div>
       </div>
 
       <form id="filtros" class="filtros" role="search" aria-label="Buscar e filtrar demandas" onsubmit="return false">
@@ -54,6 +64,15 @@
       <p id="contagem" class="nota" aria-live="polite"></p>
       <p id="fila-vazia" hidden>Nenhuma demanda encontrada.</p>
       <ul id="fila" class="fila"></ul>
+    </section>
+
+    <section aria-labelledby="titulo-afastamentos">
+      <div class="fila-cabecalho">
+        <h2 id="titulo-afastamentos">Férias e licenças</h2>
+        <button type="button" id="novo-afastamento">Novo afastamento</button>
+      </div>
+      <p id="afastamentos-vazio" class="nota" hidden>Nenhum afastamento agendado.</p>
+      <ul id="lista-afastamentos" class="fila"></ul>
     </section>
 
     <section id="erros-validacao" class="erro" hidden>
@@ -111,17 +130,28 @@
         <span class="erro-campo" id="e-publico"></span>
       </div>
 
-      <div class="campo" data-campo="prazo">
+      <div class="campo" data-campo="prazo_dias" data-tipos="operacao">
+        <label for="f-prazo_dias">Prazo dos relatórios (dias após o retorno)</label>
+        <input id="f-prazo_dias" name="prazo_dias" type="number" min="0" max="365" step="1">
+        <span class="erro-campo" id="e-prazo_dias"></span>
+      </div>
+      <div class="campo" data-campo="horas_ponto" data-tipos="operacao">
+        <label for="f-horas_ponto">Horas por relatório</label>
+        <input id="f-horas_ponto" name="horas_ponto" type="number" min="0" max="24" step="0.5">
+        <span class="erro-campo" id="e-horas_ponto"></span>
+      </div>
+
+      <div class="campo" data-campo="prazo" data-tipos="processo reuniao palestra outra">
         <label for="f-prazo">Prazo</label>
         <input id="f-prazo" name="prazo" type="date">
         <span class="erro-campo" id="e-prazo"></span>
       </div>
-      <div class="campo" data-campo="status">
+      <div class="campo" data-campo="status" data-tipos="processo reuniao palestra outra">
         <label for="f-status">Status</label>
         <select id="f-status" name="status"></select>
         <span class="erro-campo" id="e-status"></span>
       </div>
-      <div class="campo" data-campo="esforco_h">
+      <div class="campo" data-campo="esforco_h" data-tipos="processo reuniao palestra outra">
         <label for="f-esforco_h">Esforço estimado (horas)</label>
         <input id="f-esforco_h" name="esforco_h" type="number" min="0" step="0.5">
         <span class="erro-campo" id="e-esforco_h"></span>
@@ -130,6 +160,79 @@
       <div class="acoes">
         <button type="submit" class="primario">Salvar</button>
         <button type="button" id="cancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dialogo-importacao" aria-labelledby="imp-titulo">
+    <form id="form-importacao" novalidate>
+      <h2 id="imp-titulo">Importar operação</h2>
+      <p class="nota">Cole as linhas da planilha da coordenação, com a linha de cabeçalho (N_PONTO, EQUIPE, COORD_X, COORD_Y, MUNICIPIO, DAT_SAIDA, DAT_RETOR, NOT_PLANEJ). Planilha real contém alvos de fiscalização: os dados ficam só neste navegador e nunca devem ir ao repositório nem à Vercel.</p>
+      <div class="campo">
+        <label for="imp-texto">Linhas da planilha</label>
+        <textarea id="imp-texto" rows="8" spellcheck="false" autocomplete="off"></textarea>
+      </div>
+      <div class="acoes acoes-esquerda"><button type="button" id="imp-exemplo">Usar planilha de exemplo</button></div>
+      <div class="campo">
+        <label for="imp-prazo">Prazo dos relatórios (dias após o retorno)</label>
+        <input id="imp-prazo" type="number" min="0" max="365" step="1">
+      </div>
+      <div class="campo">
+        <label for="imp-horas">Horas por relatório</label>
+        <input id="imp-horas" type="number" min="0" max="24" step="0.5">
+      </div>
+      <div id="imp-previa" aria-live="polite"></div>
+      <div class="acoes">
+        <button type="submit" id="imp-confirmar" class="primario" disabled>Importar</button>
+        <button type="button" id="imp-cancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dialogo-retorno" aria-labelledby="ret-titulo">
+    <form id="form-retorno" novalidate>
+      <h2 id="ret-titulo">Registrar retorno</h2>
+      <p id="ret-resumo" class="nota"></p>
+      <div class="campo">
+        <label for="ret-data">Data efetiva de retorno</label>
+        <input id="ret-data" type="date">
+        <span class="erro-campo" id="ret-erro"></span>
+      </div>
+      <p class="nota">Se a data for diferente da planejada, o prazo dos relatórios é recalculado.</p>
+      <div class="acoes">
+        <button type="submit" class="primario">Registrar retorno</button>
+        <button type="button" id="ret-cancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="dialogo-afastamento" aria-labelledby="afastamento-titulo">
+    <form id="form-afastamento" novalidate>
+      <h2 id="afastamento-titulo">Novo afastamento</h2>
+      <div id="a-resumo-erros" class="erro" role="alert" tabindex="-1" hidden></div>
+      <div class="campo">
+        <label for="a-tipo">Tipo</label>
+        <select id="a-tipo" name="tipo"></select>
+        <span class="erro-campo" id="ea-tipo"></span>
+      </div>
+      <div class="campo">
+        <label for="a-inicio">Início</label>
+        <input id="a-inicio" name="inicio" type="date">
+        <span class="erro-campo" id="ea-inicio"></span>
+      </div>
+      <div class="campo">
+        <label for="a-fim">Fim</label>
+        <input id="a-fim" name="fim" type="date">
+        <span class="erro-campo" id="ea-fim"></span>
+      </div>
+      <div class="campo">
+        <label for="a-situacao">Situação</label>
+        <select id="a-situacao" name="situacao"></select>
+        <span class="erro-campo" id="ea-situacao"></span>
+      </div>
+      <div class="acoes">
+        <button type="submit" class="primario">Salvar</button>
+        <button type="button" id="a-cancelar">Cancelar</button>
       </div>
     </form>
   </dialog>

@@ -30,6 +30,7 @@ Crítica ≥ 70 · Alta 45–69 · Média 25–44 · Baixa < 25.
 ## Regras complementares
 
 - Demanda concluída sai da fila (na operação: todos os pontos encerrados).
+- **Sobrestamento:** demanda com status "Aguardando" (aguarda resposta do interessado; no painel, "Sobrestado (aguardando)") tem o prazo suspenso. Sai da fila ativa, não pontua, não conta como aberta, vencida nem próximos 7 dias e aparece no indicador "Sobrestados" e no filtro de status. Vale para todos os tipos, exceto operação, cujo status é derivado dos pontos. O prazo não é validado enquanto sobrestada. Ao voltar para outro status, o prazo registrado volta a valer, sem recálculo (a demanda pode retomar já vencida).
 - Desempate: maior score, depois prazo mais próximo, depois data de criação.
 - Prazo ausente ou inválido gera erro de validação, sem cálculo.
 - Operação: prazo = retorno + `prazo_dias`; relatórios pendentes = pontos em `vistoriado` ou `relatorio_elaboracao`; status derivado das etapas.
@@ -50,10 +51,12 @@ Crítica ≥ 70 · Alta 45–69 · Média 25–44 · Baixa < 25.
 | T9 | Operação, prazo em 20 dias, origem própria, com 4 / 5 / 9 / 10 relatórios pendentes | 20 / 28 / 28 / 35 | Baixa / Média / Média / Média |
 | T10 | Reunião, origem própria, prazo em 7 dias e em 8 dias | 25 / 10 | Média / Baixa |
 | T11 | Processo, origem ouvidoria, prazo 2026-11-06, afastamento de 2026-11-01 a 2026-11-05 | 30 | Média |
+| T12 | Processo vencido há 5 dias, origem Ministério Público, status Aguardando (sobrestado) — também com prazo vazio | — | fora da fila (sobrestada) |
+| T13 | O mesmo processo após voltar para "Em andamento" (prazo registrado mantido) | 90 | Crítica |
 
 ## Conferência do seed (hoje = 2026-10-15)
 
-Os números abaixo, os casos T1–T11 e os indicadores de `docs/CRITERIOS_ACEITE.md` usam a **data de referência fixa 2026-10-15** (`hoje_referencia` no seed). O M1 deve aceitar uma **data de referência configurável**, com padrão igual à data de hoje; `priorizar(demanda, hoje)` já recebe a data como argumento e os testes sempre passam 2026-10-15.
+Os números abaixo, os casos T1–T13 e os indicadores de `docs/CRITERIOS_ACEITE.md` usam a **data de referência fixa 2026-10-15** (`hoje_referencia` no seed). O M1 deve aceitar uma **data de referência configurável**, com padrão igual à data de hoje; `priorizar(demanda, hoje)` já recebe a data como argumento e os testes sempre passam 2026-10-15.
 
 | ID | Cálculo | Score | Faixa |
 |---|---|---|---|
@@ -64,7 +67,7 @@ Os números abaixo, os casos T1–T11 e os indicadores de `docs/CRITERIOS_ACEITE
 | DEM-0005 | 1 dia 30 + processo 15 + chefia 10 | 55 | Alta |
 | DEM-0007 | 5 dias 15 + processo 15 + denúncia 10 | 40 | Média |
 | DEM-0008 | 5 dias 15 + reunião 10 + chefia 10 | 35 | Média |
-| DEM-0006 | processo 15 + ouvidoria 15 | 30 | Média |
+| DEM-0006 | status Aguardando: sobrestada, prazo suspenso | — | fora da fila |
 | DEM-0010 | 7 dias 15 + palestra 5 | 20 | Baixa |
 | DEM-0009 | reunião 10 | 10 | Baixa |
 | DEM-0011 | — | 0 | Baixa |
