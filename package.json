@@ -11,6 +11,8 @@
     "build": "node scripts/build.mjs",
     "test:e2e": "playwright test",
     "report:e2e": "playwright show-report",
+    "matriz": "node scripts/gerar-matriz.mjs",
+    "evidencias": "node scripts/coletar-evidencias.mjs",
     "mcp": "node tools/demandas-mcp.mjs",
     "mcp:test": "node tools/teste-mcp.mjs"
   },
