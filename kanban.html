@@ -29,12 +29,7 @@
     <p id="erro" class="erro" role="alert" hidden></p>
     <p id="mensagem" class="sucesso" role="status" hidden></p>
 
-    <nav class="abas" aria-label="Seções do Kanban">
-      <a href="#quadro" data-aba="quadro">Quadro</a>
-      <a href="#design-thinking" data-aba="design-thinking">Design Thinking</a>
-    </nav>
-
-    <section id="aba-quadro" class="aba" data-aba-painel="quadro" aria-label="Quadro">
+    <section class="aba" aria-label="Quadro">
       <div class="fila-cabecalho">
         <h2 id="titulo-fila" tabindex="-1">Quadro</h2>
         <div class="botoes-cabecalho">
@@ -68,31 +63,6 @@
       <p id="quadro-vazio" hidden>Nenhum card encontrado.</p>
       <div id="kanban-grade" class="kanban-grade" role="group" aria-label="Quadro com quatro colunas"></div>
       <p id="quadro-anuncio" class="so-leitor" role="status" aria-live="polite"></p>
-    </section>
-
-    <section id="aba-design-thinking" class="aba" data-aba-painel="design-thinking" aria-label="Design Thinking" hidden>
-      <h2>Design Thinking</h2>
-      <p class="nota">Registre notas em cada etapa. Uma ideia (etapa Idear) pode ser promovida a card do Backlog.</p>
-
-      <form id="form-nota" class="form-nota" novalidate>
-        <div id="resumo-erros-nota" class="erro" role="alert" tabindex="-1" hidden></div>
-        <div class="campo">
-          <label for="n-etapa">Etapa</label>
-          <select id="n-etapa" name="etapa"></select>
-          <span class="erro-campo" id="en-etapa"></span>
-        </div>
-        <div class="campo campo-largo">
-          <label for="n-texto">Nota</label>
-          <textarea id="n-texto" name="texto" rows="2" maxlength="300" autocomplete="off"></textarea>
-          <span class="erro-campo" id="en-texto"></span>
-        </div>
-        <div class="acoes">
-          <button type="submit" id="n-salvar" class="primario">Adicionar nota</button>
-          <button type="button" id="n-cancelar" hidden>Cancelar edição</button>
-        </div>
-      </form>
-
-      <div id="dt-grade" class="kanban-grade dt-grade" role="group" aria-label="Etapas do Design Thinking"></div>
     </section>
   </main>
 

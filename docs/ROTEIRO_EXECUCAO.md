@@ -6,6 +6,8 @@ Base: `docs/PROPOSTA_PAINEL_DEMANDAS.md` e `docs/AULA_INTERATIVA.html` (47 slide
 
 Cada marco: **plano → seu OK → implementação → evidência literal → commit**. Nenhum marco começa antes de o anterior passar no critério de aceite. Só dados fictícios no repositório. Claude nunca faz commit, push, merge ou deploy sem autorização.
 
+**Design Thinking é método, não tela.** O plano de cada marco registra, em poucas linhas e antes do OK, as cinco etapas: Empatizar, Definir, Idear, Prototipar e Testar. O quadro para preencher e o ciclo já aplicado ao painel estão em `docs/DESIGN_THINKING.md`.
+
 ## Diferenças em relação à aula
 
 - **Repositório:** a aula usa `govsafe360-u06`; este projeto usa `painel-produtividade-u06`. Título e commit baseline: "painel-demandas". Ao seguir os slides, trocar o nome.

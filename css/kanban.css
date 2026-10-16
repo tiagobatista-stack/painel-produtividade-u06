@@ -10,7 +10,6 @@ textarea {
   display: grid; grid-template-columns: repeat(4, minmax(78vw, 1fr)); gap: 8px; align-items: start;
   overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 8px;
 }
-.dt-grade { grid-template-columns: repeat(5, minmax(78vw, 1fr)); }
 .kcol { scroll-snap-align: start; min-width: 0; background: rgba(30, 42, 94, 0.05); border: 1px solid var(--borda); border-top: 4px solid var(--azul); border-radius: 8px; padding: 8px; }
 .kcol[data-coluna="andamento"] { border-top-color: #2563eb; }
 .kcol[data-coluna="revisao"] { border-top-color: #7c3aed; }
@@ -27,7 +26,6 @@ textarea {
 .kcard.prio-baixa { border-left-color: #475569; }
 .kcard.atrasado { background: var(--alerta-fundo); }
 .kcard.concluido { opacity: 0.9; border-left-color: #15803d; }
-.kcard.destaque { box-shadow: 0 0 0 3px #2563eb; }
 .kcard[draggable="true"] { cursor: grab; }
 .kcard.arrastando { opacity: 0.45; }
 button.kcard-abrir {
@@ -50,16 +48,6 @@ button.kcard-abrir:hover { background: rgba(30, 42, 94, 0.06); }
 .kcard-mover { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px 8px; }
 button.kmover { min-height: 40px; padding: 4px 8px; font-size: 0.82rem; }
 
-.form-nota { display: grid; gap: 8px; margin: 8px 0 12px; padding: 10px 12px; background: #fff; border: 1px solid var(--borda); border-radius: 10px; }
-.nota-dt { padding: 8px 10px; background: #fff; border: 1px solid var(--borda); border-radius: 8px; }
-.nota-dt-texto { margin: 0 0 6px; overflow-wrap: anywhere; }
-.nota-dt-acoes { display: flex; flex-wrap: wrap; gap: 6px; }
-.nota-dt-acoes button { min-height: 40px; padding: 4px 8px; font-size: 0.85rem; }
-
 @media (min-width: 700px) {
   .kanban-grade { grid-template-columns: repeat(4, minmax(220px, 1fr)); }
-  .dt-grade { grid-template-columns: repeat(5, minmax(200px, 1fr)); }
-  .form-nota { grid-template-columns: 200px 1fr auto; align-items: end; }
-  .form-nota .erro { grid-column: 1 / -1; }
-  .form-nota .acoes { margin: 0; }
 }
