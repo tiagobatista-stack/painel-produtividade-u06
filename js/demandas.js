@@ -161,6 +161,15 @@ function textoPesquisavel(d) {
   return normalizarBusca(partes.filter(Boolean).join(' '));
 }
 
+// Estado padrão dos filtros: é o que "Limpar filtros" restaura. O status padrão é a fila ativa, não "todos".
+export const FILTROS_PADRAO = Object.freeze({ busca: '', tipo: '', status: 'abertas', prioridade: '' });
+
+// Há algum filtro diferente do padrão? Busca só com espaços não conta, porque não filtra nada.
+export function filtrosEmUso(filtros) {
+  const f = { ...FILTROS_PADRAO, ...filtros };
+  return f.busca.trim() !== '' || f.tipo !== FILTROS_PADRAO.tipo || f.status !== FILTROS_PADRAO.status || f.prioridade !== FILTROS_PADRAO.prioridade;
+}
+
 // Lista a fila conforme os filtros.
 // filtros: { busca, tipo, status, prioridade }
 //   status: 'abertas' (padrão: fila ativa) | a_fazer | em_andamento | aguardando (sobrestadas) | concluida

@@ -1,5 +1,5 @@
 import { calcularIndicadores, relatoriosPendentes, autosALavrar } from './indicadores.js';
-import { ErroCadastro, TIPOS_CADASTRAVEIS, alterarStatus, criarDemanda, editarDemanda, listarDemandas, origensDoTipo } from './demandas.js';
+import { ErroCadastro, FILTROS_PADRAO, TIPOS_CADASTRAVEIS, alterarStatus, criarDemanda, editarDemanda, filtrosEmUso, listarDemandas, origensDoTipo } from './demandas.js';
 import { esforcoHoras } from './operacoes.js';
 import { carregar } from './armazenamento.js';
 import { ORIGENS, STATUS, TIPOS } from './rotulos.js';
@@ -149,6 +149,7 @@ function desenharFila(hoje) {
 
 function atualizar() {
   const hoje = hojeAtual();
+  $('limpar-filtros').disabled = !filtrosEmUso(filtrosAtuais());
   desenharBanner(hoje);
   desenharIndicadores(calcularIndicadores(estado.dados.demandas, hoje));
   desenharResumo(hoje);
@@ -156,6 +157,16 @@ function atualizar() {
   desenharFila(hoje);
   desenharAfastamentos(hoje);
   restaurarFoco();
+}
+
+// Volta busca, tipo, status e prioridade ao padrão. Não apaga demandas nem mexe na data de referência.
+function limparFiltros() {
+  filtroBusca.value = FILTROS_PADRAO.busca;
+  filtroTipo.value = FILTROS_PADRAO.tipo;
+  filtroStatus.value = FILTROS_PADRAO.status;
+  filtroPrioridade.value = FILTROS_PADRAO.prioridade;
+  filtroBusca.focus(); // antes de desabilitar o botão, para o foco não se perder
+  atualizar();
 }
 
 function mudarStatus(id, novoStatus) {
@@ -270,6 +281,7 @@ async function iniciar() {
   campoData.addEventListener('input', atualizar);
   for (const f of [filtroBusca, filtroTipo, filtroStatus, filtroPrioridade]) f.addEventListener('input', atualizar);
   $('filtros').addEventListener('submit', (e) => e.preventDefault());
+  $('limpar-filtros').addEventListener('click', limparFiltros);
 
   $('nova-demanda').addEventListener('click', (e) => abrirFormulario(null, e.currentTarget));
   $('f-tipo').addEventListener('change', (e) => atualizarCamposDoTipo(e.target.value));

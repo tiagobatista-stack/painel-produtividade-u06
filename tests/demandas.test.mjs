@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  criarDemanda, editarDemanda, alterarStatus, listarDemandas, proximoId, normalizarBusca, ErroCadastro, origensDoTipo,
+  criarDemanda, editarDemanda, alterarStatus, listarDemandas, proximoId, normalizarBusca, ErroCadastro, origensDoTipo, FILTROS_PADRAO, filtrosEmUso,
 } from '../js/demandas.js';
 
 const HOJE = '2026-10-15';
@@ -175,4 +175,32 @@ test('sobrestar e retomar pelo status: histórico e prazo registrado preservado'
   assert.equal(d2.prazo, '2026-10-14'); // sem recálculo
   assert.deepEqual(d2.historico.map((h) => h.evento), ['Criada', 'Status: A fazer → Sobrestado (aguardando)', 'Status: Sobrestado (aguardando) → Em andamento']);
   assert.equal(listarDemandas([d2], {}, '2026-10-20').itens[0].faixa, 'Crítica');
+});
+
+test('filtros padrão: nenhum filtro em uso, e cada campo fora do padrão conta', () => {
+  assert.deepEqual({ ...FILTROS_PADRAO }, { busca: '', tipo: '', status: 'abertas', prioridade: '' });
+  assert.equal(filtrosEmUso(FILTROS_PADRAO), false);
+  assert.equal(filtrosEmUso({}), false);
+  assert.equal(filtrosEmUso({ busca: 'reunião' }), true);
+  assert.equal(filtrosEmUso({ tipo: 'operacao' }), true);
+  assert.equal(filtrosEmUso({ status: 'concluida' }), true);
+  assert.equal(filtrosEmUso({ status: 'aguardando' }), true);
+  assert.equal(filtrosEmUso({ prioridade: 'Crítica' }), true);
+  assert.equal(filtrosEmUso({ busca: 'a', tipo: 'outra', status: 'a_fazer', prioridade: 'Baixa' }), true);
+});
+
+test('busca só com espaços não é filtro (não filtra nada)', () => {
+  assert.equal(filtrosEmUso({ busca: '   ' }), false);
+  const todas = listarDemandas(seed.demandas, { busca: '   ' }, HOJE, ctx).itens.length;
+  assert.equal(todas, listarDemandas(seed.demandas, {}, HOJE, ctx).itens.length);
+});
+
+test('limpar filtros: listar com o padrão devolve a fila ativa completa, e o padrão é imutável', () => {
+  const filtrada = listarDemandas(seed.demandas, { busca: 'reunião', tipo: 'reuniao', status: 'concluida', prioridade: 'Alta' }, HOJE, ctx);
+  assert.equal(filtrada.itens.length, 0);
+  const limpa = listarDemandas(seed.demandas, { ...FILTROS_PADRAO }, HOJE, ctx);
+  assert.equal(limpa.itens.length, 10);
+  assert.deepEqual(limpa.itens.map((x) => x.demanda.id), listarDemandas(seed.demandas, {}, HOJE, ctx).itens.map((x) => x.demanda.id));
+  assert.equal(Object.isFrozen(FILTROS_PADRAO), true);
+  assert.equal(seed.demandas.length, 13); // listar nunca altera as demandas
 });
