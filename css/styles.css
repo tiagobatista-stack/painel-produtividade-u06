@@ -115,8 +115,10 @@ dialog form { display: grid; gap: 10px; }
 .rotulo-status { font-size: 0.85rem; font-weight: 600; }
 .demanda.concluida { opacity: 0.9; border-left-color: #15803d; }
 
+.campo-acao { justify-content: flex-end; }
+
 @media (min-width: 600px) {
-  .filtros { grid-template-columns: 2fr 1fr 1fr 1fr; }
+  .filtros { grid-template-columns: 2fr 1fr 1fr 1fr auto; }
 }
 
 /* ---- M4: operação, afastamentos, agenda ---- */
