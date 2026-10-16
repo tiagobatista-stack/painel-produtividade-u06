@@ -48,7 +48,8 @@ registrar('Repositório e commit', git.codigo === 0 && commit !== '', `commit ${
 
 // 2. Testes do motor (T1–T14) e demais testes de regra
 const qualidade = rodar('02-quality.txt', 'npm run quality');
-const [tests, pass, fail] = [/^# tests (\d+)/m, /^# pass (\d+)/m, /^# fail (\d+)/m].map((r) => numero(qualidade.texto, r));
+// O resumo do node --test começa com "# " (reporter TAP) ou com "ℹ " (reporter spec, padrão do Node 20+ em terminal).
+const [tests, pass, fail] = [/^(?:#|ℹ) tests (\d+)/m, /^(?:#|ℹ) pass (\d+)/m, /^(?:#|ℹ) fail (\d+)/m].map((r) => numero(qualidade.texto, r));
 registrar('node --test (T1–T14 e demais)', qualidade.codigo === 0 && fail === 0 && pass === tests, `${pass}/${tests} passam, ${fail} falham`);
 
 // 3. MCP local: argumentos e retorno literais do caso T1 e comparação T1–T6

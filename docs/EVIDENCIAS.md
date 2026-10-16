@@ -31,7 +31,7 @@ O script (`scripts/coletar-evidencias.mjs`) roda os comandos de verdade e grava 
 
 ## O que este checklist não prova
 
-- A janela anônima, os checks do Actions e o Preview dependem de você (o repositório é privado e não há `gh` aqui).
+- A janela anônima, os checks do Actions e o Preview dependem de você (são capturas do navegador logado). O repositório é **público**: por isso só contém dados fictícios, e as evidências ficam em `evidencias-privadas/`, fora do Git.
 - Os testes de interface rodam no Chromium do Playwright, não no Edge nem no Safari.
 - O CSV foi conferido pelos testes e pela leitura dos arquivos, não aberto no Excel.
 - O cliente MCP real foi exercitado por uma chamada temporária e headless; o registro permanente no Claude Code depende da sua autorização.
