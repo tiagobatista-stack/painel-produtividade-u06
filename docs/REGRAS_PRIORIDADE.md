@@ -33,7 +33,7 @@ Crítica ≥ 70 · Alta 45–69 · Média 25–44 · Baixa < 25.
 - **Sobrestamento:** demanda com status "Aguardando" (aguarda resposta do interessado; no painel, "Sobrestado (aguardando)") tem o prazo suspenso. Sai da fila ativa, não pontua, não conta como aberta, vencida nem próximos 7 dias e aparece no indicador "Sobrestados" e no filtro de status. Vale para todos os tipos. Na operação, o status continua derivado dos pontos, e o sobrestamento é uma ação explícita ("Sobrestar operação" / "Retomar operação", por exemplo enquanto se aguarda a identificação do autuado, que exige investigação): os pontos continuam editáveis, e concluir todos os pontos prevalece sobre o sobrestamento. O prazo não é validado enquanto sobrestada. Ao voltar para outro status, o prazo registrado volta a valer, sem recálculo (a demanda pode retomar já vencida).
 - Desempate: maior score, depois prazo mais próximo, depois data de criação.
 - Prazo ausente ou inválido gera erro de validação, sem cálculo.
-- Operação: prazo = retorno + `prazo_dias`; relatórios pendentes = pontos em `vistoriado` ou `relatorio_elaboracao`; status derivado das etapas.
+- Operação: prazo = retorno + `prazo_dias`; relatórios pendentes = relatórios com pontos em `vistoriado` ou `relatorio_elaboracao`, onde pontos somados no mesmo relatório (`relatorios[]` da operação) contam 1 e ponto solto conta 1 (sem grupos, é o número de pontos); status derivado das etapas.
 - Prazo de hoje (0 dias) entra na faixa de 0 a 2 dias.
 
 ## Regras propostas para as melhorias (M9–M10, a validar)

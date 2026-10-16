@@ -272,3 +272,27 @@ test('itemDaDemanda: placar de uma demanda sem depender dos filtros da fila', ()
   const direto = itemDaDemanda(porId('DEM-0001'), HOJE, ctx);
   assert.deepEqual([direto.score, direto.faixa, direto.motivos], [daFila.score, daFila.faixa, daFila.motivos]);
 });
+
+test('anotações da demanda: guardam o texto, entram na busca e no histórico, e texto vazio apaga', async () => {
+  const { salvarObservacoes, OBSERVACOES_MAX } = await import('../js/demandas.js');
+  const original = seed.demandas.find((d) => d.id === 'DEM-0004');
+  const antes = JSON.stringify(original);
+  const a = salvarObservacoes(original, '  Feito: minuta enviada.\r\nPendente: protocolo-xyz.  ', HOJE);
+  assert.equal(a.observacoes, 'Feito: minuta enviada.\nPendente: protocolo-xyz.');
+  assert.equal(a.historico.at(-1).evento, 'Anotações iniciadas');
+  assert.equal(JSON.stringify(original), antes);
+  assert.equal(salvarObservacoes(a, 'Feito: minuta enviada.\nPendente: protocolo-xyz.', HOJE), a);
+  const b = salvarObservacoes(a, 'Tudo concluído.', HOJE);
+  assert.equal(b.historico.at(-1).evento, 'Anotações atualizadas');
+  const c = salvarObservacoes(b, '', HOJE);
+  assert.equal('observacoes' in c, false);
+  assert.equal(c.historico.at(-1).evento, 'Anotações apagadas');
+  assert.throws(() => salvarObservacoes(original, 'x'.repeat(OBSERVACOES_MAX + 1), HOJE), (e) => e instanceof ErroCadastro && /2000/.test(e.erros.observacoes));
+  // a busca olha as anotações
+  const demandas = seed.demandas.map((d) => (d.id === 'DEM-0004' ? a : d));
+  const achadas = listarDemandas(demandas, { busca: 'protocolo-xyz' }, HOJE, ctx).itens.map((x) => x.demanda.id);
+  assert.deepEqual(achadas, ['DEM-0004']);
+  // editar a demanda preserva a anotação
+  const editada = editarDemanda(a, { titulo: a.titulo, origem: a.origem, prazo: a.prazo, status: a.status, processo: a.processo, etapa: a.etapa }, HOJE);
+  assert.equal(editada.observacoes, a.observacoes);
+});

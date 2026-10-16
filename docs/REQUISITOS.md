@@ -33,6 +33,14 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 | RF31 | Filtros do Kanban: busca, prioridade, prazo (atrasados, próximos 7 dias, sem prazo) e status, combináveis, com "Limpar filtros" | Kanban |
 | RF32 | Persistência local do Kanban em chave própria (`kanban-dt:v1`), com recuperação de dado inválido, "Restaurar exemplo" e "Desfazer" na exclusão | Kanban |
 | RF33 | Aba Design Thinking (Empatizar, Definir, Idear, Prototipar, Testar): notas por etapa e promoção de uma ideia a card do Backlog | Kanban |
+| RF34 | Relatório agrupado: somar 2 ou mais pontos da mesma operação num só relatório (mesma etapa, Vistoriado ou Em elaboração); as etapas do relatório valem para todos os pontos dele, o agrupamento desfaz-se enquanto o relatório não está concluído, e o indicador "Relatórios pendentes" e as horas por relatório contam relatórios, não pontos | Pontos |
+| RF35 | Vários autos por ponto, cada um com tipo (Auto de infração, Termo de embargo, Termo de apreensão, Termo de interdição, Outro) e data; só com o relatório concluído; remover o último volta o ponto a "Relatório concluído"; ponto antigo em "Auto lavrado" vale como 1 auto de tipo não informado | Pontos |
+| RF36 | Aba "Pontos": cada ponto de cada operação como uma demanda, com situação do relatório e dos autos (Planejado, Aguardando relatório, Relatório concluído com auto a lavrar, Com auto lavrado, Encerrado sem auto), contadores que filtram, busca, filtro por operação e por situação; sem coordenadas na tela | Pontos |
+| RF37 | Anotações (observações) em todas as demandas, inclusive operações, e em cada ponto: caixa de texto para o que já foi executado e o que está pendente, com rascunho preservado, marcador "Com anotações" no card, busca e coluna OBSERVACOES nos CSV | Pontos |
+| RF38 | Importar a planilha com coordenadas em graus, minutos e segundos (`dd° mm' ss,sss" H`, hemisférios N, S, E, L, W, O) além de decimais; valores impossíveis são recusados sem repetir o valor digitado | Pontos |
+| RF39 | CSV de pontos com as colunas RELATORIO, AUTOS e OBSERVACOES no fim da linha; CSV de demandas com OBSERVACOES; resumo semanal contando relatórios (grupo = 1) e cada auto pela sua data | Pontos |
+| RF40 | Calendário e agenda com a programação da operação: período de saída a retorno em todos os dias do intervalo (inclusive operação concluída ou sobrestada, em tom discreto) e evento de retorno | Pontos |
+| RF41 | Mapa local dos pontos na aba "Pontos" (visão Lista \| Mapa): SVG sem mapa-base nem requisição externa, marcadores por situação em cor e forma, legenda com contagem, mesmos filtros da lista, operável pelo teclado, e lista dos pontos sem coordenadas | Pontos |
 
 ## Evolução proposta: Kanban e GTD (M9–M10)
 
@@ -89,6 +97,8 @@ O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a
 - **Coordenadas do exemplo são fictícias**, em pleno Atlântico, longe de qualquer local real. Arquivos exportados com dados reais devem ficar em local institucional, nunca no repositório (o `.gitignore` ignora os nomes padrão).
 
 - **Kanban de projetos** (RF28 a RF33; modelo próprio, separado da demanda, em `docs/KANBAN_DESIGN_THINKING.md`): **card** (`id` K-0001, `titulo`, `descricao`, `prioridade`, `prazo` opcional, `status`, `criado_em`, `historico[]`) e **nota** de Design Thinking (`id` N-0001, `etapa`, `texto`, `card_id` opcional), guardados em `kanban-dt:v1`.
+
+- **Pontos, relatórios e autos** (RF34 a RF41): na operação, `relatorios` (opcional: `[{ id, pontos[], criado_em }]`), no ponto `autos` (opcional: `[{ id, tipo, data }]`) e `observacoes` (opcional, até 500 caracteres); na demanda, `observacoes` (opcional, até 2000). `data_relatorio` e `data_auto` (data do primeiro auto) continuam preenchidos. Tudo opcional: dados salvos antes continuam válidos. Detalhes em `docs/PONTOS_RELATORIOS_AUTOS.md`.
 
 ## Fora do escopo
 

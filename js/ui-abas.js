@@ -1,6 +1,6 @@
-// Abas da página, com o estado no endereço: #quadro, #agenda, #afastamentos e #relatorios.
+// Abas da página, com o estado no endereço: #quadro, #pontos, #agenda, #afastamentos e #relatorios.
 // Nenhum elemento da página pode ter id igual ao nome de uma aba: o navegador trataria o endereço como âncora e tiraria o foco do link.
-export const ABAS = ['quadro', 'agenda', 'afastamentos', 'relatorios'];
+export const ABAS = ['quadro', 'pontos', 'agenda', 'afastamentos', 'relatorios'];
 export const ABA_PADRAO = 'quadro';
 
 // Endereço vazio ou desconhecido cai no quadro.

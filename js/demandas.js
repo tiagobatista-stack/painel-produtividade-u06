@@ -151,6 +151,19 @@ export function alterarStatus(demanda, novoStatus, hoje) {
   return nova;
 }
 
+// Anotações livres da demanda: o que já foi feito e o que está pendente. Texto simples, até OBSERVACOES_MAX caracteres.
+// Texto vazio apaga a anotação. Não altera a demanda recebida; o histórico registra a atualização.
+export const OBSERVACOES_MAX = 2000;
+
+export function salvarObservacoes(demanda, texto, hoje) {
+  const limpo = typeof texto === 'string' ? texto.replaceAll('\r\n', '\n').trim() : '';
+  if (limpo.length > OBSERVACOES_MAX) throw new ErroCadastro({ observacoes: `Use no máximo ${OBSERVACOES_MAX} caracteres nas anotações.` });
+  if (limpo === (demanda.observacoes ?? '')) return demanda;
+  const { observacoes, ...base } = demanda;
+  const evento = limpo ? (observacoes ? 'Anotações atualizadas' : 'Anotações iniciadas') : 'Anotações apagadas';
+  return { ...base, ...(limpo ? { observacoes: limpo } : {}), historico: [...(demanda.historico || []), { data: hoje, evento }] };
+}
+
 // Exclusão de demanda cadastrada por engano. Não altera a lista recebida.
 export function removerDemanda(demandas, id) {
   return demandas.filter((d) => d.id !== id);
@@ -185,7 +198,7 @@ export function normalizarBusca(s) {
 }
 
 function textoPesquisavel(d) {
-  const partes = [d.id, d.titulo, d.processo, d.etapa, d.local, d.equipe, TIPOS[d.tipo], ORIGENS[d.origem]];
+  const partes = [d.id, d.titulo, d.processo, d.etapa, d.local, d.equipe, d.observacoes, TIPOS[d.tipo], ORIGENS[d.origem]];
   if (d.pontos) partes.push(...d.pontos.map((p) => p.municipio));
   return normalizarBusca(partes.filter(Boolean).join(' '));
 }

@@ -26,6 +26,7 @@ export function cartao(item, hoje) {
   if (concluida) prazoTexto = d.concluida_em ? `Concluída em ${formatarData(d.concluida_em)}` : 'Concluída';
   else if (sobrestada) prazoTexto = 'Prazo suspenso (sobrestado)';
   botao.append(topo, elemento('span', 'demanda-titulo', d.titulo), elemento('span', 'demanda-prazo', prazoTexto));
+  if (d.observacoes) botao.append(elemento('span', 'demanda-obs', 'Com anotações'));
   botao.addEventListener('click', () => abrirPainel(d.id, botao));
   li.append(botao);
   return li;

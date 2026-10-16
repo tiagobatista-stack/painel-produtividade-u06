@@ -20,6 +20,7 @@ function eventosDaDemanda(d, { prazos = false } = {}) {
   }
   if (d.tipo === 'operacao') {
     if (d.saida) eventos.push({ data: d.saida, hora: null, tipo: 'saida_operacao', titulo: `Saída: ${d.equipe}`, id: d.id });
+    if (d.retorno) eventos.push({ data: d.retorno, hora: null, tipo: 'retorno_operacao', titulo: `Retorno: ${d.equipe}`, id: d.id });
     const prazo = prazoDemanda(d);
     if (prazo) eventos.push({ data: prazo, hora: null, tipo: 'prazo_relatorio', titulo: `Prazo dos relatórios: ${d.titulo}`, id: d.id });
   }
@@ -49,8 +50,24 @@ export function somarMeses(mes, n) {
   return `${Math.floor(total / 12)}-${String((total % 12) + 1).padStart(2, '0')}`;
 }
 
+// Período de cada operação (programação: de saída a retorno), em qualquer situação: aberta, sobrestada ou concluída.
+// A concluída fica como registro; só as abertas têm eventos (saída, retorno e prazo dos relatórios).
+function periodosDeOperacao(demandas) {
+  return demandas
+    .filter((d) => d.tipo === 'operacao' && d.saida && d.retorno)
+    .map((d) => ({
+      id: d.id,
+      equipe: d.equipe,
+      titulo: d.titulo,
+      saida: d.saida,
+      retorno: d.retorno,
+      situacao: estaConcluida(d) ? 'concluida' : estaSobrestada(d) ? 'sobrestada' : 'aberta',
+    }));
+}
+
 // Calendário de um mês (AAAA-MM) em semanas de segunda a domingo, completando com dias dos meses vizinhos.
-// Cada dia: { data, doMes, eventos (ordenados), afastamentos (que cobrem o dia, início e fim inclusos) }.
+// Cada dia: { data, doMes, eventos (ordenados), afastamentos (que cobrem o dia, início e fim inclusos),
+//             operacoes (cuja programação, de saída a retorno, cobre o dia) }.
 export function calendarioMes(demandas, afastamentos, mes) {
   const inicio = inicioDaSemana(`${mes}-01`);
   const ultimo = somarDias(`${somarMeses(mes, 1)}-01`, -1);
@@ -59,6 +76,7 @@ export function calendarioMes(demandas, afastamentos, mes) {
   for (const e of demandas.flatMap((d) => eventosDaDemanda(d, { prazos: true }))) {
     if (e.data >= inicio && e.data <= fim) porDia.set(e.data, [...(porDia.get(e.data) ?? []), e]);
   }
+  const periodos = periodosDeOperacao(demandas);
   const semanas = [];
   for (let segunda = inicio; segunda <= fim; segunda = somarDias(segunda, 7)) {
     semanas.push(
@@ -69,6 +87,7 @@ export function calendarioMes(demandas, afastamentos, mes) {
           doMes: data.startsWith(`${mes}-`),
           eventos: ordenar(porDia.get(data) ?? []),
           afastamentos: afastamentos.filter((a) => a.inicio <= data && a.fim >= data),
+          operacoes: periodos.filter((o) => o.saida <= data && o.retorno >= data),
         };
       })
     );

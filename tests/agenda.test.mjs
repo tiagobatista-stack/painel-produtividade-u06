@@ -34,7 +34,7 @@ test('saída de operação e prazo dos relatórios da operação importada', () 
   const op = criarOperacao(planilha, { prazo_dias: 3, horas_ponto: 3 }, seed.demandas, '2026-10-15'); // saída 09/11, prazo 16/11
   const todas = [...seed.demandas, op];
   assert.deepEqual(ag('2026-11-02', todas), ['2026-11-03 afastamento AFA-0001', '2026-11-09 saida_operacao DEM-0014']);
-  assert.deepEqual(ag('2026-11-10', todas), ['2026-11-16 prazo_relatorio DEM-0014']);
+  assert.deepEqual(ag('2026-11-10', todas), ['2026-11-13 retorno_operacao DEM-0014', '2026-11-16 prazo_relatorio DEM-0014']);
 });
 
 test('demandas concluídas não aparecem', () => {
@@ -76,6 +76,7 @@ test('calendário mostra prazos de processo e de outras demandas, além dos even
   assert.deepEqual(diasComEventos(semanas), [
     '2026-10-03 saida_operacao DEM-0001',
     '2026-10-06 prazo_relatorio DEM-0002',
+    '2026-10-07 retorno_operacao DEM-0001',
     '2026-10-13 prazo_processo DEM-0003',
     '2026-10-16 prazo_processo DEM-0005',
     '2026-10-17 prazo_relatorio DEM-0001',
@@ -106,4 +107,36 @@ test('somarMeses atravessa a virada do ano nos dois sentidos', () => {
   assert.equal(somarMeses('2026-12', 1), '2027-01');
   assert.equal(somarMeses('2026-01', -1), '2025-12');
   assert.equal(somarMeses('2026-10', 0), '2026-10');
+});
+
+test('programação da operação: o período de saída a retorno cobre todos os dias, nas 3 situações', () => {
+  const norte = seed.demandas.find((d) => d.id === 'DEM-0001'); // saída 03/10, retorno 07/10
+  const sul = seed.demandas.find((d) => d.id === 'DEM-0002'); // saída 22/09, retorno 26/09
+  const concluida = { ...norte, id: 'DEM-0090', equipe: 'Equipe X', saida: '2026-10-12', retorno: '2026-10-14', status: 'concluida' };
+  const sobrestada = { ...sul, id: 'DEM-0091', equipe: 'Equipe Y', saida: '2026-10-19', retorno: '2026-10-21', sobrestada: true, status: 'aguardando' };
+  const semanas = calendarioMes([norte, sul, concluida, sobrestada], [], '2026-10');
+  const ops = (data) => dia(semanas, data).operacoes.map((o) => `${o.id} ${o.situacao}`);
+  assert.deepEqual(ops('2026-10-02'), []);
+  for (const d of ['2026-10-03', '2026-10-04', '2026-10-05', '2026-10-06', '2026-10-07']) assert.deepEqual(ops(d), ['DEM-0001 aberta'], d);
+  assert.deepEqual(ops('2026-10-08'), []);
+  assert.deepEqual(ops('2026-10-13'), ['DEM-0090 concluida']);
+  assert.deepEqual(ops('2026-10-20'), ['DEM-0091 sobrestada']);
+});
+
+test('operação concluída ou sobrestada deixa o período no calendário, mas sem eventos nem prazo', () => {
+  const norte = seed.demandas.find((d) => d.id === 'DEM-0001');
+  const concluida = { ...norte, status: 'concluida' };
+  const semanas = calendarioMes([concluida], [], '2026-10');
+  assert.deepEqual(diasComEventos(semanas), []);
+  assert.equal(dia(semanas, '2026-10-05').operacoes.length, 1);
+  assert.equal(dia(semanas, '2026-10-05').operacoes[0].situacao, 'concluida');
+});
+
+test('o retorno registrado de fato muda o período e o evento de retorno', async () => {
+  const { registrarRetorno } = await import('../js/operacoes.js');
+  const op = criarOperacao(planilha, { prazo_dias: 3, horas_ponto: 3 }, seed.demandas, '2026-10-15'); // saída 09/11, retorno 13/11
+  const adiada = registrarRetorno(op, '2026-11-16', '2026-11-16');
+  const semanas = calendarioMes([adiada], [], '2026-11');
+  assert.equal(dia(semanas, '2026-11-16').operacoes.length, 1);
+  assert.deepEqual(diasComEventos(semanas).filter((l) => l.includes('retorno')), ['2026-11-16 retorno_operacao DEM-0014']);
 });
