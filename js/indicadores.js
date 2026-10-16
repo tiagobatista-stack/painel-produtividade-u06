@@ -63,20 +63,36 @@ export function filaOrdenada(demandas) {
     });
 }
 
-export function calcularIndicadores(demandas, hoje) {
+// Demandas que compõem cada indicador: { chave: [{ demanda, prazo, quantidade? }] }.
+// `quantidade` só aparece em relatórios pendentes e autos a lavrar (vários por operação); nos demais cada demanda conta 1.
+export function itensDosIndicadores(demandas, hoje) {
   const abertas = filaOrdenada(demandas);
   const limite = somarDias(hoje, 7);
   const semana = inicioDaSemana(hoje);
   const fimSemana = somarDias(semana, 6);
+  const comQuantidade = (contar) =>
+    abertas.map((x) => ({ ...x, quantidade: contar(x.demanda) })).filter((x) => x.quantidade > 0);
+  const comPrazo = (lista) => lista.map((d) => ({ demanda: d, prazo: prazoDemanda(d) }));
   return {
-    abertas: abertas.length,
-    vencidas: abertas.filter((x) => x.prazo !== null && x.prazo < hoje).length,
-    proximos7: abertas.filter((x) => x.prazo !== null && x.prazo >= hoje && x.prazo <= limite).length,
-    relatoriosPendentes: abertas.reduce((soma, x) => soma + relatoriosPendentes(x.demanda), 0),
-    autosALavrar: abertas.reduce((soma, x) => soma + autosALavrar(x.demanda), 0),
-    sobrestados: demandas.filter(estaSobrestada).length,
-    concluidasSemana: demandas.filter(
+    abertas,
+    vencidas: abertas.filter((x) => x.prazo !== null && x.prazo < hoje),
+    proximos7: abertas.filter((x) => x.prazo !== null && x.prazo >= hoje && x.prazo <= limite),
+    relatoriosPendentes: comQuantidade(relatoriosPendentes),
+    autosALavrar: comQuantidade(autosALavrar),
+    sobrestados: comPrazo(demandas.filter(estaSobrestada)),
+    concluidasSemana: comPrazo(demandas.filter(
       (d) => estaConcluida(d) && d.concluida_em >= semana && d.concluida_em <= fimSemana
-    ).length,
+    )),
   };
+}
+
+// Número exibido na caixa a partir da lista do indicador.
+export function totalDoIndicador(itens) {
+  return itens.reduce((soma, x) => soma + (x.quantidade ?? 1), 0);
+}
+
+export function calcularIndicadores(demandas, hoje) {
+  return Object.fromEntries(
+    Object.entries(itensDosIndicadores(demandas, hoje)).map(([chave, itens]) => [chave, totalDoIndicador(itens)])
+  );
 }

@@ -11,7 +11,9 @@ export const estado = {
   storage: null,
   focoApos: null, // valor de data-foco a restaurar depois de redesenhar
   pontosAbertos: new Set(), // operações com a lista de pontos aberta
+  indicadorAberto: null, // chave do indicador com a lista aberta, ou null
   atualizar: () => {},
+  irParaDemanda: () => {}, // leva ao cartão da demanda na fila; definido por app.js
 };
 
 export function hojeLocal() {

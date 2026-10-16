@@ -52,7 +52,7 @@ test.describe('férias, licenças e agenda', () => {
     const c = page.locator('#fila > li', { hasText: 'Informação técnica para ofício do Poder Judiciário' });
     await expect(c.locator('.prioridade')).toHaveText('Prioridade Alta · 60 pontos');
     await c.getByText('Por que esta prioridade?').click();
-    await expect(c).toContainText('Prazo dentro de férias ou licença-prêmio (+20)');
+    await expect(c).toContainText('Prazo dentro de férias, licença-prêmio ou compensação (+20)');
   });
 
   test('a agenda lista os compromissos dos próximos 7 dias e acompanha a data', async ({ page }) => {

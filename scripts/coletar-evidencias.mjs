@@ -46,10 +46,10 @@ const git = rodar('01-git.txt', 'git rev-parse HEAD && git log --oneline -15 && 
 const commit = (/^[0-9a-f]{40}/m.exec(git.texto) ?? [''])[0];
 registrar('Repositório e commit', git.codigo === 0 && commit !== '', `commit ${commit.slice(0, 7)}`);
 
-// 2. Testes do motor (T1–T13) e demais testes de regra
+// 2. Testes do motor (T1–T14) e demais testes de regra
 const qualidade = rodar('02-quality.txt', 'npm run quality');
 const [tests, pass, fail] = [/^# tests (\d+)/m, /^# pass (\d+)/m, /^# fail (\d+)/m].map((r) => numero(qualidade.texto, r));
-registrar('node --test (T1–T13 e demais)', qualidade.codigo === 0 && fail === 0 && pass === tests, `${pass}/${tests} passam, ${fail} falham`);
+registrar('node --test (T1–T14 e demais)', qualidade.codigo === 0 && fail === 0 && pass === tests, `${pass}/${tests} passam, ${fail} falham`);
 
 // 3. MCP local: argumentos e retorno literais do caso T1 e comparação T1–T6
 const mcp = rodar('03-mcp-t1.txt', 'node tools/teste-mcp.mjs');

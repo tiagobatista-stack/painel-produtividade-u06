@@ -1,4 +1,4 @@
-// Férias e licença-prêmio: cadastro e avisos. Funções puras e imutáveis.
+// Férias, licença-prêmio e compensação: cadastro e avisos. Funções puras e imutáveis.
 import { dataValida, diasEntre, estaConcluida, estaSobrestada, prazoDemanda, somarDias } from './indicadores.js';
 import { ErroCadastro } from './demandas.js';
 import { SITUACOES_AFASTAMENTO, TIPOS_AFASTAMENTO } from './rotulos.js';

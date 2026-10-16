@@ -15,5 +15,10 @@ export const ETAPAS_PONTO = {
   encerrado_nao_constatado: 'Encerrado: não constatado',
   encerrado_nao_acessado: 'Encerrado: não acessado',
 };
-export const TIPOS_AFASTAMENTO = { ferias: 'Férias', licenca_premio: 'Licença-prêmio' };
+export const TIPOS_AFASTAMENTO = { ferias: 'Férias', licenca_premio: 'Licença-prêmio', compensacao: 'Compensação' };
+// Tipos de evento da agenda e do calendário.
+export const ROTULOS_EVENTO = {
+  reuniao: 'Reunião', palestra: 'Palestra', saida_operacao: 'Saída de operação', prazo_relatorio: 'Prazo de relatórios',
+  prazo_processo: 'Prazo de processo', prazo_demanda: 'Prazo', afastamento: 'Afastamento',
+};
 export const SITUACOES_AFASTAMENTO = { planejado: 'Planejado', solicitado: 'Solicitado', aprovado: 'Aprovado' };

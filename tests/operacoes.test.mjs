@@ -40,7 +40,7 @@ test('prazo dentro das férias soma +20 (RF09 com a planilha de exemplo)', () =>
   assert.equal(fora.score, 30); // operação 20 + chefia 10
   const dentro = priorizar(novaOperacao({ prazo_dias: 3, horas_ponto: 3 }), HOJE, ctx);
   assert.equal(dentro.score, 50);
-  assert.ok(dentro.motivos.includes('Prazo dentro de férias ou licença-prêmio (+20)'));
+  assert.ok(dentro.motivos.includes('Prazo dentro de férias, licença-prêmio ou compensação (+20)'));
 });
 
 test('parâmetros inválidos e importação repetida', () => {

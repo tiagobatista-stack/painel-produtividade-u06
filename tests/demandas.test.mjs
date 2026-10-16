@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  criarDemanda, editarDemanda, alterarStatus, listarDemandas, proximoId, normalizarBusca, ErroCadastro, origensDoTipo, FILTROS_PADRAO, filtrosEmUso,
+  criarDemanda, editarDemanda, alterarStatus, listarDemandas, proximoId, normalizarBusca, ErroCadastro, origensDoTipo, FILTROS_PADRAO, filtrosEmUso, removerDemanda,
 } from '../js/demandas.js';
 
 const HOJE = '2026-10-15';
@@ -203,4 +203,15 @@ test('limpar filtros: listar com o padrão devolve a fila ativa completa, e o pa
   assert.deepEqual(limpa.itens.map((x) => x.demanda.id), listarDemandas(seed.demandas, {}, HOJE, ctx).itens.map((x) => x.demanda.id));
   assert.equal(Object.isFrozen(FILTROS_PADRAO), true);
   assert.equal(seed.demandas.length, 13); // listar nunca altera as demandas
+});
+
+test('removerDemanda tira só a demanda do id informado e não altera a lista original', () => {
+  const original = seed.demandas;
+  const total = original.length;
+  const alvo = original[0].id;
+  const nova = removerDemanda(original, alvo);
+  assert.equal(nova.length, total - 1);
+  assert.ok(!nova.some((d) => d.id === alvo));
+  assert.equal(original.length, total);
+  assert.deepEqual(removerDemanda(original, 'DEM-INEXISTENTE'), original);
 });

@@ -1,14 +1,15 @@
-import { calcularIndicadores, relatoriosPendentes, autosALavrar } from './indicadores.js';
-import { ErroCadastro, FILTROS_PADRAO, TIPOS_CADASTRAVEIS, alterarStatus, criarDemanda, editarDemanda, filtrosEmUso, listarDemandas, origensDoTipo } from './demandas.js';
+import { itensDosIndicadores, relatoriosPendentes, autosALavrar, totalDoIndicador } from './indicadores.js';
+import { ErroCadastro, FILTROS_PADRAO, TIPOS_CADASTRAVEIS, alterarStatus, criarDemanda, editarDemanda, filtrosEmUso, listarDemandas, origensDoTipo, removerDemanda } from './demandas.js';
 import { esforcoHoras } from './operacoes.js';
 import { carregar } from './armazenamento.js';
 import { ORIGENS, STATUS, TIPOS } from './rotulos.js';
 import {
-  $, criarGestorErros, elemento, estado, formatarData, hojeAtual, hojeLocal, mostrarAviso, opcoes, persistir, restaurarFoco, textoPrazo,
+  $, criarGestorErros, elemento, estado, formatarData, hojeAtual, hojeLocal, mostrarAviso, mostrarMensagem, opcoes, persistir, restaurarFoco, textoPrazo,
 } from './ui-comum.js';
 import { abrirRetorno, blocoPontos, botaoSobrestamento, iniciarOperacoes, temPlanejados } from './ui-operacao.js';
 import { desenharAfastamentos, desenharAgenda, desenharBanner, iniciarAfastamentos } from './ui-afastamentos.js';
 import { desenharResumo, iniciarExportacao } from './ui-exportacao.js';
+import { desenharCalendario, iniciarCalendario } from './ui-calendario.js';
 
 const INDICADORES = [
   ['abertas', 'Abertas'],
@@ -19,7 +20,10 @@ const INDICADORES = [
   ['concluidasSemana', 'Concluídas na semana'],
   ['sobrestados', 'Sobrestados'],
 ];
-const FAIXAS = ['Crítica', 'Alta', 'Média', 'Baixa'];
+const ROTULO_INDICADOR = Object.fromEntries(INDICADORES);
+// Status da fila em que aparecem os cartões de cada indicador; os demais estão na fila ativa.
+const STATUS_DO_INDICADOR = { concluidasSemana: 'concluida', sobrestados: 'aguardando' };
+const FAIXAS =['Crítica', 'Alta', 'Média', 'Baixa'];
 const CAMPOS = ['tipo', 'titulo', 'origem', 'processo', 'etapa', 'data_hora', 'local', 'publico', 'prazo', 'status', 'esforco_h', 'prazo_dias', 'horas_ponto'];
 
 const campoData = $('data-referencia');
@@ -37,14 +41,83 @@ let salvouNoDialogo = false; // distingue salvar de cancelar ao fechar o formul�
 
 // ---------- Indicadores e fila ----------
 
-function desenharIndicadores(valores) {
+// Cada caixa é um botão que abre, abaixo da grade, a lista das demandas que formam o número.
+function desenharIndicadores(itens, hoje) {
   $('indicadores').replaceChildren(
     ...INDICADORES.map(([chave, rotulo]) => {
-      const li = elemento('li', 'indicador');
-      li.append(elemento('span', 'indicador-valor', String(valores[chave])), elemento('span', 'indicador-rotulo', rotulo));
+      const valor = totalDoIndicador(itens[chave]);
+      const botao = elemento('button', 'indicador');
+      botao.type = 'button';
+      botao.dataset.foco = `indicador-${chave}`;
+      botao.setAttribute('aria-label', `${rotulo}: ${valor}`);
+      botao.setAttribute('aria-controls', 'painel-indicador');
+      botao.setAttribute('aria-expanded', String(estado.indicadorAberto === chave));
+      botao.append(elemento('span', 'indicador-valor', String(valor)), elemento('span', 'indicador-rotulo', rotulo));
+      botao.addEventListener('click', () => alternarIndicador(chave));
+      const li = elemento('li');
+      li.append(botao);
       return li;
     })
   );
+
+  const chave = estado.indicadorAberto;
+  $('painel-indicador').hidden = !chave;
+  if (!chave) return;
+  const lista = itens[chave];
+  $('painel-indicador-titulo').textContent = `${ROTULO_INDICADOR[chave]} (${totalDoIndicador(lista)})`;
+  $('lista-indicador').replaceChildren(
+    ...(lista.length ? lista.map((x) => itemIndicador(chave, x, hoje)) : [elemento('li', 'nota', 'Nenhuma demanda nesta categoria.')])
+  );
+}
+
+function detalheItem(chave, { demanda: d, prazo, quantidade }, hoje) {
+  const partes = [TIPOS[d.tipo]];
+  if (d.processo) partes.push(d.processo);
+  if (chave === 'relatoriosPendentes') partes.push(`${quantidade} ${quantidade === 1 ? 'relatório pendente' : 'relatórios pendentes'}`);
+  else if (chave === 'autosALavrar') partes.push(`${quantidade} ${quantidade === 1 ? 'auto a lavrar' : 'autos a lavrar'}`);
+  else if (chave === 'concluidasSemana') partes.push(`concluída em ${formatarData(d.concluida_em)}`);
+  else if (chave === 'sobrestados') partes.push(`prazo registrado ${formatarData(prazo)} (suspenso)`);
+  else partes.push(`prazo ${textoPrazo(prazo, hoje).texto}`);
+  return partes.join(' · ');
+}
+
+function itemIndicador(chave, item, hoje) {
+  const botao = elemento('button', 'item-indicador');
+  botao.type = 'button';
+  botao.append(elemento('span', 'item-indicador-titulo', item.demanda.titulo), elemento('span', 'item-indicador-detalhe', detalheItem(chave, item, hoje)));
+  botao.addEventListener('click', () => irParaDemanda(item.demanda.id, STATUS_DO_INDICADOR[chave] ?? 'abertas'));
+  const li = elemento('li');
+  li.append(botao);
+  return li;
+}
+
+function alternarIndicador(chave) {
+  estado.indicadorAberto = estado.indicadorAberto === chave ? null : chave;
+  estado.focoApos = `indicador-${chave}`;
+  atualizar();
+}
+
+function fecharIndicador() {
+  if (!estado.indicadorAberto) return;
+  estado.focoApos = `indicador-${estado.indicadorAberto}`;
+  estado.indicadorAberto = null;
+  atualizar();
+}
+
+// Leva ao cartão da demanda na fila: ajusta os filtros para que ele apareça, rola até ele, destaca e põe o foco nele.
+function irParaDemanda(id, status = 'abertas') {
+  filtroBusca.value = FILTROS_PADRAO.busca;
+  filtroTipo.value = FILTROS_PADRAO.tipo;
+  filtroPrioridade.value = FILTROS_PADRAO.prioridade;
+  filtroStatus.value = status;
+  estado.indicadorAberto = null;
+  estado.focoApos = `cartao-${id}`;
+  atualizar();
+  const alvo = document.querySelector(`[data-foco="cartao-${id}"]`);
+  if (!alvo) return;
+  alvo.scrollIntoView({ block: 'center' });
+  alvo.classList.add('destaque');
+  setTimeout(() => alvo.classList.remove('destaque'), 2500);
 }
 
 function classeFaixa(faixa) {
@@ -60,6 +133,8 @@ function cartao(item, hoje) {
   if (sobrestada) classes.push('sobrestada');
   if (info.vencida && !concluida && !sobrestada) classes.push('vencida');
   const li = elemento('li', classes.join(' '));
+  li.tabIndex = -1; // recebe o foco ao chegar pelo indicador
+  li.dataset.foco = `cartao-${d.id}`;
 
   const topo = elemento('div', 'demanda-topo');
   topo.append(elemento('span', 'etiqueta', TIPOS[d.tipo]), elemento('span', 'status', STATUS[d.status]));
@@ -120,7 +195,12 @@ function cartao(item, hoje) {
   editar.dataset.foco = `editar-${d.id}`;
   editar.setAttribute('aria-label', `Editar ${d.titulo}`);
   editar.addEventListener('click', () => abrirFormulario(d, editar));
-  acoes.append(editar);
+  const excluir = elemento('button', 'perigo', '🗑');
+  excluir.type = 'button';
+  excluir.title = 'Excluir';
+  excluir.setAttribute('aria-label', `Excluir ${d.titulo}`);
+  excluir.addEventListener('click', () => excluirDemanda(d));
+  acoes.append(editar, excluir);
   if (temPlanejados(d)) {
     const retorno = elemento('button', 'primario', 'Registrar retorno');
     retorno.type = 'button';
@@ -151,8 +231,9 @@ function atualizar() {
   const hoje = hojeAtual();
   $('limpar-filtros').disabled = !filtrosEmUso(filtrosAtuais());
   desenharBanner(hoje);
-  desenharIndicadores(calcularIndicadores(estado.dados.demandas, hoje));
+  desenharIndicadores(itensDosIndicadores(estado.dados.demandas, hoje), hoje);
   desenharResumo(hoje);
+  desenharCalendario(hoje);
   desenharAgenda(hoje);
   desenharFila(hoje);
   desenharAfastamentos(hoje);
@@ -180,6 +261,16 @@ function mudarStatus(id, novoStatus) {
   }
   persistir();
   estado.focoApos = `status-${id}`;
+  atualizar();
+}
+
+function excluirDemanda(d) {
+  const extra = d.tipo === 'operacao' ? ' Todos os pontos da operação também serão apagados.' : '';
+  if (!window.confirm(`Excluir a demanda "${d.titulo}"?${extra} Esta ação não pode ser desfeita.`)) return;
+  estado.dados.demandas = removerDemanda(estado.dados.demandas, d.id);
+  persistir();
+  mostrarMensagem('Demanda excluída.');
+  estado.focoApos = 'titulo-fila';
   atualizar();
 }
 
@@ -255,6 +346,7 @@ function acessarStorage() {
 async function iniciar() {
   campoData.value = hojeLocal();
   estado.atualizar = atualizar;
+  estado.irParaDemanda = irParaDemanda;
   try {
     const resposta = await fetch('data/seed.json');
     if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
@@ -282,6 +374,10 @@ async function iniciar() {
   for (const f of [filtroBusca, filtroTipo, filtroStatus, filtroPrioridade]) f.addEventListener('input', atualizar);
   $('filtros').addEventListener('submit', (e) => e.preventDefault());
   $('limpar-filtros').addEventListener('click', limparFiltros);
+  $('fechar-indicador').addEventListener('click', fecharIndicador);
+  for (const area of [$('indicadores'), $('painel-indicador')]) {
+    area.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharIndicador(); });
+  }
 
   $('nova-demanda').addEventListener('click', (e) => abrirFormulario(null, e.currentTarget));
   $('f-tipo').addEventListener('change', (e) => atualizarCamposDoTipo(e.target.value));
@@ -297,6 +393,7 @@ async function iniciar() {
 
   iniciarOperacoes();
   iniciarAfastamentos();
+  iniciarCalendario();
   iniciarExportacao();
   atualizar();
 }

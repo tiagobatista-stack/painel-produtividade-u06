@@ -21,7 +21,7 @@ Função pura `priorizar(demanda, hoje)` em `js/regras.js` (M2), retornando `{sc
 | Origem (qualquer tipo) | Chefia ou coordenação | +10 |
 | Operação | 10 ou mais relatórios pendentes | +15 |
 | Operação | 5 a 9 relatórios pendentes | +8 |
-| Afastamento | prazo dentro de férias ou licença-prêmio agendada (início e fim inclusos) | +20 |
+| Afastamento | prazo dentro de férias, licença-prêmio ou compensação agendada (início e fim inclusos) | +20 |
 
 ## Faixas
 
@@ -54,10 +54,11 @@ Crítica ≥ 70 · Alta 45–69 · Média 25–44 · Baixa < 25.
 | T12 | Processo vencido há 5 dias, origem Ministério Público, status Aguardando (sobrestado) — também com prazo vazio | — | fora da fila (sobrestada) |
 | T12b | Operação sobrestada (aguardando identificação do autuado), com prazo vencido e relatórios pendentes | — | fora da fila (sobrestada) |
 | T13 | O mesmo processo após voltar para "Em andamento" (prazo registrado mantido) | 90 | Crítica |
+| T14 | Processo, origem Denúncia, prazo em 12 dias, dentro de compensação de 2026-10-26 a 2026-10-28 | 45 | Alta |
 
 ## Conferência do seed (hoje = 2026-10-15)
 
-Os números abaixo, os casos T1–T13 e os indicadores de `docs/CRITERIOS_ACEITE.md` usam a **data de referência fixa 2026-10-15** (`hoje_referencia` no seed). O M1 deve aceitar uma **data de referência configurável**, com padrão igual à data de hoje; `priorizar(demanda, hoje)` já recebe a data como argumento e os testes sempre passam 2026-10-15.
+Os números abaixo, os casos T1–T14 e os indicadores de `docs/CRITERIOS_ACEITE.md` usam a **data de referência fixa 2026-10-15** (`hoje_referencia` no seed). O M1 deve aceitar uma **data de referência configurável**, com padrão igual à data de hoje; `priorizar(demanda, hoje)` já recebe a data como argumento e os testes sempre passam 2026-10-15.
 
 | ID | Cálculo | Score | Faixa |
 |---|---|---|---|

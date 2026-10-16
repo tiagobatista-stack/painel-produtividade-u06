@@ -1,10 +1,10 @@
-// Interface de férias e licença-prêmio, aviso de afastamento próximo e agenda dos próximos 7 dias.
+// Interface de férias, licença-prêmio e compensação, aviso de afastamento próximo e agenda dos próximos 7 dias.
 import { agenda, DIAS_AGENDA } from './agenda.js';
 import {
   afastamentosProximos, avisosAfastamento, criarAfastamento, editarAfastamento, ordenarAfastamentos, removerAfastamento,
 } from './afastamentos.js';
 import { ErroCadastro } from './demandas.js';
-import { SITUACOES_AFASTAMENTO, TIPOS_AFASTAMENTO } from './rotulos.js';
+import { ROTULOS_EVENTO, SITUACOES_AFASTAMENTO, TIPOS_AFASTAMENTO } from './rotulos.js';
 import {
   $, criarGestorErros, elemento, estado, formatarData, hojeAtual, mostrarMensagem, opcoes, persistir,
 } from './ui-comum.js';
@@ -12,9 +12,6 @@ import {
 const dialogo = $('dialogo-afastamento');
 const CAMPOS = ['tipo', 'inicio', 'fim', 'situacao'];
 const gestor = criarGestorErros({ resumo: $('a-resumo-erros'), campos: CAMPOS, idCampo: (c) => `a-${c}`, idErro: (c) => `ea-${c}` });
-const ROTULO_EVENTO = {
-  reuniao: 'Reunião', palestra: 'Palestra', saida_operacao: 'Saída de operação', prazo_relatorio: 'Prazo de relatórios', afastamento: 'Afastamento',
-};
 
 let editando = null;
 let gatilho = null;
@@ -42,7 +39,7 @@ export function desenharAgenda(hoje) {
       const ul = elemento('ul', 'agenda-lista');
       for (const e of lista) {
         const li = elemento('li', `evento evento-${e.tipo}`);
-        li.append(elemento('span', 'evento-hora', e.hora ?? 'dia todo'), elemento('span', 'evento-tipo', ROTULO_EVENTO[e.tipo]), elemento('span', 'evento-titulo', e.titulo));
+        li.append(elemento('span', 'evento-hora', e.hora ?? 'dia todo'), elemento('span', 'evento-tipo', ROTULOS_EVENTO[e.tipo]), elemento('span', 'evento-titulo', e.titulo));
         ul.append(li);
       }
       bloco.append(ul);
