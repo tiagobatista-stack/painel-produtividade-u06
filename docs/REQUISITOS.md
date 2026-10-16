@@ -6,7 +6,7 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 
 | ID | Requisito | Marco |
 |---|---|---|
-| RF01 | Cadastrar demanda: processo SIGADOC (origem MP, Judiciário, Procuradoria de Justiça, ouvidoria, denúncia ou chefia), reunião, palestra, operação de alertas ou outra | M3 |
+| RF01 | Cadastrar demanda: processo SIGADOC (origem MP, Judiciário, Procuradoria de Justiça, ouvidoria, denúncia ou chefia), reunião, palestra, operação de alertas, **licenciamento** (RF43) ou outra | M3 |
 | RF02 | Exibir campos específicos conforme o tipo escolhido | M3 |
 | RF03 | Calcular prioridade automaticamente pelo motor de regras | M2 |
 | RF04 | Listar a fila ordenada por prioridade e prazo, com busca e filtros por tipo, status e prioridade | M1/M3 |
@@ -40,7 +40,9 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 | RF38 | Importar a planilha com coordenadas em graus, minutos e segundos (`dd° mm' ss,sss" H`, hemisférios N, S, E, L, W, O) além de decimais; valores impossíveis são recusados sem repetir o valor digitado | Pontos |
 | RF39 | CSV de pontos com as colunas RELATORIO, AUTOS e OBSERVACOES no fim da linha; CSV de demandas com OBSERVACOES; resumo semanal contando relatórios (grupo = 1) e cada auto pela sua data | Pontos |
 | RF40 | Calendário e agenda com a programação da operação: período de saída a retorno em todos os dias do intervalo (inclusive operação concluída ou sobrestada, em tom discreto) e evento de retorno | Pontos |
-| RF41 | Mapa local dos pontos na aba "Pontos" (visão Lista \| Mapa): SVG sem mapa-base nem requisição externa, marcadores por situação em cor e forma, legenda com contagem, mesmos filtros da lista, operável pelo teclado, e lista dos pontos sem coordenadas | Pontos |
+| RF41 | Mapa dos pontos na aba "Pontos" (visão Lista \| Mapa) com **duas camadas de visualização iniciais: OpenStreetMap (ruas) e Google Satélite (imagem de satélite)**, escolhidas por um seletor, e a opção "Sem mapa-base" (o desenho local atual, que também vale se as camadas não carregarem); os marcadores por situação (cor e forma), a legenda com contagem, os mesmos filtros da lista, o teclado e a lista dos pontos sem coordenadas valem em qualquer camada. **Especificado, ainda não implementado**: depende das decisões e condições de `docs/PONTOS_RELATORIOS_AUTOS.md` (seção "Camadas do mapa") | Pontos |
+| RF42 | O botão **"Nova demanda"** (e a edição) tem uma **entrada de coordenada** opcional, em **decimal ou graus, minutos e segundos (GMS)**: campos Latitude e Longitude, cada um aceitando os dois formatos; valida como a importação da planilha, guarda em decimal e preenche `coord_x` (longitude) e `coord_y` (latitude) da demanda. **Especificado, ainda não implementado** | Pontos |
+| RF43 | **Tipo de demanda "Licenciamento"** no formulário de Nova demanda e na edição, nos filtros por tipo, nas exportações, no calendário (prazo) e no motor de prioridade. **Especificado, ainda não implementado**; campos, origens e pontuação dependem das decisões de `docs/REGRAS_PRIORIDADE.md` (seção "Tipo Licenciamento") | Pontos |
 
 ## Evolução proposta: Kanban e GTD (M9–M10)
 
@@ -70,7 +72,7 @@ O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a
 
 ## Modelo de dados (resumo)
 
-- **Demanda**: `id`, `tipo` (operacao, processo, reuniao, palestra, outra), `titulo`, `origem` (mp, judiciario, procuradoria, ouvidoria, denuncia, chefia, propria), `prazo`, `status` (a_fazer, em_andamento, aguardando, concluida), `esforco_h`, `criada_em`, `historico[]`. A prioridade é calculada, não armazenada.
+- **Demanda**: `id`, `tipo` (operacao, processo, reuniao, palestra, outra e, a partir do RF43, licenciamento), `titulo`, `origem` (mp, judiciario, procuradoria, ouvidoria, denuncia, chefia, propria), `prazo`, `status` (a_fazer, em_andamento, aguardando, concluida), `esforco_h`, `criada_em`, `historico[]`. A prioridade é calculada, não armazenada.
 - **Processo**: `processo`, `etapa`. **Reunião/palestra**: `data_hora`, `local`, `publico`.
 - **Operação**: `equipe`, `saida`, `retorno`, `prazo_dias`, `horas_ponto`, `pontos[]`, `sobrestada` (opcional; verdadeiro enquanto o prazo está suspenso). Prazo = retorno + `prazo_dias`; esforço = pendentes × `horas_ponto`.
 - **Ponto**: `n`, `coord_x`, `coord_y`, `municipio`, `nota`, `etapa`, `data_relatorio`, `data_auto`. Etapas: `planejado`, `vistoriado`, `relatorio_elaboracao`, `relatorio_concluido`, `auto_lavrado`, `encerrado_nao_constatado`, `encerrado_nao_acessado`.
@@ -98,7 +100,7 @@ O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a
 
 - **Kanban de projetos** (RF28 a RF32; modelo próprio, separado da demanda, em `docs/KANBAN_PROJETOS.md`): **card** (`id` K-0001, `titulo`, `descricao`, `prioridade`, `prazo` opcional, `status`, `criado_em`, `historico[]`), guardado em `kanban-dt:v1` (o nome da chave é histórico e não mudou, para os cards salvos continuarem valendo).
 
-- **Pontos, relatórios e autos** (RF34 a RF41): na operação, `relatorios` (opcional: `[{ id, pontos[], criado_em }]`), no ponto `autos` (opcional: `[{ id, tipo, data }]`) e `observacoes` (opcional, até 500 caracteres); na demanda, `observacoes` (opcional, até 2000). `data_relatorio` e `data_auto` (data do primeiro auto) continuam preenchidos. Tudo opcional: dados salvos antes continuam válidos. Detalhes em `docs/PONTOS_RELATORIOS_AUTOS.md`.
+- **Pontos, relatórios e autos** (RF34 a RF42): na operação, `relatorios` (opcional: `[{ id, pontos[], criado_em }]`), no ponto `autos` (opcional: `[{ id, tipo, data }]`) e `observacoes` (opcional, até 500 caracteres); na demanda, `observacoes` (opcional, até 2000) e, a partir do RF42, `coord_x` e `coord_y` (opcionais, em decimal, longitude e latitude). `data_relatorio` e `data_auto` (data do primeiro auto) continuam preenchidos. Tudo opcional: dados salvos antes continuam válidos. Detalhes em `docs/PONTOS_RELATORIOS_AUTOS.md`.
 
 ## Fora do escopo
 

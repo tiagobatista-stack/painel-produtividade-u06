@@ -51,6 +51,19 @@ Nenhum peso da tabela de pontuação muda. As regras abaixo só agrupam ou retir
 | T16 | Processo sobrestado (como T12) com `cobrar_em` = 2026-10-15 | fora da fila; listado em "Foco de hoje" como cobrança |
 | T17 | Reunião com prazo em 5 dias (como T6) | score 35, Média, classe Data fixa; fora de "Foco de hoje" |
 
+## Tipo Licenciamento (RF43, especificado, ainda não implementado)
+
+O tipo de demanda **"Licenciamento"** passa a existir ao lado de operação, processo, reunião, palestra e outra. Esta seção só registra o que está definido e o que falta decidir; **nenhum peso muda enquanto isso não for decidido**, e T1–T14 continuam valendo.
+
+- **Definido:** o tipo se chama "Licenciamento" (valor `licenciamento`); entra na lista de tipos do formulário de Nova demanda e da edição, no filtro por tipo e nos rótulos; tem prazo, status e histórico como as demais demandas; seu prazo aparece no calendário.
+- **A decidir (propostas entre parênteses):**
+  1. Campos próprios (proposta: número do processo e etapa, como o tipo processo, e origem entre chefia e própria mais as de processo).
+  2. Pontuação do tipo na tabela acima (proposta: o mesmo +15 do processo SIGADOC até a chefia definir outro valor; a origem do processo, +25, +15 e +10, valeria como no tipo processo se o licenciamento tiver essas origens).
+  3. Classe de serviço no quadro (proposta: Padrão, como processo).
+  4. Se o licenciamento aceita afastamento, anotações e coordenada como as demais demandas (proposta: sim).
+- **Casos de teste novos (a escrever depois da decisão):** licenciamento vencido, licenciamento com origem de chefia, licenciamento dentro de férias, e o exemplo fictício no seed. Nenhum caso existente muda.
+- **Fora do tipo:** o título "Resposta à chefia sobre processo de licenciamento (fictício)" do exemplo continua sendo um processo; não é o tipo Licenciamento.
+
 ## Casos de teste (hoje = 2026-10-15)
 
 | Caso | Entrada | Score | Faixa esperada |

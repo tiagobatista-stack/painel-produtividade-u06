@@ -54,6 +54,9 @@ Analista que recebe demandas de vários tipos (processos, reuniões, palestras) 
 - **Todo processo depende de anotação** do que já foi executado e do que está pendente.
 - As **datas da programação** da operação precisam estar no calendário.
 - Seria útil **ver os pontos no espaço** e classificá-los por situação.
+- Quer o tipo de demanda **"Licenciamento"** nas especificações.
+- Para o mapa, quer **duas camadas iniciais: OpenStreetMap e Google Satélite**.
+- No botão **Nova demanda**, quer uma **entrada de coordenada**, em decimal ou GMS.
 - Também pediu um Kanban com quatro status (Backlog, Em andamento, Em revisão, Concluído), prioridade, prazo, filtros e persistência local.
 - Sobre o próprio Design Thinking: era para ser **método**, não uma aba extra.
 
@@ -76,7 +79,7 @@ Como podemos…
 | Relatório somado | Agrupar pontos num relatório · um ponto principal e os outros herdam a situação · só marcar "somado" | **Agrupar:** o relatório vira uma unidade que conclui os pontos juntos, e cada ponto continua com os seus autos. |
 | Autos | Um por ponto · vários por ponto · um por relatório | **Vários por ponto**, cada um com tipo e data: reflete a rotina relatada. |
 | Contagem de pendências | Contar pontos · contar relatórios | **Relatórios:** pontos somados são um relatório só; sem grupos o número não muda. |
-| Mapa | Mapa de ruas com serviço externo · mapa local sem mapa-base | **Local (SVG):** o mapa de ruas enviaria as coordenadas dos alvos a terceiros e exigiria abrir a política de conteúdo. |
+| Mapa | Mapa de ruas com serviço externo · mapa local sem mapa-base · camadas OpenStreetMap e Google Satélite | **Hoje: local (SVG)**, por privacidade das coordenadas e pela política de conteúdo. **Depois, por decisão do responsável: duas camadas iniciais, OpenStreetMap e Google Satélite**, mantendo o SVG local como terceira opção e plano B. Ficam registradas as condições (privacidade, política de conteúdo, termos e chave do Google); ver `docs/PONTOS_RELATORIOS_AUTOS.md`. |
 | Onde monitorar | Só no painel de cada operação · aba com todos os pontos · os dois | **Os dois:** visão geral na aba Pontos e detalhe no painel da operação. |
 | Anotações | Só na demanda · demanda e ponto | **Demanda e ponto**, com rascunho preservado. |
 | Coordenadas | Exigir decimal · aceitar graus, minutos e segundos | **Aceitar o formato de campo**, recusando valores impossíveis. |
@@ -106,4 +109,4 @@ Protótipos baratos: seed fictício, planilha de exemplo com coordenadas fictíc
 | Kanban de projetos | `tests/kanban.test.mjs`, `tests/e2e/17-kanban` |
 | Teste com a planilha de campo | Rodado só no navegador local, sem copiar o conteúdo para o repositório; mostrou que as coordenadas vinham em graus, minutos e segundos e a importação as recusava. Isso virou o requisito RF38. |
 
-**Em aberto:** os tipos de auto são uma lista genérica (ajustar à rotina); o mapa mostra posição relativa, sem estradas nem limites; a proposta GTD (M10) em `docs/MELHORIAS_KANBAN_GTD.md` ainda não passou pelo ciclo e deve começar pelo quadro da seção 2.
+**Em aberto:** os tipos de auto são uma lista genérica (ajustar à rotina); o mapa em produção mostra posição relativa, sem estradas nem limites, até as decisões das camadas (padrão, chave do Google, política de conteúdo); a coordenada na Nova demanda (RF42) está especificada e ainda sem implementação; a proposta GTD (M10) em `docs/MELHORIAS_KANBAN_GTD.md` ainda não passou pelo ciclo e deve começar pelo quadro da seção 2.

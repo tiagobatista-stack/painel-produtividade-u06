@@ -2,7 +2,7 @@
 
 Cada operação chega por uma planilha e **cada ponto é uma demanda**: ele pode ter relatório sozinho ou ser somado a outros pontos no mesmo relatório. O objetivo é **monitorar se cada ponto teve o relatório finalizado e os seus autos lavrados**. Só dados fictícios no repositório: a planilha real fica no navegador de quem usa e nunca vai ao repositório nem à Vercel (matriz de governança, cenários C3 e C5).
 
-Requisitos RF34 a RF41 em `docs/REQUISITOS.md`; critérios em `docs/CRITERIOS_ACEITE.md`.
+Requisitos RF34 a RF42 em `docs/REQUISITOS.md`; critérios em `docs/CRITERIOS_ACEITE.md`.
 
 ## O que foi acrescentado
 
@@ -15,7 +15,8 @@ Requisitos RF34 a RF41 em `docs/REQUISITOS.md`; critérios em `docs/CRITERIOS_AC
 | Coordenadas em graus, minutos e segundos (RF38) | A colagem da planilha aceita `20° 30' 15,500" W` e `15° 10' 20,250" S`, além de decimais. |
 | Exportações (RF39) | CSV de pontos com `RELATORIO`, `AUTOS` e `OBSERVACOES` no fim; CSV de demandas com `OBSERVACOES`. |
 | Calendário da programação (RF40) | O período de saída a retorno aparece em todos os dias, mais o evento de retorno; operação concluída ou sobrestada fica como faixa discreta, sem prazo. |
-| Mapa local (RF41) | Visão "Mapa" na aba Pontos. |
+| Mapa (RF41) | Visão "Mapa" na aba Pontos: hoje um SVG local sem mapa-base; **especificado** para ter duas camadas iniciais, OpenStreetMap e Google Satélite (seção "Camadas do mapa"). |
+| Coordenada na Nova demanda (RF42) | **Especificado:** entrada de latitude e longitude, em decimal ou GMS, no formulário de demanda (seção "Coordenada na Nova demanda"). |
 
 ## Situação do ponto
 
@@ -52,15 +53,51 @@ demanda:    observacoes?: texto (até 2000)
 
 `dd° mm' ss,sss" H`, também com `′ ″ ’ ”`, espaços variáveis, vírgula ou ponto decimal e hemisfério opcional. S, W e O (oeste) ficam negativos. Na coluna COORD_X (longitude) só valem E, L, W e O; na COORD_Y (latitude), N e S, o que denuncia colunas trocadas. Minutos e segundos precisam ser menores que 60; graus até 180 (X) e 90 (Y). A mensagem de erro orienta o formato e **não repete o valor digitado**.
 
-## Mapa local
+## Mapa
 
 Visão **Lista | Mapa** na aba Pontos, com a mesma lista filtrada.
 
-- **Sem mapa-base e sem serviço externo.** Um mapa de ruas (por exemplo, com blocos do OpenStreetMap) exigiria abrir a política de conteúdo e **enviaria as coordenadas dos alvos de fiscalização a terceiros**. Por isso o desenho é um SVG local: posição relativa dos pontos por longitude e latitude, com grade, escala aproximada e rótulo de município.
+### Hoje (implementado): mapa local em SVG
+
+- **Sem mapa-base e sem serviço externo:** posição relativa dos pontos por longitude e latitude, com grade, escala aproximada e rótulo de município.
 - **Projeção:** equiretangular, com a longitude corrigida pelo cosseno da latitude média; serve para ver agrupamento e posição relativa, não para medir distâncias com precisão.
 - **Marcadores:** cada situação tem cor **e forma** (círculo vazado, quadrado, losango, círculo cheio, triângulo), com legenda e contagem. Marcadores muito próximos são afastados um pouco para poderem ser vistos e acionados; a ordem do afastamento é estável.
 - **Teclado:** cada marcador é um botão (Enter ou Espaço abre o painel da operação). Pontos sem coordenada ficam numa lista própria, com o botão para abrir a operação.
-- Contorno de municípios, se for desejado, entra depois como arquivo público guardado no próprio repositório.
+
+### Camadas do mapa (RF41, especificado, ainda não implementado)
+
+O mapa terá **duas camadas de visualização iniciais**, escolhidas por um seletor:
+
+| Camada | O que mostra | Observação |
+|---|---|---|
+| **OpenStreetMap** | Mapa de ruas, rios, limites e rótulos | Exige a atribuição "© contribuidores do OpenStreetMap" visível no mapa. |
+| **Google Satélite** | Imagem de satélite | Exige a atribuição do Google e o uso por um caminho permitido pelos termos do Google (ver condições). |
+| **Sem mapa-base** (já existe) | O SVG local de hoje | Fica como terceira opção e como **plano B**: se uma camada não carregar (rede, bloqueio, chave inválida), o mapa volta a ela com um aviso, sem perder marcadores nem filtros. |
+
+Regras que valem em qualquer camada: marcadores por situação (cor e forma), legenda com contagem, os mesmos filtros da lista, acesso por teclado, lista dos pontos sem coordenadas, e troca de camada sem perder o filtro nem o foco. A camada escolhida fica salva no navegador.
+
+**Condições e decisões do responsável antes de implementar.** As camadas mudam o que o projeto decidiu até aqui, então ficam registradas em vez de assumidas:
+
+1. **Privacidade das coordenadas.** Para desenhar a camada, o navegador pede blocos de imagem ao OpenStreetMap e ao Google, que passam a saber a **região visualizada** (e o IP de quem consulta). Para operações reais, cujo planejamento é sigiloso até a ação (matriz de governança, cenários C3 e C5), isso é uma exposição. Proposta para decidir: nenhuma requisição de blocos antes de o usuário escolher uma camada (padrão "Sem mapa-base"), com um aviso curto ao ativar; ou o padrão ser uma das camadas, aceitando o risco. **Decisão pendente: camada padrão.**
+2. **Política de conteúdo (`vercel.json`).** Hoje `img-src` aceita só `'self' data:`. Cada camada exige liberar os servidores de blocos (e, no caso do Google pelo caminho oficial, também `script-src` e `connect-src`). Isso afrouxa a política em um único ponto e muda o teste de `vercel.json`. Os servidores liberados devem ser listados por nome, sem curingas.
+3. **Google Satélite e os termos do Google.** Os blocos de satélite do Google **não podem ser puxados direto por endereço**, fora de um produto do Google, sem violar os termos. O caminho permitido é a **Google Maps Platform** (API de JavaScript ou API de blocos), que exige **chave de API, conta com faturamento e restrição de domínio**. Pontos a decidir: (a) onde a chave fica (nunca no repositório: regra "sem tokens ou senhas"; por exemplo, variável de ambiente na Vercel injetada no build, restrita ao domínio); (b) aceitar o script do Google no `script-src`, hoje só `'self'`; (c) se, caso essas condições não sejam aceitáveis, trocar o satélite por um provedor de imagem com termos abertos para esse uso, mantendo o nome da camada. **Decisão pendente: caminho do Google e onde fica a chave.**
+4. **OpenStreetMap e a política dos servidores de blocos.** O servidor público de blocos do OpenStreetMap é para uso leve, com atribuição e sem pedidos em massa. Serve a um painel pequeno de uso interno; se o uso crescer, usar um provedor próprio ou contratado.
+5. **Como desenhar.** Duas opções: uma biblioteca de mapa (por exemplo, Leaflet) **copiada para o repositório, sem CDN**, ou um desenhador mínimo próprio de blocos. Em qualquer caso o código fica em `js/` e a camada local em SVG continua existindo. **Decisão pendente.**
+6. **Testes.** Nenhum teste usa a rede real: os e2e interceptam as requisições de blocos com imagens falsas e conferem a troca de camada, a atribuição, o aviso de falha e o recuo para "Sem mapa-base". Coordenadas de teste continuam fictícias.
+
+Até essas decisões, o mapa em produção continua o SVG local.
+
+### Coordenada na Nova demanda (RF42, especificado, ainda não implementado)
+
+O botão **"Nova demanda"** (e a edição da demanda) ganha uma **entrada de coordenada** opcional, em decimal ou graus, minutos e segundos (GMS):
+
+- **Campos:** Latitude e Longitude, cada um aceitando os dois formatos. Exemplos válidos: `-10,504306`, `-10.504306`, `10° 30' 15,5" S`. Para a longitude: `-56,172292` ou `56° 10' 20,25" W` (O vale como W). Texto de ajuda sob os campos com um exemplo de cada formato.
+- **Regras:** as mesmas da importação da planilha: minutos e segundos menores que 60; latitude até 90 e longitude até 180; hemisfério do eixo certo (N e S na latitude; E, L, W e O na longitude); S, W e O ficam negativos. Informar só uma das duas é erro. Vazio é permitido.
+- **Gravação:** sempre em decimal, em `coord_x` (longitude) e `coord_y` (latitude) da demanda, os mesmos nomes dos pontos de operação. Quem digita em GMS vê o decimal gravado depois de salvar.
+- **Erros:** mensagem ao lado do campo e no resumo do formulário, foco no primeiro campo inválido, e **sem repetir o valor digitado**.
+- **Onde aparece:** na edição da demanda e no painel lateral. **Decisões pendentes:** (a) mostrar a demanda com coordenada no mapa como marcador próprio (recomendado, por status da demanda, distinto dos pontos de operação); (b) se o CSV de demandas passa a exportar a coordenada (hoje o CSV de demandas é sem coordenadas, e o de pontos as inclui).
+- **Código previsto:** o leitor de coordenadas que hoje está em `js/planilha.js` (decimal e GMS) passa para um módulo compartilhado (`js/coordenadas.js`), usado pela importação e pelo formulário, para as duas entradas aceitarem exatamente o mesmo formato.
+- **Dados:** a coordenada é sensível em uso real (alvos de fiscalização); neste exemplo só valores fictícios, e coordenadas reais nunca vão ao repositório nem a capturas de tela.
 
 ## Arquitetura
 
@@ -81,5 +118,5 @@ tests/e2e/19-pontos-relatorios-autos, 20-aba-pontos, 21-planilha-coordenadas, 22
 
 - A importação continua por **colar** a planilha (sem biblioteca para ler `.xlsx`: a política de conteúdo e o "sem dependências" do projeto).
 - Tipos de auto: lista curta e genérica; ajustar em `js/rotulos.js` (`TIPOS_AUTO`) se a rotina pedir outros.
-- O mapa não mostra estradas nem limites; as posições são relativas.
+- O mapa em produção é o SVG local: sem estradas, limites nem satélite, com posições relativas. As camadas OpenStreetMap e Google Satélite estão especificadas, mas dependem das decisões acima.
 - Os dados ficam só no navegador: sem conta, sincronização ou backup. As anotações podem conter informação sensível em uso real: o painel publicado é público, então anotações reais nunca devem ir ao repositório nem a capturas de tela.
