@@ -1,8 +1,10 @@
 import { readFileSync } from 'node:fs';
-import { test, expect, abrir, cadastrarProcesso, importarExemplo, resumo } from './apoio.mjs';
+import { test, expect, abrir, abrirMenuExportar, cadastrarProcesso, importarExemplo, irParaAba, resumo } from './apoio.mjs';
 
 async function baixar(page, botao) {
-  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: botao }).click()]);
+  const item = page.getByRole('button', { name: botao });
+  if (!(await item.isVisible())) await abrirMenuExportar(page); // as exportações ficam no menu "Exportar" da aba Relatórios
+  const [download] = await Promise.all([page.waitForEvent('download'), item.click()]);
   return { nome: download.suggestedFilename(), conteudo: readFileSync(await download.path()) };
 }
 const linhas = (buffer) => buffer.toString('utf8').replace(/^﻿/, '').split('\r\n').filter(Boolean);
@@ -74,6 +76,7 @@ test.describe('resumo da semana e exportações', () => {
     expect(leste[0].startsWith('1;Equipe Fictícia Leste;-20,5137;-15,5937;Município Fictício A;09/11/2026;13/11/2026;')).toBe(true);
 
     const csv = [linhas(conteudo)[0], ...leste].join('\r\n');
+    await irParaAba(page, 'Quadro');
     await page.getByRole('button', { name: 'Importar operação' }).click();
     const dialogo = page.getByRole('dialog', { name: 'Importar operação' });
     await dialogo.getByLabel('Linhas da planilha').fill(`﻿${csv}`);

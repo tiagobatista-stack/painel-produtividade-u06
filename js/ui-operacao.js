@@ -90,7 +90,7 @@ function confirmarImportacao(evento) {
   importou = true;
   dlgImportacao.close();
   mostrarMensagem(`Operação importada: ${op.pontos.length} pontos, prazo dos relatórios em ${formatarData(somarDias(op.retorno, op.prazo_dias))}. Use "Registrar retorno" quando a equipe voltar.`);
-  estado.focoApos = `editar-${op.id}`;
+  estado.focoApos = `abrir-${op.id}`;
   estado.atualizar();
 }
 

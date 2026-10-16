@@ -1,4 +1,4 @@
-import { test, expect, abrir } from './apoio.mjs';
+import { test, expect, abrir, abrirPainel, irParaAba } from './apoio.mjs';
 
 const secao = (page) => page.locator('section[aria-labelledby="titulo-calendario"]');
 const titulo = (page) => page.locator('#calendario-mes');
@@ -8,6 +8,7 @@ const detalhe = (page) => page.locator('#calendario-detalhe');
 test.describe('Calendário mensal e compensação', () => {
   test('abre no mês da data de referência, com prazos, compromissos e o dia de hoje marcado', async ({ page }) => {
     await abrir(page);
+    await irParaAba(page, 'Agenda');
     await expect(titulo(page)).toHaveText('Outubro de 2026');
     await expect(secao(page).locator('td.hoje')).toHaveText(/^15/);
     await expect(dia(page, '^terça-feira, 20 de outubro de 2026: 2 compromissos$')).toBeVisible();
@@ -26,6 +27,7 @@ test.describe('Calendário mensal e compensação', () => {
 
   test('navega entre meses e mostra o período inteiro da licença-prêmio', async ({ page }) => {
     await abrir(page);
+    await irParaAba(page, 'Agenda');
     await page.getByRole('button', { name: 'Próximo mês' }).click();
     await expect(titulo(page)).toHaveText('Novembro de 2026');
     await expect(page.getByRole('button', { name: 'Próximo mês' })).toBeFocused();
@@ -49,6 +51,7 @@ test.describe('Calendário mensal e compensação', () => {
 
   test('compensação cadastrada aparece no calendário, na lista e soma +20 ao prazo que cai no período', async ({ page }) => {
     await abrir(page);
+    await irParaAba(page, 'Afastamentos');
     await page.getByRole('button', { name: 'Novo afastamento' }).click();
     const dialogo = page.getByRole('dialog', { name: 'Novo afastamento' });
     await dialogo.getByLabel('Tipo').selectOption({ label: 'Compensação' });
@@ -59,12 +62,13 @@ test.describe('Calendário mensal e compensação', () => {
     await expect(dialogo).toBeHidden();
 
     await expect(page.locator('#lista-afastamentos')).toContainText('Compensação · 26/10/2026 a 28/10/2026 · Aprovado');
+    await irParaAba(page, 'Agenda');
     await expect(secao(page).locator('.faixa-compensacao')).toHaveCount(3);
     await expect(dia(page, '27 de outubro de 2026: 1 compromisso, Compensação')).toBeVisible();
 
-    const reuniao = page.locator('#fila > li', { hasText: 'Reunião de planejamento da próxima operação' }); // prazo 27/10
+    await irParaAba(page, 'Quadro');
+    const reuniao = await abrirPainel(page, 'Reunião de planejamento da próxima operação'); // prazo 27/10
     await expect(reuniao.locator('.prioridade')).toHaveText('Prioridade Média · 30 pontos');
-    await reuniao.getByText('Por que esta prioridade?').click();
     await expect(reuniao).toContainText('Prazo dentro de férias, licença-prêmio ou compensação (+20)');
   });
 });

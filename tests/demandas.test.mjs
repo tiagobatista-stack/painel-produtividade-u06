@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   criarDemanda, editarDemanda, alterarStatus, listarDemandas, proximoId, normalizarBusca, ErroCadastro, origensDoTipo, FILTROS_PADRAO, filtrosEmUso, removerDemanda,
+  restaurarDemanda, itemDaDemanda,
 } from '../js/demandas.js';
+import { calcularIndicadores } from '../js/indicadores.js';
 
 const HOJE = '2026-10-15';
 const seed = JSON.parse(readFileSync(new URL('../data/seed.json', import.meta.url), 'utf8'));
@@ -178,7 +180,7 @@ test('sobrestar e retomar pelo status: histórico e prazo registrado preservado'
 });
 
 test('filtros padrão: nenhum filtro em uso, e cada campo fora do padrão conta', () => {
-  assert.deepEqual({ ...FILTROS_PADRAO }, { busca: '', tipo: '', status: 'abertas', prioridade: '' });
+  assert.deepEqual({ ...FILTROS_PADRAO }, { busca: '', tipo: '', status: 'abertas', prioridade: '', prazo: '' });
   assert.equal(filtrosEmUso(FILTROS_PADRAO), false);
   assert.equal(filtrosEmUso({}), false);
   assert.equal(filtrosEmUso({ busca: 'reunião' }), true);
@@ -186,6 +188,7 @@ test('filtros padrão: nenhum filtro em uso, e cada campo fora do padrão conta'
   assert.equal(filtrosEmUso({ status: 'concluida' }), true);
   assert.equal(filtrosEmUso({ status: 'aguardando' }), true);
   assert.equal(filtrosEmUso({ prioridade: 'Crítica' }), true);
+  assert.equal(filtrosEmUso({ prazo: 'vencidas' }), true);
   assert.equal(filtrosEmUso({ busca: 'a', tipo: 'outra', status: 'a_fazer', prioridade: 'Baixa' }), true);
 });
 
@@ -214,4 +217,58 @@ test('removerDemanda tira só a demanda do id informado e não altera a lista or
   assert.ok(!nova.some((d) => d.id === alvo));
   assert.equal(original.length, total);
   assert.deepEqual(removerDemanda(original, 'DEM-INEXISTENTE'), original);
+});
+
+test('filtro prazo: cada recorte lista exatamente os itens do indicador, em qualquer data', () => {
+  for (const hoje of ['2026-10-15', '2026-10-16', '2026-10-30', '2026-12-10']) {
+    const n = calcularIndicadores(seed.demandas, hoje);
+    const lista = (filtros) => listarDemandas(seed.demandas, filtros, hoje, ctx).itens;
+    assert.equal(lista({ prazo: 'vencidas' }).length, n.vencidas, `vencidas em ${hoje}`);
+    assert.equal(lista({ prazo: 'proximos7' }).length, n.proximos7, `proximos7 em ${hoje}`);
+    assert.equal(lista({ status: 'concluida', prazo: 'semana' }).length, n.concluidasSemana, `semana em ${hoje}`);
+    assert.equal(lista({ status: 'aguardando' }).length, n.sobrestados, `sobrestados em ${hoje}`);
+  }
+});
+
+test('filtro prazo no seed (15/10): vencidas e próximos 7 dias, e combinações que não fazem sentido ficam vazias', () => {
+  const ids = (f) => listarDemandas(seed.demandas, f, HOJE, ctx).itens.map((x) => x.demanda.id);
+  assert.deepEqual(ids({ prazo: 'vencidas' }), ['DEM-0003', 'DEM-0002']); // na ordem do motor
+  assert.deepEqual(ids({ prazo: 'proximos7' }).sort(), ['DEM-0001', 'DEM-0005', 'DEM-0007', 'DEM-0008', 'DEM-0010']);
+  assert.deepEqual(ids({ prazo: 'vencidas', status: 'concluida' }), []);
+  assert.deepEqual(ids({ prazo: 'semana' }), []); // 'semana' só vale com status concluída
+  assert.deepEqual(ids({ prazo: 'vencidas', tipo: 'operacao' }), ['DEM-0002']); // combina com os outros filtros
+  assert.deepEqual(ids({ prazo: 'vencidas', busca: 'ministério' }), ['DEM-0003']);
+});
+
+test('restaurarDemanda devolve a demanda à posição original e recusa id repetido', () => {
+  const original = seed.demandas;
+  const meio = original[4];
+  const sem = removerDemanda(original, meio.id);
+  const volta = restaurarDemanda(sem, meio, 4);
+  assert.deepEqual(volta.map((d) => d.id), original.map((d) => d.id)); // mesma ordem de antes
+  assert.equal(sem.length, original.length - 1); // a lista recebida não foi alterada
+  assert.deepEqual(restaurarDemanda(sem, meio, 999).at(-1), meio); // índice fora do intervalo: vai para o fim
+  assert.deepEqual(restaurarDemanda(sem, meio, undefined).at(-1), meio);
+  assert.throws(() => restaurarDemanda(original, meio, 0), (e) => e instanceof ErroCadastro && /já foi usado/.test(e.erros.id));
+  // apagar a última e criar outra reaproveita o número; desfazer nesse caso é recusado
+  const ultima = original.at(-1);
+  const reaproveitada = [...removerDemanda(original, ultima.id)];
+  reaproveitada.push(criarDemanda(processo, reaproveitada, HOJE));
+  assert.equal(reaproveitada.at(-1).id, ultima.id);
+  assert.throws(() => restaurarDemanda(reaproveitada, ultima, original.length - 1), ErroCadastro);
+});
+
+test('itemDaDemanda: placar de uma demanda sem depender dos filtros da fila', () => {
+  const porId = (id) => seed.demandas.find((d) => d.id === id);
+  const aberta = itemDaDemanda(porId('DEM-0003'), HOJE, ctx);
+  assert.equal(aberta.score, 90);
+  assert.equal(aberta.faixa, 'Crítica');
+  assert.ok(aberta.motivos.includes('Prazo vencido (+50)'));
+  assert.deepEqual(itemDaDemanda(porId('DEM-0012'), HOJE, ctx).concluida, true);
+  assert.equal(itemDaDemanda(porId('DEM-0006'), HOJE, ctx).sobrestada, true);
+  const invalida = itemDaDemanda({ ...porId('DEM-0003'), prazo: '' }, HOJE, ctx);
+  assert.equal(invalida.erro, 'Prazo ausente ou inválido');
+  const daFila = listarDemandas(seed.demandas, {}, HOJE, ctx).itens.find((x) => x.demanda.id === 'DEM-0001');
+  const direto = itemDaDemanda(porId('DEM-0001'), HOJE, ctx);
+  assert.deepEqual([direto.score, direto.faixa, direto.motivos], [daFila.score, daFila.faixa, daFila.motivos]);
 });

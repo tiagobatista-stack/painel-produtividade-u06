@@ -90,6 +90,16 @@ Ao final do M7: `git tag recuperacao-m7` e zip em pasta separada.
 | 46 | Piloto IA 06 no Moodle; questionário da unidade separado | checklist abaixo |
 | 47 | Reconstruir o percurso e registrar o que ainda é didático | — |
 
+## Evolução pós-aula: Kanban e GTD (M8–M10, proposto)
+
+Mesma condução dos marcos anteriores: plano → OK → implementação → evidência → commit, uma branch e um PR por marco. Detalhes em `docs/MELHORIAS_KANBAN_GTD.md`.
+
+| # | Entrega | Verificação | Critério | Branch | Situação |
+|---|---|---|---|---|---|
+| M8 | Abas, topo fixo, "Foco de hoje", indicadores enxutos, cards compactos com painel lateral, menu "Exportar", "Desfazer" | `npm run quality` sem mudanças; `npm run test:e2e`; print desktop e 360 px | RF15, RF20 | `feature/layout-abas` | **Entregue** (aguarda commit e PR) |
+| M9 | Quadro por status, limite de itens em andamento, mover cards, classes de serviço, métricas de fluxo | `tests/quadro.test.mjs`; e2e mover card e limite; teclado | RF16–RF19, RF21, RNF07 | `feature/quadro-kanban` | Proposto |
+| M10 | Caixa de entrada, próxima ação, contexto, cobrança do sobrestado, agenda separada, revisão semanal | T1–T14 sem mudança e T15–T17 verdes; `npm run mcp:test` | RF22–RF27, RNF08 | `feature/gtd-entrada` | Proposto |
+
 ## Trilha de recuperação para a aula de 3 horas
 
 | Janela | Atividade | Plano B |
@@ -108,7 +118,7 @@ Ao final do M7: `git tag recuperacao-m7` e zip em pasta separada.
 
 - [ ] URL de produção, em janela anônima
 - [ ] Link do repositório e hash do commit publicado
-- [ ] Saída de `npm run quality` com T1–T11 aprovados
+- [ ] Saída de `npm run quality` com T1–T14 aprovados
 - [ ] Relatório Playwright (local e contra a URL real)
 - [ ] Print dos checks do GitHub Actions no PR
 - [ ] URL de Preview com a melhoria e confirmação da produção após o merge

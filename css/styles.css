@@ -19,18 +19,59 @@ body {
   line-height: 1.4;
 }
 
-.topo { background: var(--azul); color: #fff; padding: 14px 16px; }
-.topo h1 { margin: 0; font-size: 1.3rem; }
-.aviso { margin: 4px 0 0; font-size: 0.85rem; opacity: 0.9; }
+/* Topo fixo: o scroll-padding evita que o foco e as âncoras fiquem escondidos sob ele. */
+html { scroll-padding-top: 9.5rem; }
+.topo { position: sticky; top: 0; z-index: 20; background: var(--azul); color: #fff; padding: 6px 12px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
+/* Topo compacto: ocupa pouco espaço mesmo a 360 px, porque fica fixo em cima do conteúdo. */
+.topo-linha { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.topo-titulo { min-width: 0; }
+.topo h1 { margin: 0; font-size: 1.05rem; }
+.aviso { margin: 0; font-size: 0.74rem; opacity: 0.9; }
+.topo button.primario { background: #fff; color: var(--azul); border-color: #fff; }
+.topo button.primario:hover { background: var(--azul-claro); }
+.topo :focus-visible { outline-color: #fde68a; }
 
 main { max-width: 1100px; margin: 0 auto; padding: 12px; }
 h2 { font-size: 1.05rem; margin: 18px 0 8px; }
 
-.referencia {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
-  background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px;
-}
+.topo .referencia input, .topo .referencia button, .topo button.primario { min-height: 32px; padding: 3px 8px; font-size: 0.85rem; }
+.referencia { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; font-size: 0.85rem; }
 .referencia label { font-weight: 600; }
+
+/* ---- M8: abas, foco de hoje ---- */
+.abas { display: flex; gap: 2px; overflow-x: auto; margin: 12px 0 8px; border-bottom: 2px solid var(--borda); }
+.abas a {
+  flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 40px; padding: 6px 8px; font-size: 0.85rem;
+  color: var(--texto); font-weight: 600; text-decoration: none; border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0;
+}
+.abas a:hover { background: var(--azul-claro); }
+.abas a[aria-current="page"] { background: #fff; border-color: var(--borda); box-shadow: inset 0 -3px 0 var(--azul); }
+.aba[hidden] { display: none; }
+
+.foco { margin-top: 10px; padding: 0 12px 10px; background: #fff; border: 1px solid var(--borda); border-radius: 10px; }
+.foco h2 { margin: 8px 0 6px; }
+.foco-lista { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+button.foco-botao {
+  width: 100%; min-height: 44px; display: flex; flex-direction: column; gap: 2px; text-align: left;
+  background: #fff; border-color: var(--borda); border-left: 6px solid #475569;
+}
+button.foco-botao:hover { background: var(--azul-claro); }
+.foco-item.faixa-critica .foco-botao { border-left-color: var(--alerta); }
+.foco-item.faixa-alta .foco-botao { border-left-color: #c2410c; }
+.foco-item.faixa-media .foco-botao { border-left-color: #a16207; }
+.foco-item.faixa-baixa .foco-botao { border-left-color: #475569; }
+.foco-topo { display: flex; justify-content: space-between; gap: 8px; font-size: 0.78rem; color: var(--suave); }
+.foco-titulo { font-weight: 600; overflow-wrap: anywhere; }
+.foco-prazo { font-size: 0.85rem; color: var(--suave); }
+.foco-item.vencida .foco-prazo { color: var(--alerta); font-weight: 700; }
+@media (min-width: 600px) {
+  .abas a { padding: 6px 14px; font-size: 1rem; }
+  .abas { gap: 4px; }
+  .topo .referencia input, .topo .referencia button, .topo button.primario { padding: 6px 10px; font-size: 1rem; }
+}
+@media (min-width: 1000px) {
+  .foco-lista { grid-template-columns: repeat(3, 1fr); }
+}
 
 input, button {
   font: inherit; color: var(--texto);
@@ -54,26 +95,18 @@ ul { list-style: none; margin: 0; padding: 0; }
 #indicadores > li { display: flex; }
 button.indicador { width: 100%; text-align: left; align-items: flex-start; color: var(--texto); }
 button.indicador:hover { background: var(--azul-claro); border-color: var(--azul); }
-button.indicador[aria-expanded="true"] { background: var(--azul-claro); border-color: var(--azul); box-shadow: inset 0 -4px 0 var(--azul); }
-
-.painel-indicador { margin-top: 8px; background: #fff; border: 1px solid var(--azul); border-radius: 10px; padding: 10px 12px; }
-.painel-indicador-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.painel-indicador-topo h3 { margin: 0; font-size: 1rem; }
-.painel-indicador .nota { margin: 4px 0 8px; }
-.lista-indicador { display: grid; gap: 6px; }
-button.item-indicador { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 2px; background: #fff; border-color: var(--borda); }
-button.item-indicador:hover { background: var(--azul-claro); border-color: var(--azul); }
-.item-indicador-titulo { font-weight: 600; overflow-wrap: anywhere; }
-.item-indicador-detalhe { font-size: 0.82rem; color: var(--suave); overflow-wrap: anywhere; }
+button.indicador[aria-pressed="true"] { background: var(--azul-claro); border-color: var(--azul); box-shadow: inset 0 -4px 0 var(--azul); }
+/* "Vencidas" só fica vermelho quando há demanda vencida. */
+button.indicador.indicador-alerta { border-color: var(--alerta); background: var(--alerta-fundo); }
+button.indicador.indicador-alerta .indicador-valor, button.indicador.indicador-alerta .indicador-rotulo { color: var(--alerta); }
+button.indicador.indicador-alerta[aria-pressed="true"] { box-shadow: inset 0 -4px 0 var(--alerta); }
+.indicadores.complementares { grid-template-columns: repeat(3, 1fr); }
 .demanda.destaque { box-shadow: 0 0 0 3px #2563eb; }
-@media (min-width: 1000px) {
-  .lista-indicador { grid-template-columns: repeat(2, 1fr); }
-}
 
 .fila { display: grid; gap: 8px; }
 .demanda {
   background: #fff; border: 1px solid var(--borda); border-left: 5px solid var(--azul);
-  border-radius: 10px; padding: 10px 12px;
+  border-radius: 10px; padding: 0; /* o espaçamento fica no botão que abre o painel */
 }
 .demanda.faixa-critica { border-left-color: var(--alerta); }
 .demanda.faixa-alta { border-left-color: #c2410c; }
@@ -94,10 +127,10 @@ button.item-indicador:hover { background: var(--azul-claro); border-color: var(-
 .demanda.vencida .demanda-prazo { color: var(--alerta); font-weight: 700; }
 
 @media (min-width: 600px) {
-  .indicadores { grid-template-columns: repeat(3, 1fr); }
+  .indicadores { grid-template-columns: repeat(4, 1fr); }
+  .indicadores.complementares { grid-template-columns: repeat(3, 1fr); }
 }
 @media (min-width: 1000px) {
-  .indicadores { grid-template-columns: repeat(7, 1fr); }
   .fila { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -138,11 +171,19 @@ button.perigo:hover { background: var(--alerta-fundo); }
 .campo-acao { justify-content: flex-end; }
 
 @media (min-width: 600px) {
-  .filtros { grid-template-columns: 2fr 1fr 1fr 1fr auto; }
+  .filtros { grid-template-columns: repeat(3, 1fr); }
+  .filtros .campo:first-child { grid-column: 1 / -1; }
+}
+@media (min-width: 1000px) {
+  .filtros { grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto; }
+  .filtros .campo:first-child { grid-column: auto; }
 }
 
 /* ---- M4: operação, afastamentos, agenda ---- */
 .botoes-cabecalho { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+/* A mensagem fica fixa no rodapé da janela: aparece onde o usuário está e não obriga a rolar até o topo. */
+#mensagem { position: fixed; bottom: 12px; left: 12px; right: 12px; z-index: 30; max-width: 640px; margin: 0 auto; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); }
+#mensagem button { margin-left: 6px; }
 .sucesso { background: #f0fdf4; border: 1px solid #15803d; color: #14532d; padding: 10px 12px; border-radius: 8px; }
 .aviso-caixa { background: #fffbeb; border: 1px solid #b45309; color: #78350f; padding: 8px 12px; border-radius: 8px; margin-top: 8px; }
 .aviso-caixa p { margin: 4px 0; }
@@ -183,6 +224,14 @@ button:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
 .resumo { grid-template-columns: repeat(2, 1fr); }
 .aviso-dados { margin: 8px 0; font-size: 0.85rem; color: #78350f; background: #fffbeb; border-left: 3px solid #b45309; padding: 6px 10px; }
 .botoes-exportar { display: flex; flex-wrap: wrap; gap: 8px; }
+.menu-exportar summary {
+  display: inline-block; cursor: pointer; font-weight: 600; min-height: 36px; padding: 6px 14px;
+  background: var(--azul); color: #fff; border: 1px solid var(--azul); border-radius: 8px; list-style: none;
+}
+.menu-exportar summary::-webkit-details-marker { display: none; }
+.menu-exportar summary::after { content: " ▾"; }
+.menu-exportar[open] summary::after { content: " ▴"; }
+.menu-exportar .botoes-exportar { margin-top: 8px; padding: 10px; background: #fff; border: 1px solid var(--borda); border-radius: 10px; }
 
 @media (min-width: 600px) {
   .resumo { grid-template-columns: repeat(4, 1fr); }
@@ -236,3 +285,28 @@ button.link:hover { background: none; color: #2563eb; }
   button.dia { min-height: 96px; padding: 4px 6px; }
   .faixa, .chip { font-size: 0.72rem; height: auto; padding: 1px 4px; }
 }
+
+/* ---- M8: card compacto e painel lateral ---- */
+button.demanda-abrir {
+  width: 100%; min-height: 44px; display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; text-align: left;
+  color: inherit; background: transparent; border: 0; border-radius: 0 10px 10px 0;
+}
+button.demanda-abrir:hover { background: rgba(30, 42, 94, 0.06); }
+button.demanda-abrir .demanda-titulo { margin: 0; font-size: 1rem; font-weight: 600; }
+button.demanda-abrir .demanda-prazo { margin: 0; }
+
+dialog.painel-lateral {
+  position: fixed; inset: 0 0 0 auto; margin: 0; padding: 0;
+  width: min(480px, 100vw); max-width: 100vw; height: 100vh; height: 100dvh; max-height: 100dvh;
+  border-width: 0 0 0 2px; border-radius: 0; background: #fff;
+}
+dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
+.painel-topo {
+  position: sticky; top: 0; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  padding: 12px 16px 8px; background: #fff; border-bottom: 1px solid var(--borda);
+}
+.painel-topo h2 { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+.painel-corpo { display: grid; gap: 10px; padding: 10px 16px 16px; }
+.painel-corpo p { margin: 0; }
+.painel-motivos h3 { margin: 0 0 4px; font-size: 0.95rem; }
+.painel-motivos ul { margin: 0 0 0 16px; list-style: disc; font-size: 0.88rem; }
