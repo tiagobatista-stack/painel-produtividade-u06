@@ -2,11 +2,13 @@
 
 Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao SIGADOC nem a bases reais de alertas.
 
+> **Faixa reservada — linha "Localização e Vistoria":** RF42, RF43, RF48 e RF49 a RF70; RNF11 a RNF15; casos de teste T19 a T30. Não usar estes números em outra linha de trabalho. Estão **especificados e ainda não implementados**, exceto onde a coluna "Marco" disser o contrário. O mapa e a ação de campo são detalhados em `docs/MAPA.md` e `docs/ACAO_DE_CAMPO.md`.
+
 ## Funcionais
 
 | ID | Requisito | Marco |
 |---|---|---|
-| RF01 | Cadastrar demanda: processo SIGADOC (origem MP, Judiciário, Procuradoria de Justiça, ouvidoria, denúncia ou chefia), reunião, palestra, operação de alertas ou outra | M3 |
+| RF01 | Cadastrar demanda: processo SIGADOC (origem MP, Judiciário, Procuradoria de Justiça, ouvidoria, denúncia ou chefia), reunião, palestra, operação de alertas, **licenciamento** (RF43) ou outra | M3 |
 | RF02 | Exibir campos específicos conforme o tipo escolhido | M3 |
 | RF03 | Calcular prioridade automaticamente pelo motor de regras | M2 |
 | RF04 | Listar a fila ordenada por prioridade e prazo, com busca e filtros por tipo, status e prioridade | M1/M3 |
@@ -40,7 +42,7 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 | RF38 | Importar a planilha com coordenadas em graus, minutos e segundos (`dd° mm' ss,sss" H`, hemisférios N, S, E, L, W, O) além de decimais; valores impossíveis são recusados sem repetir o valor digitado | Pontos |
 | RF39 | CSV de pontos com as colunas RELATORIO, AUTOS e OBSERVACOES no fim da linha; CSV de demandas com OBSERVACOES; resumo semanal contando relatórios (grupo = 1) e cada auto pela sua data | Pontos |
 | RF40 | Calendário e agenda com a programação da operação: período de saída a retorno em todos os dias do intervalo (inclusive operação concluída ou sobrestada, em tom discreto) e evento de retorno | Pontos |
-| RF41 | Mapa local dos pontos na aba "Pontos" (visão Lista \| Mapa): SVG sem mapa-base nem requisição externa, marcadores por situação em cor e forma, legenda com contagem, mesmos filtros da lista, operável pelo teclado, e lista dos pontos sem coordenadas | Pontos |
+| RF41 | **Mapa dos pontos e das demandas** (produto principal: a localização é central porque as demandas exigem vistoria e definem viagens, equipe e relatórios), na visão Lista \| Mapa. **Hoje (entregue):** SVG local na aba "Pontos", sem mapa-base nem requisição externa, marcadores por situação em cor e forma, legenda com contagem, mesmos filtros da lista, teclado e lista dos pontos sem coordenadas. **Especificado, em etapas** (`docs/MAPA.md`): v1 com Leaflet local (OpenStreetMap e uma camada de satélite, sem Google) e "Sem mapa-base" como plano B; depois coordenada na Nova demanda (RF42), clicar no mapa (RF63), exportações (RF64) e camadas WMS da SEMA (RF65). O mapa funciona sem as camadas se a chave ou o servidor falhar | Pontos |
 
 ## Evolução proposta: Kanban e GTD (M9–M10)
 
@@ -58,7 +60,33 @@ O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a
 | RF45 | Prioridade automática com ajuste manual: o padrão é "Automática (calculada)"; o ajuste para Baixa, Média, Alta ou Crítica exige motivo; a faixa manual define o grupo na fila e, dentro dele, vale o score calculado; o cartão mostra a faixa manual e a calculada | Evolução · PR A |
 | RF46 | Prévia da prioridade calculada no rodapé do formulário (faixa, score e motivos), atualizada ao mudar tipo, origem, prazo, status ou dados da operação | Evolução · PR A |
 | RF47 | Anotações em lista com caixa de seleção: adicionar por Enter ou botão (colar várias linhas cria um item por linha), marcar como feita, editar, remover com "Desfazer"; marcar direto no painel lateral da demanda; contador "Anotações n/m" (também no cartão); conclusão registrada no histórico | Evolução · PR A |
-| RF48 | Localização da demanda: endereço ou referência espacial, latitude e longitude em graus, minutos e segundos (N/S, L/O e E/W), conversão para graus decimais, aviso quando o ponto fica fora de Mato Grosso e botão "Localizar" que abre o mapa em nova aba | Evolução · PR B (planejado) |
+| RF48 | Endereço ou referência espacial e botão **"Localizar"**: abre o OpenStreetMap em nova aba (o ponto, se houver coordenada; a busca do endereço, se só houver endereço), **sem requisição de rede feita pela página** e sem geocodificação. As coordenadas são do RF42 | Evolução · PR B (planejado) |
+
+## Linha Localização e Vistoria (RF42, RF43 e RF49 a RF65)
+
+O fluxo da demanda que exige vistoria é: **análise → decisão de vistoria → planejamento → vistoria → providências** (RF53). Saída de referência: `docs/modelos/roteiro-fiscalizacao-previa.html` (dados fictícios).
+
+| ID | Requisito | Marco |
+|---|---|---|
+| RF42 | **Coordenada na Nova demanda e na edição** (RF42 fundido com a entrada de coordenada do antigo RF48): campos Latitude e Longitude em **decimal ou GMS**. Guarda `coord_y` e `coord_x` (decimal, 6 casas) e `coord_y_texto` e `coord_x_texto` (como digitado). **Hemisfério opcional:** sem ele, assume S (latitude) e O (longitude) e mostra "hemisfério não informado: assumido S/O"; decimal positivo sem sinal segue a mesma regra. N, L e E são aceitos e disparam o aviso de fora de Mato Grosso (latitude de 7° a 18° S, longitude de 50° a 62° O), sem bloquear. Usa o mesmo conversor da importação (`js/coordenadas.js`) com a opção `assumirSulOeste` ligada **só no formulário**; a importação mantém o comportamento atual. Coordenadas no painel lateral. CSV de demandas com `COORD_X`, `COORD_Y` e `ENDERECO`, com o mesmo aviso de dados sensíveis do CSV de pontos | PR B |
+| RF43 | **Tipo "Licenciamento"** no formulário, nos filtros, nas exportações, no calendário e no motor; campos, origens e pontuação ficam a decidir em `docs/REGRAS_PRIORIDADE.md`, sem mudar nenhum peso | Pontos |
+| RF49 | **Município:** automático pela coordenada quando houver, senão informado. Limites de `Geoportal:LIM_MUNICIPIOS_MT` salvos como GeoJSON simplificado em `data/`, gerado por script local documentado | Localização |
+| RF50 | **Situação da vistoria** em todas as demandas: não requer, pendente, programada, vistoriada (com data) ou não acessada | Localização |
+| RF51 | A coordenada só existe quando há local a vistoriar. **Denúncia: nunca registrar o denunciante** | Localização |
+| RF52 | **Município descentralizado** (`Geoportal:MUNICIPIOS_DESCENTRALIZADOS`): indicador só para triagem, sem efeito na prioridade | Localização |
+| RF53 | **Fluxo da demanda:** análise → decisão de vistoria → planejamento → vistoria → providências | Localização |
+| RF54 | **Proximidade:** lista as demandas pendentes e os pontos de operação a até X km **em linha reta** (padrão 3 km; opções 3, 5 e 10), no painel lateral, no mapa e na ficha. Informa que é linha reta e só sugestão. Planejados para depois: corredor da rota e agrupamento automático | Localização |
+| RF55 | **Ação de campo** (substitui "Viagem"): período, municípios, unidade, demandas e pontos, equipe planejada. A operação de alertas pode receber demandas de terceiros, e pode existir ação só com demandas de terceiros. **Sem cálculo de diárias e sem cadastro de veículo** (a SEMA tem sistema próprio); a ação gera a lista usada no pedido de diárias | Localização |
+| RF56 | **Servidores:** lista salva no navegador (nome, matrícula, função: fiscal, motorista, apoio ou policial) | Localização |
+| RF57 | **Equipe presente na vistoria**, em cada demanda e ponto: começa igual à planejada e é editável; serve ao relatório e à lavratura do auto | Localização |
+| RF58 | **Campos de vistoria** por demanda e ponto. Antes: tipo/assunto, processo, código, imóvel/local, área desmatada (ha), CAR estadual, situação do CAR, CAR federal, responsáveis 0..n (nome, CPF, telefone, endereço), observações numeradas e nota de planejamento. Depois: data e hora, equipe presente, resultado (constatado, não constatado, não acessado) e providências (nº do auto, da notificação e do termo de embargo) | Localização |
+| RF59 | **Importação da planilha** com colunas opcionais `PROCESSO`, `CODIGO`, `TIPO`, `IMOVEL`, `AREA_HA`, `CAR_ESTADUAL`, `CAR_FEDERAL`, `SITUACAO_CAR`; ausentes ficam vazias e a planilha atual continua válida | Localização |
+| RF60 | **Roteiro de Fiscalização**, em página própria para imprimir ou salvar em PDF, com o layout e a ordem dos campos de `docs/modelos/roteiro-fiscalizacao-previa.html` (ver `docs/ACAO_DE_CAMPO.md`) | Localização |
+| RF61 | Roteiro também em **CSV, KML e GPX** | Localização |
+| RF62 | **Indicadores:** pendentes de vistoria por município, demandas com vizinhas no raio, vistoriadas no mês | Localização |
+| RF63 | **Clicar no mapa** preenche a coordenada da demanda | Mapa |
+| RF64 | **Exportar do mapa** em GeoJSON, KML e GPX | Mapa |
+| RF65 | **Camadas da SEMA via WMS** (UC, TI, embargos, CAR), sem WFS no navegador | Mapa |
 
 ## Não funcionais
 
@@ -74,10 +102,15 @@ O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a
 | RNF08 | Campos novos opcionais: dados já salvos e cópias JSON antigas continuam válidos sem migração (proposto, M10) |
 | RNF09 | Todo texto digitado pelo usuário (título, descrição, anotações, endereço) é exibido como texto puro, nunca interpretado como HTML |
 | RNF10 | A página não faz requisições de rede além da própria origem (CSP `connect-src 'self'`); o botão "Localizar" apenas abre um link em nova aba |
+| RNF11 | Ficha, contatos, equipe e coordenadas reais ficam só no navegador, nunca no repositório nem na Vercel. O seed usa "CPF fictício" (sem número) e coordenadas no Atlântico. Dado geográfico **público** (limites municipais, lista de municípios descentralizados) pode ir ao repositório; dado pessoal, nunca |
+| RNF12 | A política de conteúdo muda só em `img-src`, com servidores listados por nome e sem curingas; `script-src`, `style-src` e `connect-src` ficam como estão (ver `docs/MAPA.md`) |
+| RNF13 | Mapa e ação de campo funcionam sem rede e sem camadas externas; se a chave ou o servidor falhar, o mapa avisa e cai em "Sem mapa-base" |
+| RNF14 | Testes e CI não dependem de rede: os e2e bloqueiam os servidores de mapa |
+| RNF15 | Camadas externas só carregam depois de o usuário escolhê-las; o pedido de blocos revela ao servidor a região vista, nunca as coordenadas das fichas |
 
 ## Modelo de dados (resumo)
 
-- **Demanda**: `id`, `tipo` (operacao, processo, reuniao, palestra, outra), `titulo`, `origem` (mp, judiciario, procuradoria, ouvidoria, denuncia, chefia, propria), `prazo`, `status` (a_fazer, em_andamento, aguardando, concluida), `esforco_h`, `criada_em`, `historico[]`. A prioridade é calculada, não armazenada.
+- **Demanda**: `id`, `tipo` (operacao, processo, reuniao, palestra, outra e, a partir do RF43, licenciamento), `titulo`, `origem` (mp, judiciario, procuradoria, ouvidoria, denuncia, chefia, propria), `prazo`, `status` (a_fazer, em_andamento, aguardando, concluida), `esforco_h`, `criada_em`, `historico[]`. A prioridade é calculada, não armazenada.
 - **Processo**: `processo`, `etapa`. **Reunião/palestra**: `data_hora`, `local`, `publico`.
 - **Operação**: `equipe`, `saida`, `retorno`, `prazo_dias`, `horas_ponto`, `pontos[]`, `sobrestada` (opcional; verdadeiro enquanto o prazo está suspenso). Prazo = retorno + `prazo_dias`; esforço = pendentes × `horas_ponto`.
 - **Ponto**: `n`, `coord_x`, `coord_y`, `municipio`, `nota`, `etapa`, `data_relatorio`, `data_auto`. Etapas: `planejado`, `vistoriado`, `relatorio_elaboracao`, `relatorio_concluido`, `auto_lavrado`, `encerrado_nao_constatado`, `encerrado_nao_acessado`.
@@ -86,7 +119,7 @@ O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a
 - **Campos propostos (M10, opcionais):** na demanda, `proxima_acao`, `contexto` (computador, campo, reuniao, telefone), `aguardando_de` e `cobrar_em`; novo status `entrada` (caixa de entrada). Na configuração do navegador, `limite_em_andamento` (padrão 3), a visão escolhida (lista ou quadro) e a data da última revisão semanal.
 - **Campos novos da demanda (RF44 a RF47):** `descricao` (até 2000 caracteres), `responsavel`, `municipio`, `protocolo` (no tipo processo é o próprio número do processo e substitui o antigo `processo`), `etapa` (processo: `triagem`, `analise`, `parecer` ou `devolvido`), `prioridade_manual` (ausente = automática; ou `baixa`, `media`, `alta`, `critica`), `motivo_ajuste` (obrigatório, até 200 caracteres, com ajuste manual) e `anotacoes[]`. Os campos de texto curto aceitam até 120 caracteres. Só Tipo, Título e Prazo são obrigatórios; o protocolo é opcional.
 - **Migração (dados salvos no navegador e seed):** a cada carga, `migrarDemanda` copia `processo` para `protocolo`, converte a etapa antiga para a da lista (`despacho` → `analise`, `aguardando_informacao` → `triagem`, `concluido` → `devolvido`; valor desconhecido fica sem etapa) e garante `anotacoes: []`. É idempotente e não muda a versão do armazenamento.
-- **Campos do PR B (RF48, planejado):** `endereco`, `lat_gms` e `lon_gms` (texto como digitado), `lat` e `lon` (graus decimais, 6 casas).
+- **Campos da linha Localização e Vistoria (planejados, todos opcionais, sem migração):** na demanda, `endereco`, `coord_x` e `coord_y` (graus decimais, 6 casas; longitude e latitude, como nos pontos), `coord_x_texto` e `coord_y_texto` (como digitado), `municipio`, `vistoria` (`situacao`: nao_requer, pendente, programada, vistoriada, nao_acessada; `data`, `hora`, `equipe_presente[]`, `resultado`, `providencias`) e `ficha` (`assunto`, `processo`, `codigo`, `imovel`, `area_ha`, `car_estadual`, `situacao_car`, `car_federal`, `responsaveis[]` com nome, CPF, telefone e endereço, e `observacoes[]` numeradas). **Ação de campo:** `id`, `periodo`, `municipios[]`, `unidade`, `itens[]` (demandas e pontos) e `equipe[]`. **Servidor:** `nome`, `matricula`, `funcao` (fiscal, motorista, apoio, policial). Ficha, servidores e ações ficam só no navegador (RNF11).
 - **Anotação:** `id` (`A-1`, `A-2`…), `texto` (até 280 caracteres), `feita`, `criada_em`, `concluida_em`. Até 100 por demanda. Não altera a prioridade.
 - **Afastamento** (lista própria no seed, não dentro da demanda): `id`, `tipo` (ferias, licenca_premio), `inicio`, `fim`, `situacao` (planejado, solicitado, aprovado).
 
@@ -124,15 +157,15 @@ O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a
 | 5 | Responsável ("Nome ou equipe") \| Prazo |
 | 6 | Município ("Ex.: Cuiabá - MT") \| Protocolo/referência ("SEMA-PRO-FICT-0000") |
 | 7 | Etapa (só processo) \| Esforço estimado (h); na operação, Prazo dos relatórios \| Horas por relatório. Reunião e palestra mostram antes Data e hora \| Local (e Público) |
-| 8 | Endereço ou referência espacial + "Localizar" (PR B) |
-| 9 | Latitude em GMS \| Longitude em GMS (PR B) |
+| 8 | Endereço ou referência espacial + "Localizar" (PR B; RF48) |
+| 9 | Latitude \| Longitude, em decimal ou GMS (PR B; RF42) |
 | 10 | Anotações |
 | Rodapé | Prévia da prioridade calculada · Cancelar · Salvar demanda |
 
-- **Coordenadas (PR B):** aceitam `°`, `'`, `"`, espaços, vírgula ou ponto decimal; minutos e segundos menores que 60; hemisfério obrigatório. Ponto fora de Mato Grosso (latitude de 7° a 18° S, longitude de 50° a 62° O) gera aviso, sem bloquear. Exemplos: 11° 25' 12,00" S → -11,420000; 58° 45' 00,00" O → -58,750000.
-- **"Localizar" (PR B):** com coordenadas válidas, abre o ponto no OpenStreetMap em nova aba; sem coordenadas e com endereço, abre a busca do endereço. Nada é enviado sem o clique do usuário, e o aviso abaixo do botão informa que o texto vai para o serviço de mapas.
+- **Coordenadas (PR B, RF42):** aceitam decimal ou GMS, com `°`, `'`, `"`, espaços, vírgula ou ponto decimal; minutos e segundos menores que 60. **Hemisfério opcional:** sem ele, assume S e O e mostra "hemisfério não informado: assumido S/O"; N, L e E são aceitos e geram o aviso de fora de Mato Grosso (latitude de 7° a 18° S, longitude de 50° a 62° O), sem bloquear. Exemplos: 11° 25' 12,00" S → -11,420000; 58° 45' 00,00" O → -58,750000; `11,42` (sem sinal) → -11,420000 com o aviso. Guarda também o texto digitado.
+- **"Localizar" (PR B, RF48):** com coordenadas válidas, abre o ponto no OpenStreetMap em nova aba; sem coordenadas e com endereço, abre a busca do endereço. A página não faz requisição de rede; o link só abre com o clique, e o aviso abaixo do botão informa que o texto vai para o serviço de mapas.
 - **Dados de exemplo:** o seed continua sem coordenadas e com protocolos no formato `SEMA-PRO-FICT-…`.
 
 ## Fora do escopo
 
-Autenticação e perfis, backend e banco de dados, busca automática de endereço por serviço externo (geocodificação), integração com SIGADOC e sistema de autos, cruzamento com camadas SEMA-MT, cálculo de saldo de férias e dados reais.
+Autenticação e perfis, backend e banco de dados, integração com SIGADOC e sistema de autos, geocodificação ou busca automática de endereço, cálculo de diárias, cadastro de veículo, WFS no navegador, corredor de rota e agrupamento automático (planejados para depois), Google Satélite, cálculo de saldo de férias e dados reais.

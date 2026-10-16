@@ -2,7 +2,7 @@
 
 Cada operação chega por uma planilha e **cada ponto é uma demanda**: ele pode ter relatório sozinho ou ser somado a outros pontos no mesmo relatório. O objetivo é **monitorar se cada ponto teve o relatório finalizado e os seus autos lavrados**. Só dados fictícios no repositório: a planilha real fica no navegador de quem usa e nunca vai ao repositório nem à Vercel (matriz de governança, cenários C3 e C5).
 
-Requisitos RF34 a RF41 em `docs/REQUISITOS.md`; critérios em `docs/CRITERIOS_ACEITE.md`.
+Requisitos RF34 a RF42 em `docs/REQUISITOS.md`; critérios em `docs/CRITERIOS_ACEITE.md`.
 
 ## O que foi acrescentado
 
@@ -15,7 +15,8 @@ Requisitos RF34 a RF41 em `docs/REQUISITOS.md`; critérios em `docs/CRITERIOS_AC
 | Coordenadas em graus, minutos e segundos (RF38) | A colagem da planilha aceita `20° 30' 15,500" W` e `15° 10' 20,250" S`, além de decimais. |
 | Exportações (RF39) | CSV de pontos com `RELATORIO`, `AUTOS` e `OBSERVACOES` no fim; CSV de demandas com `OBSERVACOES`. |
 | Calendário da programação (RF40) | O período de saída a retorno aparece em todos os dias, mais o evento de retorno; operação concluída ou sobrestada fica como faixa discreta, sem prazo. |
-| Mapa local (RF41) | Visão "Mapa" na aba Pontos. |
+| Mapa (RF41) | Visão "Mapa" na aba Pontos: hoje um SVG local sem mapa-base; as camadas e as etapas seguintes estão **especificadas** em `docs/MAPA.md`. |
+| Coordenada na Nova demanda (RF42) | **Especificado:** latitude e longitude, em decimal ou GMS, com hemisfério opcional (ver `docs/REQUISITOS.md`, linha Localização e Vistoria). |
 
 ## Situação do ponto
 
@@ -52,15 +53,20 @@ demanda:    (observacoes foi substituída pela lista `anotacoes` da demanda; o t
 
 `dd° mm' ss,sss" H`, também com `′ ″ ’ ”`, espaços variáveis, vírgula ou ponto decimal e hemisfério opcional. S, W e O (oeste) ficam negativos. Na coluna COORD_X (longitude) só valem E, L, W e O; na COORD_Y (latitude), N e S, o que denuncia colunas trocadas. Minutos e segundos precisam ser menores que 60; graus até 180 (X) e 90 (Y). A mensagem de erro orienta o formato e **não repete o valor digitado**.
 
-## Mapa local
+## Mapa
 
 Visão **Lista | Mapa** na aba Pontos, com a mesma lista filtrada.
 
-- **Sem mapa-base e sem serviço externo.** Um mapa de ruas (por exemplo, com blocos do OpenStreetMap) exigiria abrir a política de conteúdo e **enviaria as coordenadas dos alvos de fiscalização a terceiros**. Por isso o desenho é um SVG local: posição relativa dos pontos por longitude e latitude, com grade, escala aproximada e rótulo de município.
+### Hoje (implementado): mapa local em SVG
+
+- **Sem mapa-base e sem serviço externo:** posição relativa dos pontos por longitude e latitude, com grade, escala aproximada e rótulo de município.
 - **Projeção:** equiretangular, com a longitude corrigida pelo cosseno da latitude média; serve para ver agrupamento e posição relativa, não para medir distâncias com precisão.
 - **Marcadores:** cada situação tem cor **e forma** (círculo vazado, quadrado, losango, círculo cheio, triângulo), com legenda e contagem. Marcadores muito próximos são afastados um pouco para poderem ser vistos e acionados; a ordem do afastamento é estável.
 - **Teclado:** cada marcador é um botão (Enter ou Espaço abre o painel da operação). Pontos sem coordenada ficam numa lista própria, com o botão para abrir a operação.
-- Contorno de municípios, se for desejado, entra depois como arquivo público guardado no próprio repositório.
+
+### Camadas do mapa, coordenada e vistoria (especificado)
+
+O que vem depois do SVG local — Leaflet em `vendor/`, OpenStreetMap, uma camada de satélite (sem Google), camadas da SEMA via WMS, política de conteúdo, chave e testes sem rede — está em **`docs/MAPA.md`**. A coordenada na Nova demanda (RF42), a vistoria, a ação de campo e o Roteiro de Fiscalização estão em **`docs/REQUISITOS.md`** e **`docs/ACAO_DE_CAMPO.md`**.
 
 ## Arquitetura
 
@@ -81,5 +87,5 @@ tests/e2e/19-pontos-relatorios-autos, 20-aba-pontos, 21-planilha-coordenadas, 22
 
 - A importação continua por **colar** a planilha (sem biblioteca para ler `.xlsx`: a política de conteúdo e o "sem dependências" do projeto).
 - Tipos de auto: lista curta e genérica; ajustar em `js/rotulos.js` (`TIPOS_AUTO`) se a rotina pedir outros.
-- O mapa não mostra estradas nem limites; as posições são relativas.
+- O mapa em produção é o SVG local: sem estradas, limites nem satélite, com posições relativas. As camadas OpenStreetMap e Google Satélite estão especificadas, mas dependem das decisões acima.
 - Os dados ficam só no navegador: sem conta, sincronização ou backup. As anotações podem conter informação sensível em uso real: o painel publicado é público, então anotações reais nunca devem ir ao repositório nem a capturas de tela.
