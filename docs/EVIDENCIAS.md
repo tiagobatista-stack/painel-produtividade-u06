@@ -20,7 +20,7 @@ O script (`scripts/coletar-evidencias.mjs`) roda os comandos de verdade e grava 
 | 4 | Relatório Playwright, local e contra a URL real | `npx playwright test` e `SITE_URL=… npx playwright test` | `04-e2e-local.txt`, `07-e2e-producao.txt`, `relatorio-playwright-*/index.html` | Script |
 | 5 | Print dos checks do GitHub Actions no PR | Página do PR → seção *Checks* (jobs `regras` e `navegador`) | print do usuário | **Usuário** |
 | 6 | URL de Preview com a melhoria e confirmação da nova produção após o merge | Comentário da Vercel no PR (botão *Visit Preview*) + o que o script confere na produção | print do Preview; `06-producao.txt` | **Usuário** (Preview) e script (produção) |
-| 7 | Retorno literal do MCP `demandas-lab` para o caso T1 | `node tools/teste-mcp.mjs`; e, dentro da sessão do Claude Code, o prompt de `docs/MCP.md` depois de registrar o servidor | `03-mcp-t1.txt`; print da sessão | Script + **usuário** (registro e sessão) |
+| 7 | Retorno literal do MCP `demandas-lab` para o caso T1 | `node tools/teste-mcp.mjs` (automático) e uma sessão do Claude Code com o servidor registrado (`claude mcp add --scope local --transport stdio demandas-lab -- node tools/demandas-mcp.mjs`) e o prompt de `docs/MCP.md` | `03-mcp-t1.txt` (script); `08-mcp-sessao.txt` (sessão, gravada à mão: o coletor não a gera); print da sua sessão, se preferir | Script + sessão |
 | 8 | Matriz de 5 cenários exportada em CSV | `docs/MATRIZ_GOVERNANCA.csv` (gerada de `docs/matriz-governanca.json` por `npm run matriz`; conferida por `tests/matriz.test.mjs`) | o próprio arquivo | Pronto |
 
 ## Além do checklist, e que a aula também pede

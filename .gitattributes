@@ -1,2 +1,5 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# CSV entregue ao Excel em português: sempre CRLF (o teste de tests/matriz.test.mjs depende disso)
+docs/MATRIZ_GOVERNANCA.csv text eol=crlf

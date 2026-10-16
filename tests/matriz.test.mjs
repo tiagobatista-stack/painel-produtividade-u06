@@ -75,6 +75,11 @@ test('nenhuma célula do CSV pode virar fórmula no Excel', () => {
   }
 });
 
+test('.gitattributes força CRLF no CSV, para o checkout no Linux (CI) não entregar LF', () => {
+  const atributos = readFileSync(new URL('../.gitattributes', import.meta.url), 'utf8').replace(/\r\n/g, '\n');
+  assert.match(atributos, /^docs\/MATRIZ_GOVERNANCA\.csv\s+text\s+eol=crlf$/m);
+});
+
 test('a proposta traz os mesmos 5 cenários da matriz', () => {
   const proposta = readFileSync(new URL('../docs/PROPOSTA_PAINEL_DEMANDAS.md', import.meta.url), 'utf8');
   for (const c of matriz.cenarios) assert.ok(proposta.includes(c.cenario), `${c.id} não aparece na proposta: ${c.cenario}`);
