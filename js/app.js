@@ -3,7 +3,7 @@ import { ErroCadastro, FILTROS_PADRAO, TIPOS_CADASTRAVEIS, alterarStatus, criarD
 import { carregar } from './armazenamento.js';
 import { FILTRO_PRAZO, ORIGENS, STATUS, TIPOS } from './rotulos.js';
 import {
-  $, classeFaixa, criarGestorErros, elemento, estado, formatarData, hojeAtual, hojeLocal, mostrarAviso, mostrarMensagem, opcoes, persistir, restaurarFoco, textoPrazo,
+  $, criarGestorErros, elemento, estado, formatarData, hojeAtual, hojeLocal, mostrarAviso, mostrarMensagem, opcoes, persistir, restaurarFoco,
 } from './ui-comum.js';
 import { iniciarOperacoes } from './ui-operacao.js';
 import { desenharAfastamentos, desenharAgenda, desenharBanner, iniciarAfastamentos } from './ui-afastamentos.js';
@@ -12,6 +12,8 @@ import { desenharCalendario, iniciarCalendario } from './ui-calendario.js';
 import { abrirAba, iniciarAbas } from './ui-abas.js';
 import { desenharFoco } from './ui-foco.js';
 import { abrirPainel, desenharPainel, fecharPainel, iniciarPainel } from './ui-painel.js';
+import { cartao } from './ui-cartao.js';
+import { definirVisao, desenharQuadro, iniciarQuadro, visaoAtual } from './ui-quadro.js';
 
 const INDICADORES = [
   ['vencidas', 'Vencidas'],
@@ -96,6 +98,7 @@ function aplicarFiltros({ busca = '', tipo = '', status = FILTROS_PADRAO.status,
 // Clicar no indicador aplica o filtro; clicar de novo volta ao padrão.
 function clicarIndicador(chave) {
   aplicarFiltros(indicadorAtivo() === chave ? FILTROS_PADRAO : FILTRO_DO_INDICADOR[chave]);
+  definirVisao('lista'); // filtrar é comportamento de lista
   estado.focoApos = `indicador-${chave}`;
   atualizar();
 }
@@ -108,6 +111,7 @@ function irParaDemanda(id) {
   if (estaConcluida(d)) status = 'concluida';
   else if (estaSobrestada(d)) status = 'aguardando';
   aplicarFiltros({ status });
+  definirVisao('lista'); // o cartão é procurado na lista
   abrirAba('quadro');
   estado.focoApos = `cartao-${id}`;
   atualizar();
@@ -118,34 +122,6 @@ function irParaDemanda(id) {
   setTimeout(() => alvo.classList.remove('destaque'), 2500);
 }
 
-// Card compacto: tipo, título, faixa (cor na borda e em texto) e prazo relativo. Todo o resto está no painel lateral.
-function cartao(item, hoje) {
-  const { demanda: d, prazo, faixa, concluida, sobrestada } = item;
-  const info = textoPrazo(prazo, hoje);
-  const classes = ['demanda'];
-  if (faixa) classes.push(classeFaixa(faixa));
-  if (concluida) classes.push('concluida');
-  if (sobrestada) classes.push('sobrestada');
-  if (info.vencida && !concluida && !sobrestada) classes.push('vencida');
-  const li = elemento('li', classes.join(' '));
-  li.tabIndex = -1; // recebe o foco ao chegar pelo calendário
-  li.dataset.foco = `cartao-${d.id}`;
-
-  const botao = elemento('button', 'demanda-abrir');
-  botao.type = 'button';
-  botao.dataset.foco = `abrir-${d.id}`;
-  botao.setAttribute('aria-haspopup', 'dialog');
-  const topo = elemento('span', 'demanda-topo');
-  topo.append(elemento('span', 'etiqueta', TIPOS[d.tipo]), elemento('span', 'status', faixa ?? STATUS[d.status]));
-  let prazoTexto = `Prazo: ${info.texto}`;
-  if (concluida) prazoTexto = d.concluida_em ? `Concluída em ${formatarData(d.concluida_em)}` : 'Concluída';
-  else if (sobrestada) prazoTexto = 'Prazo suspenso (sobrestado)';
-  botao.append(topo, elemento('span', 'demanda-titulo', d.titulo), elemento('span', 'demanda-prazo', prazoTexto));
-  botao.addEventListener('click', () => abrirPainel(d.id, botao));
-  li.append(botao);
-  return li;
-}
-
 function filtrosAtuais() {
   return { busca: filtroBusca.value, tipo: filtroTipo.value, status: filtroStatus.value, prioridade: filtroPrioridade.value, prazo: filtroPrazo.value };
 }
@@ -154,7 +130,8 @@ function desenharFila(hoje) {
   const { itens, erros } = listarDemandas(estado.dados.demandas, filtrosAtuais(), hoje, { afastamentos: estado.dados.afastamentos });
   $('fila-vazia').hidden = itens.length > 0;
   $('contagem').textContent = `${itens.length} ${itens.length === 1 ? 'demanda' : 'demandas'}`;
-  $('fila').replaceChildren(...itens.map((item) => cartao(item, hoje)));
+  // Só a visão ativa tem cartões na página: os data-foco (abrir-…, sobrestar-…) não podem se repetir.
+  $('fila').replaceChildren(...(visaoAtual() === 'lista' ? itens.map((item) => cartao(item, hoje)) : []));
   $('erros-validacao').hidden = erros.length === 0;
   $('lista-erros').replaceChildren(...erros.map((x) => elemento('li', '', `${x.demanda.id || '(sem id)'} — ${x.demanda.titulo || ''}: ${x.erro}`)));
 }
@@ -169,6 +146,7 @@ function atualizar() {
   desenharCalendario(hoje);
   desenharAgenda(hoje);
   desenharFila(hoje);
+  desenharQuadro(hoje);
   desenharAfastamentos(hoje);
   desenharPainel(hoje);
   restaurarFoco();
@@ -185,18 +163,20 @@ function limparFiltros() {
   atualizar();
 }
 
-function mudarStatus(id, novoStatus) {
+// Devolve true quando a mudança foi aceita (o quadro usa isso para anunciar a movimentação).
+function mudarStatus(id, novoStatus, focoApos = `status-${id}`) {
   const i = estado.dados.demandas.findIndex((d) => d.id === id);
   try {
     estado.dados.demandas[i] = alterarStatus(estado.dados.demandas[i], novoStatus, hojeAtual());
   } catch (e) {
     if (!(e instanceof ErroCadastro)) throw e;
     mostrarAviso(Object.values(e.erros)[0]);
-    return;
+    return false;
   }
   persistir();
-  estado.focoApos = `status-${id}`;
+  estado.focoApos = focoApos;
   atualizar();
+  return true;
 }
 
 // Exclui sem pedir confirmação: por cerca de 8 s a mensagem oferece "Desfazer" (a demanda volta à mesma posição, com os pontos).
@@ -346,6 +326,7 @@ async function iniciar() {
   iniciarOperacoes();
   iniciarAfastamentos();
   iniciarCalendario();
+  iniciarQuadro({ mudarStatus });
   iniciarPainel({ editar: (d, botao) => abrirFormulario(d, botao), excluir: excluirDemanda, mudarStatus });
   iniciarExportacao();
   atualizar();
