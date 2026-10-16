@@ -27,9 +27,32 @@
     </section>
 
     <section aria-labelledby="titulo-fila">
-      <h2 id="titulo-fila">Fila de demandas</h2>
-      <p class="nota">Ordenada por prioridade, depois prazo e data de criação.</p>
-      <p id="fila-vazia" hidden>Nenhuma demanda aberta.</p>
+      <div class="fila-cabecalho">
+        <h2 id="titulo-fila">Fila de demandas</h2>
+        <button type="button" id="nova-demanda" class="primario">Nova demanda</button>
+      </div>
+
+      <form id="filtros" class="filtros" role="search" aria-label="Buscar e filtrar demandas" onsubmit="return false">
+        <div class="campo">
+          <label for="filtro-busca">Buscar</label>
+          <input type="search" id="filtro-busca" placeholder="Título, processo, local, origem…" autocomplete="off">
+        </div>
+        <div class="campo">
+          <label for="filtro-tipo">Tipo</label>
+          <select id="filtro-tipo"></select>
+        </div>
+        <div class="campo">
+          <label for="filtro-status">Status</label>
+          <select id="filtro-status"></select>
+        </div>
+        <div class="campo">
+          <label for="filtro-prioridade">Prioridade</label>
+          <select id="filtro-prioridade"></select>
+        </div>
+      </form>
+
+      <p id="contagem" class="nota" aria-live="polite"></p>
+      <p id="fila-vazia" hidden>Nenhuma demanda encontrada.</p>
       <ul id="fila" class="fila"></ul>
     </section>
 
@@ -38,6 +61,78 @@
       <ul id="lista-erros"></ul>
     </section>
   </main>
+
+  <dialog id="dialogo" aria-labelledby="dialogo-titulo">
+    <form id="formulario" novalidate>
+      <h2 id="dialogo-titulo">Nova demanda</h2>
+      <p class="nota">Use apenas dados fictícios: a publicação na internet é pública.</p>
+      <div id="resumo-erros" class="erro" role="alert" tabindex="-1" hidden></div>
+
+      <div class="campo" data-campo="tipo">
+        <label for="f-tipo">Tipo</label>
+        <select id="f-tipo" name="tipo"></select>
+        <span class="erro-campo" id="e-tipo"></span>
+      </div>
+      <div class="campo" data-campo="titulo">
+        <label for="f-titulo">Título</label>
+        <input id="f-titulo" name="titulo" maxlength="120" autocomplete="off">
+        <span class="erro-campo" id="e-titulo"></span>
+      </div>
+      <div class="campo" data-campo="origem">
+        <label for="f-origem">Origem</label>
+        <select id="f-origem" name="origem"></select>
+        <span class="erro-campo" id="e-origem"></span>
+      </div>
+
+      <div class="campo" data-campo="processo" data-tipos="processo">
+        <label for="f-processo">Nº do processo (fictício)</label>
+        <input id="f-processo" name="processo" autocomplete="off" placeholder="SEMA-PRO-FICT-0000">
+        <span class="erro-campo" id="e-processo"></span>
+      </div>
+      <div class="campo" data-campo="etapa" data-tipos="processo">
+        <label for="f-etapa">Etapa</label>
+        <input id="f-etapa" name="etapa" autocomplete="off" placeholder="análise, parecer, despacho…">
+        <span class="erro-campo" id="e-etapa"></span>
+      </div>
+
+      <div class="campo" data-campo="data_hora" data-tipos="reuniao palestra">
+        <label for="f-data_hora">Data e hora</label>
+        <input id="f-data_hora" name="data_hora" type="datetime-local">
+        <span class="erro-campo" id="e-data_hora"></span>
+      </div>
+      <div class="campo" data-campo="local" data-tipos="reuniao palestra">
+        <label for="f-local">Local</label>
+        <input id="f-local" name="local" autocomplete="off">
+        <span class="erro-campo" id="e-local"></span>
+      </div>
+      <div class="campo" data-campo="publico" data-tipos="palestra">
+        <label for="f-publico">Público esperado (pessoas)</label>
+        <input id="f-publico" name="publico" type="number" min="0" step="1">
+        <span class="erro-campo" id="e-publico"></span>
+      </div>
+
+      <div class="campo" data-campo="prazo">
+        <label for="f-prazo">Prazo</label>
+        <input id="f-prazo" name="prazo" type="date">
+        <span class="erro-campo" id="e-prazo"></span>
+      </div>
+      <div class="campo" data-campo="status">
+        <label for="f-status">Status</label>
+        <select id="f-status" name="status"></select>
+        <span class="erro-campo" id="e-status"></span>
+      </div>
+      <div class="campo" data-campo="esforco_h">
+        <label for="f-esforco_h">Esforço estimado (horas)</label>
+        <input id="f-esforco_h" name="esforco_h" type="number" min="0" step="0.5">
+        <span class="erro-campo" id="e-esforco_h"></span>
+      </div>
+
+      <div class="acoes">
+        <button type="submit" class="primario">Salvar</button>
+        <button type="button" id="cancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
 
   <script type="module" src="js/app.js"></script>
 </body>
