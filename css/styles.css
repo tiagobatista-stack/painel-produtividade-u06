@@ -57,11 +57,20 @@ ul { list-style: none; margin: 0; padding: 0; }
   background: #fff; border: 1px solid var(--borda); border-left: 5px solid var(--azul);
   border-radius: 10px; padding: 10px 12px;
 }
+.demanda.faixa-critica { border-left-color: var(--alerta); }
+.demanda.faixa-alta { border-left-color: #c2410c; }
+.demanda.faixa-media { border-left-color: #a16207; }
+.demanda.faixa-baixa { border-left-color: #475569; }
 .demanda.vencida { border-left-color: var(--alerta); background: var(--alerta-fundo); }
 .demanda-topo { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8rem; }
 .etiqueta { font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
 .status { color: var(--suave); }
 .demanda-titulo { margin: 4px 0; font-size: 1rem; overflow-wrap: anywhere; }
+.nota { margin: 0 0 8px; font-size: 0.85rem; color: var(--suave); }
+.prioridade { margin: 2px 0; font-size: 0.9rem; font-weight: 700; }
+.motivos { margin-top: 6px; font-size: 0.85rem; }
+.motivos summary { cursor: pointer; color: var(--suave); }
+.motivos ul { margin: 4px 0 0 16px; list-style: disc; }
 .demanda-detalhe, .demanda-prazo { margin: 2px 0; font-size: 0.88rem; color: var(--suave); }
 .demanda.vencida .demanda-prazo { color: var(--alerta); font-weight: 700; }
 

@@ -1,4 +1,5 @@
-import { calcularIndicadores, filaOrdenada, relatoriosPendentes, autosALavrar, diasEntre, dataValida } from './indicadores.js';
+import { calcularIndicadores, relatoriosPendentes, autosALavrar, diasEntre, dataValida } from './indicadores.js';
+import { priorizarFila } from './regras.js';
 
 const TIPOS = { operacao: 'Operação de alertas', processo: 'Processo SIGADOC', reuniao: 'Reunião', palestra: 'Palestra', outra: 'Outra' };
 const ORIGENS = {
@@ -21,6 +22,8 @@ const listaIndicadores = document.getElementById('indicadores');
 const listaFila = document.getElementById('fila');
 const vazio = document.getElementById('fila-vazia');
 const erro = document.getElementById('erro');
+const blocoErros = document.getElementById('erros-validacao');
+const listaErros = document.getElementById('lista-erros');
 
 let seed = null;
 
@@ -59,24 +62,36 @@ function desenharIndicadores(valores) {
 }
 
 function desenharFila(hoje) {
-  const fila = filaOrdenada(seed.demandas);
+  const { fila, erros } = priorizarFila(seed.demandas, hoje, { afastamentos: seed.afastamentos });
   vazio.hidden = fila.length > 0;
   listaFila.replaceChildren(
-    ...fila.map(({ demanda: d, prazo }) => {
+    ...fila.map(({ demanda: d, prazo, score, faixa, motivos }) => {
       const info = textoPrazo(prazo, hoje);
-      const li = elemento('li', `demanda tipo-${d.tipo}${info.vencida ? ' vencida' : ''}`);
+      const li = elemento('li', `demanda faixa-${faixa.toLowerCase().replace('í', 'i').replace('é', 'e')}${info.vencida ? ' vencida' : ''}`);
       const topo = elemento('div', 'demanda-topo');
       topo.append(elemento('span', 'etiqueta', TIPOS[d.tipo]), elemento('span', 'status', STATUS[d.status]));
-      const detalhes = elemento('p', 'demanda-detalhe', `Origem: ${ORIGENS[d.origem]}`);
-      li.append(topo, elemento('h3', 'demanda-titulo', d.titulo), detalhes, elemento('p', 'demanda-prazo', `Prazo: ${info.texto}`));
+      li.append(
+        topo,
+        elemento('h3', 'demanda-titulo', d.titulo),
+        elemento('p', 'prioridade', `Prioridade ${faixa} · ${score} pontos`),
+        elemento('p', 'demanda-detalhe', `Origem: ${ORIGENS[d.origem]}`),
+        elemento('p', 'demanda-prazo', `Prazo: ${info.texto}`)
+      );
       if (d.tipo === 'operacao') {
         const pend = relatoriosPendentes(d);
         const autos = autosALavrar(d);
         li.append(elemento('p', 'demanda-detalhe', `${pend} ${pend === 1 ? 'relatório pendente' : 'relatórios pendentes'} · ${autos} ${autos === 1 ? 'auto a lavrar' : 'autos a lavrar'}`));
       }
+      const detalhes = elemento('details', 'motivos');
+      const lista = elemento('ul');
+      lista.append(...motivos.map((m) => elemento('li', '', m)));
+      detalhes.append(elemento('summary', '', 'Por que esta prioridade?'), lista);
+      li.append(detalhes);
       return li;
     })
   );
+  blocoErros.hidden = erros.length === 0;
+  listaErros.replaceChildren(...erros.map((x) => elemento('li', '', `${x.demanda.id || '(sem id)'} — ${x.demanda.titulo || ''}: ${x.erro}`)));
 }
 
 function atualizar() {

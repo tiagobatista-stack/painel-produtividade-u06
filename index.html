@@ -28,8 +28,14 @@
 
     <section aria-labelledby="titulo-fila">
       <h2 id="titulo-fila">Fila de demandas</h2>
+      <p class="nota">Ordenada por prioridade, depois prazo e data de criação.</p>
       <p id="fila-vazia" hidden>Nenhuma demanda aberta.</p>
       <ul id="fila" class="fila"></ul>
+    </section>
+
+    <section id="erros-validacao" class="erro" hidden>
+      <h2>Demandas com erro de validação</h2>
+      <ul id="lista-erros"></ul>
     </section>
   </main>
 
