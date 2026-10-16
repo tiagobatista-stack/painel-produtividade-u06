@@ -10,7 +10,9 @@
     "quality": "npm test",
     "build": "node scripts/build.mjs",
     "test:e2e": "playwright test",
-    "report:e2e": "playwright show-report"
+    "report:e2e": "playwright show-report",
+    "mcp": "node tools/demandas-mcp.mjs",
+    "mcp:test": "node tools/teste-mcp.mjs"
   },
   "engines": { "node": ">=18" }
 }

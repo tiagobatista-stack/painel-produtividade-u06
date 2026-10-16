@@ -15,10 +15,11 @@ painel-produtividade-u06/
 ├── js/app.js            # interface
 ├── js/regras.js         # motor de prioridade (puro, módulo ES)
 ├── data/seed.json       # exemplo fictício
-├── tests/regras.test.mjs  # T1–T11 (node --test)
+├── tests/regras.test.mjs  # T1–T13 (node --test)
 ├── tests/e2e/           # Playwright
-├── tools/demandas-mcp.mjs # servidor MCP local
+├── tools/demandas-mcp.mjs # servidor MCP local (somente leitura; ver docs/MCP.md)
 ├── tools/teste-mcp.mjs  # teste do servidor MCP
+├── tools/mcp-apoio.mjs  # cliente JSON-RPC e casos T1–T6 usados pelos testes do MCP
 ├── scripts/build.mjs    # copia o necessário para public/
 ├── docs/
 ├── legado/

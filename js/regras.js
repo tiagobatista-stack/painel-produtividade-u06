@@ -9,31 +9,46 @@ export class ErroValidacao extends Error {
   }
 }
 
-const PONTOS_TIPO = { operacao: 20, processo: 15, reuniao: 10, palestra: 5, outra: 0 };
+// Tabela de pontos: única fonte das regras. É usada por priorizar() e exposta pelo MCP (listar_regras),
+// de modo que a interface, os testes e o MCP nunca divirjam.
+export const REGRAS = {
+  prazo: { vencido: 50, ate2dias: 30, de3a7dias: 15 },
+  tipo: { operacao: 20, processo: 15, reuniao: 10, palestra: 5, outra: 0 },
+  origemProcesso: { mp: 25, judiciario: 25, procuradoria: 25, ouvidoria: 15, denuncia: 10 },
+  chefia: 10,
+  relatoriosPendentes: [
+    { minimo: 10, pontos: 15 },
+    { minimo: 5, pontos: 8 },
+  ],
+  afastamento: 20,
+  faixas: [
+    { nome: 'Crítica', minimo: 70 },
+    { nome: 'Alta', minimo: 45 },
+    { nome: 'Média', minimo: 25 },
+    { nome: 'Baixa', minimo: 0 },
+  ],
+};
+
 const ROTULO_TIPO = { operacao: 'Operação de alertas', processo: 'Processo SIGADOC', reuniao: 'Reunião', palestra: 'Palestra', outra: 'Outra' };
-const PONTOS_ORIGEM_PROCESSO = { mp: 25, judiciario: 25, procuradoria: 25, ouvidoria: 15, denuncia: 10 };
 const ROTULO_ORIGEM = {
   mp: 'Ministério Público', judiciario: 'Poder Judiciário', procuradoria: 'Procuradoria de Justiça',
   ouvidoria: 'Ouvidoria', denuncia: 'Denúncia',
 };
 
 export function faixaDoScore(score) {
-  if (score >= 70) return 'Crítica';
-  if (score >= 45) return 'Alta';
-  if (score >= 25) return 'Média';
-  return 'Baixa';
+  return REGRAS.faixas.find((f) => score >= f.minimo).nome;
 }
 
 function pontosPrazo(dias) {
-  if (dias < 0) return [50, 'Prazo vencido'];
-  if (dias <= 2) return [30, 'Prazo em até 2 dias'];
-  if (dias <= 7) return [15, 'Prazo de 3 a 7 dias'];
+  if (dias < 0) return [REGRAS.prazo.vencido, 'Prazo vencido'];
+  if (dias <= 2) return [REGRAS.prazo.ate2dias, 'Prazo em até 2 dias'];
+  if (dias <= 7) return [REGRAS.prazo.de3a7dias, 'Prazo de 3 a 7 dias'];
   return [0, null];
 }
 
 export function priorizar(demanda, hoje, { afastamentos = [] } = {}) {
   if (!dataValida(hoje)) throw new ErroValidacao('Data de referência inválida');
-  if (!(demanda.tipo in PONTOS_TIPO)) throw new ErroValidacao(`Tipo de demanda inválido: ${demanda.tipo}`);
+  if (!(demanda.tipo in REGRAS.tipo)) throw new ErroValidacao(`Tipo de demanda inválido: ${demanda.tipo}`);
   if (estaConcluida(demanda)) return { foraDaFila: true, score: null, faixa: null, motivos: [] };
 
   // Sobrestada: prazo suspenso, fora da fila e sem pontuação (o prazo registrado não é validado).
@@ -51,21 +66,21 @@ export function priorizar(demanda, hoje, { afastamentos = [] } = {}) {
   };
 
   somar(...pontosPrazo(diasEntre(hoje, prazo)));
-  somar(PONTOS_TIPO[demanda.tipo], PONTOS_TIPO[demanda.tipo] ? ROTULO_TIPO[demanda.tipo] : null);
+  somar(REGRAS.tipo[demanda.tipo], REGRAS.tipo[demanda.tipo] ? ROTULO_TIPO[demanda.tipo] : null);
 
-  if (demanda.tipo === 'processo' && demanda.origem in PONTOS_ORIGEM_PROCESSO) {
-    somar(PONTOS_ORIGEM_PROCESSO[demanda.origem], `Origem: ${ROTULO_ORIGEM[demanda.origem]}`);
+  if (demanda.tipo === 'processo' && demanda.origem in REGRAS.origemProcesso) {
+    somar(REGRAS.origemProcesso[demanda.origem], `Origem: ${ROTULO_ORIGEM[demanda.origem]}`);
   }
-  if (demanda.origem === 'chefia') somar(10, 'Origem: chefia ou coordenação');
+  if (demanda.origem === 'chefia') somar(REGRAS.chefia, 'Origem: chefia ou coordenação');
 
   if (demanda.tipo === 'operacao') {
     const pendentes = relatoriosPendentes(demanda);
-    if (pendentes >= 10) somar(15, `${pendentes} relatórios pendentes`);
-    else if (pendentes >= 5) somar(8, `${pendentes} relatórios pendentes`);
+    const faixa = REGRAS.relatoriosPendentes.find((f) => pendentes >= f.minimo);
+    if (faixa) somar(faixa.pontos, `${pendentes} relatórios pendentes`);
   }
 
   if (afastamentos.some((a) => dataValida(a.inicio) && dataValida(a.fim) && prazo >= a.inicio && prazo <= a.fim)) {
-    somar(20, 'Prazo dentro de férias ou licença-prêmio');
+    somar(REGRAS.afastamento, 'Prazo dentro de férias ou licença-prêmio');
   }
 
   return { score, faixa: faixaDoScore(score), motivos };

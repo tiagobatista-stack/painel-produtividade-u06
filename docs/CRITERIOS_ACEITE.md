@@ -22,5 +22,5 @@ Data de referência dos testes: 2026-10-15. Cada critério gera uma evidência l
 | RNF02 | Seed sem dado real | Revisão no M0 | M0 |
 | RNF03 | Funciona sem backend | Abrir `public/` | M7 |
 | RNF04 | Foco visível e navegação por teclado | Teste manual | M3 |
-| RNF05 | Retorno do MCP igual ao do painel para T1–T6 | Chamada literal do MCP | M6 |
+| RNF05 | Retorno do MCP igual ao do painel para T1–T6 (score, faixa e motivos) | Saída de `node tools/teste-mcp.mjs` e `tests/mcp.test.mjs`; chamada literal do MCP na sessão do Claude, depois de registrado | M6 |
 | RNF06 | `npm run build` gera `public/` | Saída do build | M7 |
