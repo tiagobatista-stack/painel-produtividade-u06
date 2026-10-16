@@ -1,0 +1,10 @@
+node_modules/
+.env
+.env.*
+test-results/
+playwright-report/
+public/
+*.log
+evidencias-privadas/
+*.xlsx
+docs/*.docx

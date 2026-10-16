@@ -1,0 +1,13 @@
+{
+  "name": "painel-produtividade-u06",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Painel de Demandas (didático, dados fictícios)",
+  "scripts": {
+    "test": "node --test tests/",
+    "build": "node scripts/build.mjs",
+    "e2e": "playwright test"
+  },
+  "engines": { "node": ">=18" }
+}
