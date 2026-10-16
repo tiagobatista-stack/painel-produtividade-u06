@@ -5,7 +5,8 @@
   "type": "module",
   "description": "Painel de Demandas (didático, dados fictícios)",
   "scripts": {
-    "test": "node --test tests/",
+    "start": "node scripts/serve.mjs",
+    "test": "node --test",
     "quality": "npm test",
     "build": "node scripts/build.mjs",
     "test:e2e": "playwright test",

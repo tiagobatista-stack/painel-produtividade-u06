@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Painel de Demandas</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topo">
+    <h1>Painel de Demandas</h1>
+    <p class="aviso">Exemplo didático com dados fictícios.</p>
+  </header>
+
+  <main>
+    <section class="referencia" aria-label="Data de referência">
+      <label for="data-referencia">Data de referência</label>
+      <input type="date" id="data-referencia">
+      <button type="button" id="usar-data-seed">Usar data do exemplo</button>
+    </section>
+
+    <p id="erro" class="erro" role="alert" hidden></p>
+
+    <section aria-labelledby="titulo-indicadores">
+      <h2 id="titulo-indicadores">Indicadores</h2>
+      <ul id="indicadores" class="indicadores"></ul>
+    </section>
+
+    <section aria-labelledby="titulo-fila">
+      <h2 id="titulo-fila">Fila de demandas</h2>
+      <p id="fila-vazia" hidden>Nenhuma demanda aberta.</p>
+      <ul id="fila" class="fila"></ul>
+    </section>
+  </main>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
