@@ -27,6 +27,14 @@
     <section aria-labelledby="titulo-indicadores">
       <h2 id="titulo-indicadores">Indicadores</h2>
       <ul id="indicadores" class="indicadores"></ul>
+      <div id="painel-indicador" class="painel-indicador" role="region" aria-labelledby="painel-indicador-titulo" hidden>
+        <div class="painel-indicador-topo">
+          <h3 id="painel-indicador-titulo"></h3>
+          <button type="button" id="fechar-indicador">Fechar</button>
+        </div>
+        <p class="nota">Escolha uma demanda para ir até o cartão dela na fila.</p>
+        <ul id="lista-indicador" class="lista-indicador"></ul>
+      </div>
     </section>
 
     <section aria-labelledby="titulo-resumo">
@@ -41,6 +49,33 @@
         <button type="button" id="exp-resumo">Resumo semanal (TXT)</button>
         <button type="button" id="exp-json">Cópia completa (JSON)</button>
       </div>
+    </section>
+
+    <section aria-labelledby="titulo-calendario">
+      <div class="fila-cabecalho">
+        <h2 id="titulo-calendario">Calendário</h2>
+        <div class="botoes-cabecalho">
+          <button type="button" id="mes-anterior" data-foco="mes-anterior"><span aria-hidden="true">‹</span> Mês anterior</button>
+          <button type="button" id="mes-referencia" data-foco="mes-referencia">Mês atual</button>
+          <button type="button" id="mes-seguinte" data-foco="mes-seguinte">Próximo mês <span aria-hidden="true">›</span></button>
+        </div>
+      </div>
+      <p id="calendario-mes" class="calendario-mes" aria-live="polite"></p>
+      <ul class="legenda" aria-label="Legenda do calendário">
+        <li><span class="marca marca-ferias"></span>Férias</li>
+        <li><span class="marca marca-licenca_premio"></span>Licença-prêmio</li>
+        <li><span class="marca marca-compensacao"></span>Compensação</li>
+        <li><span class="marca marca-prazo"></span>Prazo</li>
+        <li><span class="marca marca-compromisso"></span>Reunião, palestra ou saída</li>
+        <li><span class="marca marca-atrasado"></span>Prazo vencido</li>
+      </ul>
+      <div class="calendario-rolagem">
+        <table id="calendario" class="calendario" aria-labelledby="calendario-mes"></table>
+      </div>
+      <section id="calendario-detalhe" class="calendario-detalhe" aria-live="polite" aria-labelledby="calendario-detalhe-titulo" hidden>
+        <h3 id="calendario-detalhe-titulo"></h3>
+        <ul id="calendario-detalhe-lista" class="agenda-lista"></ul>
+      </section>
     </section>
 
     <section aria-labelledby="titulo-agenda">
@@ -86,7 +121,7 @@
 
     <section aria-labelledby="titulo-afastamentos">
       <div class="fila-cabecalho">
-        <h2 id="titulo-afastamentos">Férias e licenças</h2>
+        <h2 id="titulo-afastamentos">Férias, licenças e compensações</h2>
         <button type="button" id="novo-afastamento">Novo afastamento</button>
       </div>
       <p id="afastamentos-vazio" class="nota" hidden>Nenhum afastamento agendado.</p>

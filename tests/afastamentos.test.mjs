@@ -92,3 +92,10 @@ test('processo sobrestado não gera aviso de prazo no período', () => {
   const sobrestada = { ...seed.demandas.find((d) => d.id === 'DEM-0004'), status: 'aguardando' };
   assert.deepEqual(avisosAfastamento(ferias, [sobrestada], HOJE).prazos, []);
 });
+
+test('compensação é um tipo de afastamento e gera aviso de prazo no período', () => {
+  const comp = criarAfastamento({ tipo: 'compensacao', inicio: '2026-11-05', fim: '2026-11-06', situacao: 'aprovado' }, seed.afastamentos);
+  assert.equal(comp.tipo, 'compensacao');
+  const { prazos } = avisosAfastamento(comp, seed.demandas, HOJE);
+  assert.deepEqual(prazos.map((x) => x.demanda.id), ['DEM-0004']); // prazo 06/11
+});

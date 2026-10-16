@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { calcularIndicadores, filaOrdenada, prazoDemanda, inicioDaSemana, somarDias, dataValida, estaSobrestada } from '../js/indicadores.js';
+import { calcularIndicadores, itensDosIndicadores, filaOrdenada, prazoDemanda, inicioDaSemana, somarDias, dataValida, estaSobrestada } from '../js/indicadores.js';
 
 const seed = JSON.parse(readFileSync(new URL('../data/seed.json', import.meta.url), 'utf8'));
 const HOJE = '2026-10-15';
@@ -66,4 +66,23 @@ test('sobrestada não conta como aberta, vencida nem próxima; ao voltar a statu
   assert.equal(r.sobrestados, 0);
   assert.equal(estaSobrestada({ ...base, status: 'concluida' }), false);
   assert.equal(filaOrdenada([base]).length, 0);
+});
+
+test('itensDosIndicadores: cada caixa lista as demandas que formam o número exibido', () => {
+  const itens = itensDosIndicadores(seed.demandas, HOJE);
+  const ids = (chave) => itens[chave].map((x) => x.demanda.id);
+  assert.deepEqual(ids('vencidas'), ['DEM-0002', 'DEM-0003']);
+  assert.deepEqual(ids('proximos7'), ['DEM-0005', 'DEM-0001', 'DEM-0008', 'DEM-0007', 'DEM-0010']);
+  assert.deepEqual(itens.relatoriosPendentes.map((x) => [x.demanda.id, x.quantidade]), [['DEM-0002', 3], ['DEM-0001', 6]]);
+  assert.deepEqual(itens.autosALavrar.map((x) => [x.demanda.id, x.quantidade]), [['DEM-0002', 1], ['DEM-0001', 1]]);
+  assert.deepEqual(ids('sobrestados'), ['DEM-0006']);
+  assert.deepEqual(ids('concluidasSemana'), ['DEM-0012', 'DEM-0013']);
+  assert.equal(itens.abertas.length, 10);
+  // A soma das listas é exatamente o número das caixas, em qualquer data.
+  for (const hoje of [HOJE, '2026-10-30', '2026-12-10']) {
+    const numeros = calcularIndicadores(seed.demandas, hoje);
+    for (const [chave, lista] of Object.entries(itensDosIndicadores(seed.demandas, hoje))) {
+      assert.equal(lista.reduce((s, x) => s + (x.quantidade ?? 1), 0), numeros[chave], `${chave} em ${hoje}`);
+    }
+  }
 });

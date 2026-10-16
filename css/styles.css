@@ -51,6 +51,24 @@ ul { list-style: none; margin: 0; padding: 0; }
 }
 .indicador-valor { font-size: 1.7rem; font-weight: 700; }
 .indicador-rotulo { font-size: 0.8rem; color: var(--suave); }
+#indicadores > li { display: flex; }
+button.indicador { width: 100%; text-align: left; align-items: flex-start; color: var(--texto); }
+button.indicador:hover { background: var(--azul-claro); border-color: var(--azul); }
+button.indicador[aria-expanded="true"] { background: var(--azul-claro); border-color: var(--azul); box-shadow: inset 0 -4px 0 var(--azul); }
+
+.painel-indicador { margin-top: 8px; background: #fff; border: 1px solid var(--azul); border-radius: 10px; padding: 10px 12px; }
+.painel-indicador-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.painel-indicador-topo h3 { margin: 0; font-size: 1rem; }
+.painel-indicador .nota { margin: 4px 0 8px; }
+.lista-indicador { display: grid; gap: 6px; }
+button.item-indicador { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 2px; background: #fff; border-color: var(--borda); }
+button.item-indicador:hover { background: var(--azul-claro); border-color: var(--azul); }
+.item-indicador-titulo { font-weight: 600; overflow-wrap: anywhere; }
+.item-indicador-detalhe { font-size: 0.82rem; color: var(--suave); overflow-wrap: anywhere; }
+.demanda.destaque { box-shadow: 0 0 0 3px #2563eb; }
+@media (min-width: 1000px) {
+  .lista-indicador { grid-template-columns: repeat(2, 1fr); }
+}
 
 .fila { display: grid; gap: 8px; }
 .demanda {
@@ -113,6 +131,8 @@ dialog form { display: grid; gap: 10px; }
 
 .acoes-cartao { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
 .rotulo-status { font-size: 0.85rem; font-weight: 600; }
+button.perigo { border-color: var(--alerta); color: var(--alerta); background: #fff; }
+button.perigo:hover { background: var(--alerta-fundo); }
 .demanda.concluida { opacity: 0.9; border-left-color: #15803d; }
 
 .campo-acao { justify-content: flex-end; }
@@ -169,4 +189,50 @@ button:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
 }
 @media (min-width: 1000px) {
   .resumo { grid-template-columns: repeat(4, 1fr); }
+}
+
+/* ---- Calendário mensal ---- */
+.calendario-mes { margin: 0 0 6px; font-weight: 700; }
+.legenda { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 8px; font-size: 0.82rem; color: var(--suave); }
+.legenda li { display: flex; align-items: center; gap: 4px; }
+.marca { display: inline-block; width: 14px; height: 12px; border-radius: 3px; border: 1px solid; border-left-width: 4px; }
+.marca-ferias, .faixa-ferias { background: #ccfbf1; border-color: #0f766e; color: #134e4a; }
+.marca-licenca_premio, .faixa-licenca_premio { background: #ede9fe; border-color: #6d28d9; color: #4c1d95; }
+.marca-compensacao, .faixa-compensacao { background: #fef3c7; border-color: #b45309; color: #78350f; }
+.marca-prazo, .chip-prazo { background: #dbeafe; border-color: #1d4ed8; color: #1e3a8a; }
+.marca-compromisso, .chip-compromisso { background: #dcfce7; border-color: #15803d; color: #14532d; }
+.marca-atrasado, .chip-atrasado { background: var(--alerta-fundo); border-color: var(--alerta); color: var(--alerta); }
+
+.calendario-rolagem { overflow-x: auto; }
+.calendario { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 2px; }
+.calendario th { font-size: 0.78rem; font-weight: 600; color: var(--suave); padding: 2px 0; }
+.calendario abbr { text-decoration: none; }
+.calendario td { vertical-align: top; padding: 0; }
+button.dia {
+  width: 100%; min-height: 44px; padding: 3px; display: flex; flex-direction: column; gap: 2px;
+  text-align: left; background: #fff; border-color: var(--borda); border-radius: 6px; overflow: hidden;
+}
+button.dia:hover { background: var(--azul-claro); }
+button.dia[aria-pressed="true"] { background: var(--azul-claro); border-color: var(--azul); box-shadow: inset 0 0 0 1px var(--azul); }
+.fora-do-mes button.dia { background: #f6f7fb; color: var(--suave); }
+.hoje button.dia { border: 2px solid var(--azul); }
+.hoje .dia-numero { background: var(--azul); color: #fff; border-radius: 999px; padding: 0 6px; align-self: flex-start; }
+.dia-numero { font-weight: 700; font-size: 0.85rem; }
+.faixa, .chip {
+  display: block; font-size: 0; height: 6px; border-radius: 3px; border-left: 3px solid;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chip-mais { font-size: 0.7rem; color: var(--suave); }
+
+.calendario-detalhe { margin-top: 8px; background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 8px 12px; }
+.calendario-detalhe h3 { margin: 0 0 6px; font-size: 0.95rem; }
+.calendario-detalhe[hidden] { display: none; }
+button.link { padding: 0; border: 0; background: none; text-align: left; text-decoration: underline; color: var(--azul); min-height: 32px; }
+button.link:hover { background: none; color: #2563eb; }
+.evento-atrasado .evento-tipo { color: var(--alerta); font-weight: 700; }
+
+@media (min-width: 600px) {
+  .calendario { border-spacing: 4px; }
+  button.dia { min-height: 96px; padding: 4px 6px; }
+  .faixa, .chip { font-size: 0.72rem; height: auto; padding: 1px 4px; }
 }

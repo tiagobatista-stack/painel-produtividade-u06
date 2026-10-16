@@ -151,6 +151,11 @@ export function alterarStatus(demanda, novoStatus, hoje) {
   return nova;
 }
 
+// Exclusão de demanda cadastrada por engano. Não altera a lista recebida.
+export function removerDemanda(demandas, id) {
+  return demandas.filter((d) => d.id !== id);
+}
+
 export function normalizarBusca(s) {
   return String(s ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 }

@@ -6,7 +6,7 @@ Data de referência dos testes: 2026-10-15. Cada critério gera uma evidência l
 |---|---|---|---|
 | RF01 | Nova demanda de cada tipo é criada e aparece na fila | Print + teste e2e | M3 |
 | RF02 | Ao trocar o tipo, os campos do formulário mudam | Print | M3 |
-| RF03 | Casos T1–T13 passam | `node --test` | M2 |
+| RF03 | Casos T1–T14 passam | `node --test` | M2 |
 | RF04 | Fila ordenada por score, prazo e criação; busca e filtros reduzem a lista | Teste e2e (filtrar por tipo) | M1/M3 |
 | RF05 | Mudança de status registra evento no histórico | Print do histórico | M3 |
 | RF06 | Seed exibe: 10 abertas (11 demandas em aberto menos 1 sobrestada), 2 vencidas (DEM-0002 e DEM-0003), 5 nos próximos 7 dias, 9 relatórios pendentes (6 + 3), 2 autos a lavrar, 2 concluídas na semana e 1 sobrestado (DEM-0006) | Print do painel | M1 |
