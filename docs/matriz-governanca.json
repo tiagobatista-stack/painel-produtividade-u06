@@ -1,0 +1,71 @@
+{
+  "titulo": "Matriz de governança — 5 cenários de uso de agentes de IA (fictícios, didáticos, não normativos)",
+  "fonte": "docs/PROPOSTA_PAINEL_DEMANDAS.md, seção Governança e dados",
+  "cenarios": [
+    {
+      "id": "C1",
+      "cenario": "Claude gera o resumo semanal a partir do seed fictício",
+      "dado": "Fictício",
+      "ambiente": "Local",
+      "autonomia": "Leitura",
+      "aprovacao": "Não exigida",
+      "controle": "Seed revisado no M0",
+      "decisao": "Permitido",
+      "justificativa": "Sem dado real e sem efeito externo",
+      "responsavel_revisao": "Servidor (usuário)",
+      "evidencia_necessaria": "Resumo semanal gerado a partir do seed e conferido com a tela (tests/e2e/06-exportacao.spec.mjs)"
+    },
+    {
+      "id": "C2",
+      "cenario": "Claude edita código e cria branch e commit; o servidor faz o push, abre o Pull Request e aprova o merge",
+      "dado": "Fictício",
+      "ambiente": "Desenvolvimento",
+      "autonomia": "Escrita",
+      "aprovacao": "Antes de commit, push e merge",
+      "controle": "PR + CI + Preview",
+      "decisao": "Condicionado",
+      "justificativa": "Mudança reversível (git revert), mas chega à produção",
+      "responsavel_revisao": "Servidor (usuário)",
+      "evidencia_necessaria": "Pull Request com CI verde e Preview; merge 5dec4b0; teste do RF12 falhando antes e passando depois na produção"
+    },
+    {
+      "id": "C3",
+      "cenario": "Servidor cola a planilha real da operação no painel aberto no próprio navegador",
+      "dado": "Restrito (alvos de fiscalização)",
+      "ambiente": "Local, só no navegador",
+      "autonomia": "Nenhuma do agente",
+      "aprovacao": "Autorização da chefia",
+      "controle": "Nunca vai ao repositório nem ao deploy",
+      "decisao": "Condicionado",
+      "justificativa": "Planejamento operacional sigiloso até a ação",
+      "responsavel_revisao": "Chefia",
+      "evidencia_necessaria": "Autorização da chefia por escrito; dados só no localStorage (tests/e2e/08-seguranca.spec.mjs: nenhuma requisição leva os dados); arquivos exportados guardados fora do repositório"
+    },
+    {
+      "id": "C4",
+      "cenario": "Colar despacho real do SIGADOC no chat para resumir",
+      "dado": "Restrito / pessoal",
+      "ambiente": "Serviço externo",
+      "autonomia": "Leitura",
+      "aprovacao": "Sem base institucional",
+      "controle": "—",
+      "decisao": "Não autorizado",
+      "justificativa": "Dado pessoal e processo em curso fora do ambiente oficial",
+      "responsavel_revisao": "Chefia e encarregado de dados",
+      "evidencia_necessaria": "Registro da decisão negativa; teste feito só com despacho fictício (docs/CONTEUDO_EXTERNO_NAO_CONFIAVEL.md)"
+    },
+    {
+      "id": "C5",
+      "cenario": "Publicar na Vercel a planilha da operação com coordenadas reais",
+      "dado": "Restrito",
+      "ambiente": "Produção pública",
+      "autonomia": "Publicação",
+      "aprovacao": "—",
+      "controle": "—",
+      "decisao": "Não autorizado",
+      "justificativa": "Expõe alvos antes da fiscalização; exposição irreversível",
+      "responsavel_revisao": "Chefia e encarregado de dados",
+      "evidencia_necessaria": "Registro da decisão negativa; varredura do histórico antes de publicar (sem dados reais); coordenadas do exemplo fictícias"
+    }
+  ]
+}

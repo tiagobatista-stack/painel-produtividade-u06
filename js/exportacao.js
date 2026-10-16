@@ -33,7 +33,7 @@ function celulaDataHora(valor) {
   return `${celulaData(data)} ${hora}`;
 }
 
-function montarCsv(cabecalho, linhas) {
+export function montarCsv(cabecalho, linhas) {
   return BOM + [cabecalho, ...linhas].map((cels) => cels.join(SEPARADOR)).join(FIM_DE_LINHA) + FIM_DE_LINHA;
 }
 

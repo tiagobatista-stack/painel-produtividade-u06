@@ -4,7 +4,8 @@ import { defineConfig, devices } from '@playwright/test';
 // Com SITE_URL: roda os mesmos testes contra o endereço informado (ex.: a produção ou um Preview).
 //   PowerShell:  $env:SITE_URL = "https://SEU-PROJETO.vercel.app"; npm run test:e2e
 //   PW_CHANNEL=msedge usa o Edge instalado em vez do Chromium do Playwright.
-const SITE_URL = process.env.SITE_URL?.replace(/\/+$/, '');
+// SITE_URL vazio (ex.: $env:SITE_URL = "" ou variável de CI sem valor) conta como não definido.
+const SITE_URL = process.env.SITE_URL?.trim().replace(/\/+$/, '') || undefined;
 const PORTA = 4173;
 const channel = process.env.PW_CHANNEL || undefined;
 
