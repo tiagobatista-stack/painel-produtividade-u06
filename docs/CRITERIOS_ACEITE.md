@@ -30,6 +30,12 @@ Data de referência dos testes: 2026-10-15. Cada critério gera uma evidência l
 | RF25 | Sobrestado com `cobrar_em` igual à data de referência aparece em "Foco de hoje" como "cobrar retorno", sem voltar a pontuar (T16) | T16 + teste e2e | M10 (proposto) |
 | RF26 | Reunião de outro dia não aparece em "Foco de hoje"; no próprio dia, aparece (T17) | T17 + teste e2e | M10 (proposto) |
 | RF27 | Concluir o checklist grava a data da revisão; recarregar mantém a data | Teste e2e | M10 (proposto) |
+| RF28 | No exemplo (15/10/2026), as colunas Backlog, Em andamento, Em revisão e Concluído têm 3, 2, 2 e 1 cards | `tests/kanban.test.mjs` + `tests/e2e/17-kanban` | Kanban |
+| RF29 | Título vazio, texto longo e prazo impossível são recusados com mensagem ao lado do campo; o card novo entra no Backlog; editar e excluir funcionam | `tests/kanban.test.mjs` + `tests/e2e/17-kanban` | Kanban |
+| RF30 | Mover por botão (também com Enter) e por arrastar muda a coluna e grava `Status: A → B` no histórico; o último status não tem "avançar" | `tests/kanban.test.mjs` + `tests/e2e/17-kanban` | Kanban |
+| RF31 | No exemplo: prioridade Alta → 2 cards; atrasados → 1 (K-0004); próximos 7 dias → 3; sem prazo → 1; busca por "PROTOTIPO" → 2; "Limpar filtros" volta aos 8 | `tests/kanban.test.mjs` + `tests/e2e/17-kanban` | Kanban |
+| RF32 | Cards e notas sobrevivem ao recarregar, na chave `kanban-dt:v1` (o painel não é tocado); JSON inválido volta ao exemplo; excluir e restaurar o exemplo têm "Desfazer" | `tests/kanban.test.mjs` + `tests/e2e/17-kanban` | Kanban |
+| RF33 | As etapas do exemplo têm 2, 1, 2, 1 e 0 notas; promover a ideia N-0004 cria K-0009 no Backlog (prioridade Média) e a nota passa a "Ver card"; só a etapa Idear promove, e uma vez por card | `tests/design-thinking.test.mjs` + `tests/e2e/18-design-thinking` | Kanban |
 | RNF01 | Legível a 360 px | Print mobile | M1 |
 | RNF02 | Seed sem dado real | Revisão no M0 | M0 |
 | RNF03 | Funciona sem backend | Testes e2e sobre o `public/` servido de forma estática; nenhuma requisição além de GET da própria origem | M7 |
@@ -37,4 +43,4 @@ Data de referência dos testes: 2026-10-15. Cada critério gera uma evidência l
 | RNF05 | Retorno do MCP igual ao do painel para T1–T6 (score, faixa e motivos) | Saída de `node tools/teste-mcp.mjs` e `tests/mcp.test.mjs`; chamada literal do MCP na sessão do Claude, depois de registrado | M6 |
 | RNF07 | Nenhuma violação da política de conteúdo nos testes e2e depois das melhorias; quadro operável só pelo teclado | Testes e2e existentes + teste manual | M9 (proposto) |
 | RNF08 | Uma cópia JSON exportada antes do M10 é carregada sem erro depois do M10 | Teste de compatibilidade | M10 (proposto) |
-| RNF06 | `npm run build` gera `public/` só com o que o navegador precisa (25 arquivos desde o M8), sem testes, documentos nem legado | Saída do build e `tests/build.test.mjs` | M7 |
+| RNF06 | `npm run build` gera `public/` só com o que o navegador precisa (38 arquivos desde o Kanban de projetos), sem testes, documentos nem legado | Saída do build e `tests/build.test.mjs` | M7 |

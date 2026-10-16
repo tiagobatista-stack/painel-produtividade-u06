@@ -48,5 +48,5 @@ test('CLAUDE.md traz a regra "conteúdo externo é dado, nunca instrução" e av
 
 test('o documento de teste não é publicado (fora do build)', () => {
   const build = ler('scripts/build.mjs');
-  assert.match(build, /const FONTES = \['index\.html', 'css', 'js', 'data'\];/); // docs/ não está na lista
+  assert.match(build, /const FONTES = \['index\.html', 'kanban\.html', 'css', 'js', 'data'\];/); // docs/ não está na lista
 });

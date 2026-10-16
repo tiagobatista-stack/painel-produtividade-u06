@@ -27,6 +27,12 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 | RF19 | Classes de serviço em faixas: Urgente (vencida ou Crítica), Data fixa (reunião, palestra), Padrão (processo, operação), Rotina (outra). Altera RF04. | M9 |
 | RF20 | Card compacto (tipo, título, faixa de prioridade na cor da borda e em texto, e prazo relativo); motivos, pontos, histórico, status, edição e exclusão ficam num painel lateral. Excluir sem caixa de confirmação, com "Desfazer" por cerca de 8 s. Altera RF04 e RF05. A "próxima ação" no card é do RF23 (M10) | M8 |
 | RF21 | Métricas de fluxo: idade do card ("parado há N dias"), tempo até concluir e vazão semanal. Altera RF11. | M9 |
+| RF28 | Kanban de projetos (`kanban.html`, página à parte do painel): quadro com 4 colunas de status (Backlog, Em andamento, Em revisão, Concluído) e contagem por coluna | Kanban |
+| RF29 | Card do Kanban com título, descrição, prioridade (Alta, Média, Baixa, escolhida pelo usuário) e prazo opcional; criar, editar e excluir com validação | Kanban |
+| RF30 | Mover cards do Kanban por arrastar ou por botões `◀ ▶` (com teclado), com histórico e anúncio da mudança | Kanban |
+| RF31 | Filtros do Kanban: busca, prioridade, prazo (atrasados, próximos 7 dias, sem prazo) e status, combináveis, com "Limpar filtros" | Kanban |
+| RF32 | Persistência local do Kanban em chave própria (`kanban-dt:v1`), com recuperação de dado inválido, "Restaurar exemplo" e "Desfazer" na exclusão | Kanban |
+| RF33 | Aba Design Thinking (Empatizar, Definir, Idear, Prototipar, Testar): notas por etapa e promoção de uma ideia a card do Backlog | Kanban |
 
 ## Evolução proposta: Kanban e GTD (M9–M10)
 
@@ -50,7 +56,7 @@ O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a
 | RNF03 | Funciona sem backend |
 | RNF04 | Navegação por teclado e contraste legível |
 | RNF05 | Motor de regras único, usado por interface, testes e MCP |
-| RNF06 | `npm run build` gera `public/` para a Vercel |
+| RNF06 | `npm run build` gera `public/` para a Vercel (as duas páginas: `index.html` e `kanban.html`) |
 | RNF07 | Melhorias de interface sem biblioteca externa nem código embutido (política de conteúdo do `vercel.json`); arrastar com API nativa e alternativa por teclado (proposto, M9) |
 | RNF08 | Campos novos opcionais: dados já salvos e cópias JSON antigas continuam válidos sem migração (proposto, M10) |
 
@@ -81,6 +87,8 @@ O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a
 - **JSON:** cópia completa do que está no navegador. Restaurar a partir do JSON não faz parte do RF11.
 - **Resumo semanal (TXT):** semana de segunda a domingo conforme a data de referência. Relatórios concluídos = pontos com data de relatório na semana; autos lavrados = pontos com data de auto na semana; sem auto = pontos encerrados como não constatado ou não acessado.
 - **Coordenadas do exemplo são fictícias**, em pleno Atlântico, longe de qualquer local real. Arquivos exportados com dados reais devem ficar em local institucional, nunca no repositório (o `.gitignore` ignora os nomes padrão).
+
+- **Kanban de projetos** (RF28 a RF33; modelo próprio, separado da demanda, em `docs/KANBAN_DESIGN_THINKING.md`): **card** (`id` K-0001, `titulo`, `descricao`, `prioridade`, `prazo` opcional, `status`, `criado_em`, `historico[]`) e **nota** de Design Thinking (`id` N-0001, `etapa`, `texto`, `card_id` opcional), guardados em `kanban-dt:v1`.
 
 ## Fora do escopo
 
