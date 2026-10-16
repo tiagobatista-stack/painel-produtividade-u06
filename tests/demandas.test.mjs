@@ -62,6 +62,7 @@ test('operação não é criada por formulário e seu status é derivado', () =>
   assert.deepEqual(erroCampos(() => criarDemanda({ ...outra, tipo: 'operacao' }, [], HOJE)), ['tipo']);
   assert.equal(editarDemanda(seed.demandas[0], { titulo: 'Novo título', origem: 'chefia', prazo_dias: 10, horas_ponto: 3 }, HOJE).titulo, 'Novo título'); // operação edita só título, origem e parâmetros
   assert.deepEqual(erroCampos(() => alterarStatus(seed.demandas[0], 'concluida', HOJE)), ['status']);
+  assert.throws(() => alterarStatus(seed.demandas[0], 'aguardando', HOJE), (e) => e instanceof ErroCadastro && /Sobrestar operação/.test(e.erros.status));
 });
 
 test('criar não altera a lista original', () => {

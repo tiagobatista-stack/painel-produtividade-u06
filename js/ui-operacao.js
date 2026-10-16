@@ -2,7 +2,7 @@
 import { somarDias } from './indicadores.js';
 import { ErroCadastro, validarParametros } from './demandas.js';
 import { lerPlanilha } from './planilha.js';
-import { alterarEtapaPonto, criarOperacao, registrarRetorno } from './operacoes.js';
+import { alterarEtapaPonto, criarOperacao, registrarRetorno, retomarOperacao, sobrestarOperacao } from './operacoes.js';
 import { ETAPAS_PONTO } from './rotulos.js';
 import { $, elemento, estado, formatarData, hojeAtual, mostrarAviso, mostrarMensagem, opcoes, persistir } from './ui-comum.js';
 
@@ -179,6 +179,31 @@ export function blocoPontos(d) {
   }
   detalhes.append(lista);
   return detalhes;
+}
+
+// Botão "Sobrestar operação" / "Retomar operação" do cartão.
+export function botaoSobrestamento(d) {
+  const sobrestada = Boolean(d.sobrestada);
+  const botao = elemento('button', '', sobrestada ? 'Retomar operação' : 'Sobrestar operação');
+  botao.type = 'button';
+  botao.dataset.foco = `sobrestar-${d.id}`;
+  botao.setAttribute('aria-label', `${sobrestada ? 'Retomar' : 'Sobrestar'} ${d.titulo}`);
+  botao.addEventListener('click', () => {
+    const i = estado.dados.demandas.findIndex((x) => x.id === d.id);
+    try {
+      estado.dados.demandas[i] = (sobrestada ? retomarOperacao : sobrestarOperacao)(estado.dados.demandas[i], hojeAtual());
+    } catch (e) {
+      if (!(e instanceof ErroCadastro)) throw e;
+      mostrarAviso(Object.values(e.erros)[0]);
+      return;
+    }
+    mostrarAviso('');
+    persistir();
+    mostrarMensagem(sobrestada ? 'Operação retomada: o prazo registrado volta a valer.' : 'Operação sobrestada: prazo suspenso, fora da fila ativa. Use o filtro "Sobrestado" para vê-la.');
+    estado.focoApos = `sobrestar-${d.id}`;
+    estado.atualizar();
+  });
+  return botao;
 }
 
 export function temPlanejados(d) {

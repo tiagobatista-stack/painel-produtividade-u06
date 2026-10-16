@@ -6,7 +6,7 @@ import { ORIGENS, STATUS, TIPOS } from './rotulos.js';
 import {
   $, criarGestorErros, elemento, estado, formatarData, hojeAtual, hojeLocal, mostrarAviso, opcoes, persistir, restaurarFoco, textoPrazo,
 } from './ui-comum.js';
-import { abrirRetorno, blocoPontos, iniciarOperacoes, temPlanejados } from './ui-operacao.js';
+import { abrirRetorno, blocoPontos, botaoSobrestamento, iniciarOperacoes, temPlanejados } from './ui-operacao.js';
 import { desenharAfastamentos, desenharAgenda, desenharBanner, iniciarAfastamentos } from './ui-afastamentos.js';
 
 const INDICADORES = [
@@ -67,7 +67,7 @@ function cartao(item, hoje) {
   if (concluida) {
     li.append(elemento('p', 'prioridade', d.concluida_em ? `Concluída em ${formatarData(d.concluida_em)}` : 'Concluída'));
   } else if (sobrestada) {
-    li.append(elemento('p', 'prioridade', 'Sobrestado: prazo suspenso, aguardando resposta do interessado'));
+    li.append(elemento('p', 'prioridade', d.tipo === 'operacao' ? 'Sobrestada: prazo suspenso, aguardando identificação do autuado' : 'Sobrestado: prazo suspenso, aguardando resposta do interessado'));
   } else {
     li.append(elemento('p', 'prioridade', `Prioridade ${faixa} · ${score} pontos`));
   }
@@ -128,6 +128,7 @@ function cartao(item, hoje) {
     retorno.addEventListener('click', () => abrirRetorno(d, retorno));
     acoes.append(retorno);
   }
+  if (d.tipo === 'operacao' && !concluida) acoes.append(botaoSobrestamento(d));
   li.append(acoes);
   return li;
 }

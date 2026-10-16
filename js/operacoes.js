@@ -1,5 +1,5 @@
 // Operações de alertas: importação, etapas por ponto, retorno e status derivado. Funções puras e imutáveis.
-import { dataValida } from './indicadores.js';
+import { dataValida, estaConcluida } from './indicadores.js';
 import { ErroCadastro, proximoId, validarParametros } from './demandas.js';
 import { ETAPAS_PONTO } from './rotulos.js';
 
@@ -15,13 +15,14 @@ export function statusOperacao(operacao) {
   return 'em_andamento';
 }
 
-// Mantém status e concluida_em coerentes com as etapas dos pontos.
+// Mantém status e concluida_em coerentes com as etapas dos pontos e com o sobrestamento.
+// Concluída (todos os pontos encerrados) prevalece sobre o sobrestamento.
 function recalcular(operacao, hoje) {
-  const { concluida_em, ...base } = operacao;
-  const status = statusOperacao(operacao);
-  const nova = { ...base, status };
-  if (status === 'concluida') nova.concluida_em = concluida_em ?? hoje;
-  return nova;
+  const { concluida_em, sobrestada, ...base } = operacao;
+  const derivado = statusOperacao(operacao);
+  if (derivado === 'concluida') return { ...base, status: 'concluida', concluida_em: concluida_em ?? hoje };
+  if (sobrestada) return { ...base, status: 'aguardando', sobrestada: true };
+  return { ...base, status: derivado };
 }
 
 export function esforcoHoras(operacao) {
@@ -107,3 +108,21 @@ export function registrarRetorno(operacao, hoje, dataEfetiva = operacao.retorno)
   return recalcular({ ...operacao, retorno: dataEfetiva, pontos, historico: [...(operacao.historico || []), { data: hoje, evento }] }, hoje);
 }
 
+
+// Sobrestamento da operação: o prazo fica suspenso (ex.: aguardando a identificação do autuado, que exige investigação).
+// A operação sai da fila ativa; os pontos continuam editáveis. Ao retomar, vale o prazo registrado, sem recálculo.
+export function sobrestarOperacao(operacao, hoje) {
+  if (operacao.tipo !== 'operacao') throw new ErroCadastro({ status: 'A demanda não é uma operação.' });
+  if (estaConcluida(operacao)) throw new ErroCadastro({ status: 'Uma operação concluída não pode ser sobrestada.' });
+  if (operacao.sobrestada) return operacao;
+  const evento = 'Sobrestada: aguardando identificação do autuado';
+  return recalcular({ ...operacao, sobrestada: true, historico: [...(operacao.historico || []), { data: hoje, evento }] }, hoje);
+}
+
+export function retomarOperacao(operacao, hoje) {
+  if (operacao.tipo !== 'operacao') throw new ErroCadastro({ status: 'A demanda não é uma operação.' });
+  if (!operacao.sobrestada) throw new ErroCadastro({ status: 'A operação não está sobrestada.' });
+  const { sobrestada, ...resto } = operacao;
+  const evento = 'Retomada: o prazo registrado volta a valer';
+  return recalcular({ ...resto, historico: [...(operacao.historico || []), { data: hoje, evento }] }, hoje);
+}

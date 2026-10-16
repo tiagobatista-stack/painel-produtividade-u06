@@ -17,7 +17,7 @@ Data de referência dos testes: 2026-10-15. Cada critério gera uma evidência l
 | RF11 | Contagem de relatórios e autos do resumo confere com a tela; CSV baixa | Teste e2e (exportar CSV) | M5 |
 | RF12 | "Limpar filtros" zera busca, tipo, status e prioridade sem apagar demandas | Teste Playwright no PR | Evolução |
 | RF13 | Primeira abertura carrega o seed; recarregar mantém as alterações | Teste manual/e2e | M3 |
-| RF14 | Processo em "Aguardando" sai da fila ativa e de abertas/vencidas/7 dias, aparece em "Sobrestados" e no filtro de status; ao voltar a outro status, o prazo registrado vale de novo | T12, T13 + print | M4 |
+| RF14 | Processo em "Aguardando", ou operação sobrestada pela ação "Sobrestar operação", sai da fila ativa e de abertas/vencidas/7 dias, aparece em "Sobrestados" e no filtro de status; ao voltar a outro status, o prazo registrado vale de novo | T12, T13 + print | M4 |
 | RNF01 | Legível a 360 px | Print mobile | M1 |
 | RNF02 | Seed sem dado real | Revisão no M0 | M0 |
 | RNF03 | Funciona sem backend | Abrir `public/` | M7 |

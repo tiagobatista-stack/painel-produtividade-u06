@@ -3,10 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { lerPlanilha } from '../js/planilha.js';
 import {
-  alterarEtapaPonto, criarOperacao, esforcoHoras, registrarRetorno, statusOperacao,
+  alterarEtapaPonto, criarOperacao, esforcoHoras, registrarRetorno, retomarOperacao, sobrestarOperacao, statusOperacao,
 } from '../js/operacoes.js';
 import { ErroCadastro, editarDemanda, listarDemandas } from '../js/demandas.js';
-import { prazoDemanda, estaConcluida, calcularIndicadores } from '../js/indicadores.js';
+import { prazoDemanda, estaConcluida, estaSobrestada, calcularIndicadores } from '../js/indicadores.js';
 import { priorizar } from '../js/regras.js';
 
 const HOJE = '2026-10-15';
@@ -167,4 +167,66 @@ test('a nova operação aparece na fila e nos filtros', () => {
   const { itens } = listarDemandas(todas, { tipo: 'operacao' }, HOJE, { afastamentos: seed.afastamentos });
   assert.deepEqual(itens.map((x) => x.demanda.id), ['DEM-0002', 'DEM-0001', 'DEM-0014']);
   assert.equal(listarDemandas(todas, { busca: 'Fictício B' }, HOJE).itens.some((x) => x.demanda.id === 'DEM-0014'), true);
+});
+
+test('sobrestar operação: aguardando identificação do autuado, fora da fila e dos indicadores de prazo', () => {
+  const norte = seed.demandas.find((d) => d.id === 'DEM-0001');
+  const s = sobrestarOperacao(norte, HOJE);
+  assert.equal(s.status, 'aguardando');
+  assert.equal(s.sobrestada, true);
+  assert.equal(s.historico.at(-1).evento, 'Sobrestada: aguardando identificação do autuado');
+  assert.equal(estaSobrestada(s), true);
+  assert.equal(norte.status, 'em_andamento'); // original intacto
+  assert.equal(priorizar(s, HOJE).sobrestada, true);
+  const todas = seed.demandas.map((d) => (d.id === 'DEM-0001' ? s : d));
+  const ctx = { afastamentos: seed.afastamentos };
+  assert.equal(listarDemandas(todas, {}, HOJE, ctx).itens.some((x) => x.demanda.id === 'DEM-0001'), false);
+  assert.deepEqual(listarDemandas(todas, { status: 'aguardando' }, HOJE, ctx).itens.map((x) => x.demanda.id), ['DEM-0001', 'DEM-0006']);
+  const ind = calcularIndicadores(todas, HOJE);
+  assert.deepEqual([ind.abertas, ind.sobrestados, ind.relatoriosPendentes, ind.proximos7], [9, 2, 3, 4]);
+  assert.equal(sobrestarOperacao(s, HOJE), s); // repetir não duplica o histórico
+});
+
+test('operação sobrestada continua editável e mantém o sobrestamento nas mudanças de etapa', () => {
+  const s = sobrestarOperacao(comRetorno(), HOJE);
+  assert.equal(s.status, 'aguardando');
+  const mudou = alterarEtapaPonto(s, 1, 'relatorio_concluido', HOJE);
+  assert.equal(mudou.status, 'aguardando');
+  assert.equal(mudou.sobrestada, true);
+  assert.equal(mudou.pontos[0].etapa, 'relatorio_concluido');
+  const planejada = sobrestarOperacao(novaOperacao(), HOJE);
+  const retorno = registrarRetorno(planejada, HOJE);
+  assert.equal(retorno.status, 'aguardando');
+  assert.equal(retorno.sobrestada, true);
+});
+
+test('retomar: o prazo registrado volta a valer e o status volta a ser derivado dos pontos', () => {
+  const s = sobrestarOperacao(comRetorno(), HOJE);
+  const r = retomarOperacao(s, '2026-11-20');
+  assert.equal(r.status, 'em_andamento');
+  assert.equal('sobrestada' in r, false);
+  assert.equal(r.retorno, s.retorno); // sem recálculo de prazo
+  assert.equal(r.historico.at(-1).evento, 'Retomada: o prazo registrado volta a valer');
+  assert.equal(retomarOperacao(sobrestarOperacao(novaOperacao(), HOJE), HOJE).status, 'a_fazer');
+  assert.equal(priorizar(r, HOJE).score, 45); // volta a pontuar: 20 + 10 + 15
+});
+
+test('concluir uma operação sobrestada prevalece sobre o sobrestamento', () => {
+  let op = sobrestarOperacao(comRetorno(), HOJE);
+  for (const p of op.pontos) {
+    op = alterarEtapaPonto(op, p.n, 'relatorio_concluido', '2026-11-20');
+    op = alterarEtapaPonto(op, p.n, 'auto_lavrado', '2026-11-21');
+  }
+  assert.equal(op.status, 'concluida');
+  assert.equal(op.concluida_em, '2026-11-21');
+  assert.equal('sobrestada' in op, false);
+  assert.equal(estaSobrestada(op), false);
+  assert.match(codigo(() => sobrestarOperacao(op, HOJE)).status, /concluída não pode/);
+});
+
+test('sobrestar e retomar: validações', () => {
+  assert.match(codigo(() => retomarOperacao(novaOperacao(), HOJE)).status, /não está sobrestada/);
+  const processo = seed.demandas.find((d) => d.id === 'DEM-0003');
+  assert.match(codigo(() => sobrestarOperacao(processo, HOJE)).status, /não é uma operação/);
+  assert.match(codigo(() => retomarOperacao(processo, HOJE)).status, /não é uma operação/);
 });

@@ -107,9 +107,12 @@ export function criarGestorErros({ resumo, campos, idCampo, idErro }) {
   return { limpar, mostrar };
 }
 
+// Devolve o foco ao controle que o usuário acabou de usar. Se ele saiu da lista (ex.: a demanda foi
+// concluída ou sobrestada e o filtro a esconde), o foco vai para o título da fila, e não se perde no corpo da página.
 export function restaurarFoco() {
   if (estado.focoApos) {
-    document.querySelector(`[data-foco="${estado.focoApos}"]`)?.focus();
+    const alvo = document.querySelector(`[data-foco="${estado.focoApos}"]`) ?? $('titulo-fila');
+    alvo.focus();
     estado.focoApos = null;
   }
 }

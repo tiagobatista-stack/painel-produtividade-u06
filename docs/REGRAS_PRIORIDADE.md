@@ -30,7 +30,7 @@ Crítica ≥ 70 · Alta 45–69 · Média 25–44 · Baixa < 25.
 ## Regras complementares
 
 - Demanda concluída sai da fila (na operação: todos os pontos encerrados).
-- **Sobrestamento:** demanda com status "Aguardando" (aguarda resposta do interessado; no painel, "Sobrestado (aguardando)") tem o prazo suspenso. Sai da fila ativa, não pontua, não conta como aberta, vencida nem próximos 7 dias e aparece no indicador "Sobrestados" e no filtro de status. Vale para todos os tipos, exceto operação, cujo status é derivado dos pontos. O prazo não é validado enquanto sobrestada. Ao voltar para outro status, o prazo registrado volta a valer, sem recálculo (a demanda pode retomar já vencida).
+- **Sobrestamento:** demanda com status "Aguardando" (aguarda resposta do interessado; no painel, "Sobrestado (aguardando)") tem o prazo suspenso. Sai da fila ativa, não pontua, não conta como aberta, vencida nem próximos 7 dias e aparece no indicador "Sobrestados" e no filtro de status. Vale para todos os tipos. Na operação, o status continua derivado dos pontos, e o sobrestamento é uma ação explícita ("Sobrestar operação" / "Retomar operação", por exemplo enquanto se aguarda a identificação do autuado, que exige investigação): os pontos continuam editáveis, e concluir todos os pontos prevalece sobre o sobrestamento. O prazo não é validado enquanto sobrestada. Ao voltar para outro status, o prazo registrado volta a valer, sem recálculo (a demanda pode retomar já vencida).
 - Desempate: maior score, depois prazo mais próximo, depois data de criação.
 - Prazo ausente ou inválido gera erro de validação, sem cálculo.
 - Operação: prazo = retorno + `prazo_dias`; relatórios pendentes = pontos em `vistoriado` ou `relatorio_elaboracao`; status derivado das etapas.
@@ -52,6 +52,7 @@ Crítica ≥ 70 · Alta 45–69 · Média 25–44 · Baixa < 25.
 | T10 | Reunião, origem própria, prazo em 7 dias e em 8 dias | 25 / 10 | Média / Baixa |
 | T11 | Processo, origem ouvidoria, prazo 2026-11-06, afastamento de 2026-11-01 a 2026-11-05 | 30 | Média |
 | T12 | Processo vencido há 5 dias, origem Ministério Público, status Aguardando (sobrestado) — também com prazo vazio | — | fora da fila (sobrestada) |
+| T12b | Operação sobrestada (aguardando identificação do autuado), com prazo vencido e relatórios pendentes | — | fora da fila (sobrestada) |
 | T13 | O mesmo processo após voltar para "Em andamento" (prazo registrado mantido) | 90 | Crítica |
 
 ## Conferência do seed (hoje = 2026-10-15)

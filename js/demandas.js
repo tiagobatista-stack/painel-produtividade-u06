@@ -139,7 +139,7 @@ export function editarDemanda(original, dados, hoje) {
 
 export function alterarStatus(demanda, novoStatus, hoje) {
   if (!(novoStatus in STATUS)) throw new ErroCadastro({ status: 'Escolha um status.' });
-  if (demanda.tipo === 'operacao') throw new ErroCadastro({ status: 'O status da operação é derivado das etapas dos pontos.' });
+  if (demanda.tipo === 'operacao') throw new ErroCadastro({ status: 'O status da operação é derivado dos pontos. Para suspender o prazo, use "Sobrestar operação".' });
   if (novoStatus === demanda.status) return demanda;
   const { concluida_em, ...base } = demanda;
   const nova = {
