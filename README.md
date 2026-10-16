@@ -7,7 +7,8 @@ Painel de Demandas: fila única priorizada por prazo e criticidade para reuniõe
 - `docs/PROPOSTA_PAINEL_DEMANDAS.md` — proposta completa
 - `docs/ROTEIRO_EXECUCAO.md` — roteiro por marco (M0–M7)
 - `docs/REQUISITOS.md`, `docs/REGRAS_PRIORIDADE.md`, `docs/CRITERIOS_ACEITE.md`, `docs/ARQUITETURA.md`, `docs/MCP.md`, `docs/CONTEUDO_EXTERNO_NAO_CONFIAVEL.md`, `docs/MATRIZ_GOVERNANCA.csv`, `docs/EVIDENCIAS.md`
-- `data/seed.json` — exemplo fictício
+- `docs/KANBAN_DESIGN_THINKING.md` — Kanban de projetos com Design Thinking (`kanban.html`, página à parte do painel)
+- `data/seed.json` — exemplo fictício do painel; `data/kanban-exemplo.json` — exemplo fictício do Kanban
 - `legado/` — material de referência local (dashboard anterior e a aula); não é versionado
 
 ## Status
