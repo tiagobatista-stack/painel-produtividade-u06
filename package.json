@@ -6,8 +6,10 @@
   "description": "Painel de Demandas (didático, dados fictícios)",
   "scripts": {
     "test": "node --test tests/",
+    "quality": "npm test",
     "build": "node scripts/build.mjs",
-    "e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "report:e2e": "playwright show-report"
   },
   "engines": { "node": ">=18" }
 }

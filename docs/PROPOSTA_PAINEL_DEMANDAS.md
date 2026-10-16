@@ -1,6 +1,6 @@
 ﻿# Proposta — Plataforma de Gestão de Demandas
 
-Oct 15, 2026 · @TIAGO
+Oct 15, 2026 · [@TIAGO](https://github.com/tiagobatista-stack)
 
 ## Resumo
 
@@ -33,6 +33,8 @@ Sem uma fila única, três problemas se repetem:
 - Cada viagem mensal de fiscalização gera de uma vez dezenas de relatórios de vistoria e autos de infração, que competem com os demais prazos.
 
 **Público-alvo:** um servidor ou um núcleo pequeno de fiscalização. **Indicadores do painel:** demandas abertas, vencidas, prazos dos próximos 7 dias, relatórios de vistoria pendentes, autos a lavrar e concluídas na semana.
+
+
 
 ## Escopo
 
@@ -173,8 +175,8 @@ Oito marcos, um commit (ou mais) por marco, e nenhum marco começa antes de o an
 | M3 Cadastro e filtros      | Formulário por tipo, edição, busca, filtros, status, persistência local                                                               | Nova demanda aparece com prioridade calculada e continua após recarregar                         |
 | M4 Operação e afastamentos | Importação da planilha, etapa por ponto, "registrar retorno", agenda de 7 dias, férias e licença-prêmio                               | Planilha fictícia de exemplo gera a operação com prazo correto; prazo dentro das férias soma +20 |
 | M5 Relatórios              | CSV de demandas e de pontos, JSON e resumo semanal                                                                                    | Contagem de relatórios e autos da semana confere com a tela                                      |
-| M6 MCP local               | tools/demandas-mcp.mjs com listar_regras, priorizar_demanda, resumo_operacao                                                          | Retorno do MCP igual ao do painel para T1–T6                                                     |
-| M7 Qualidade e publicação  | npm run build → public/, Playwright e2e, workflow do GitHub Actions, deploy na Vercel                                                 | CI verde; URL de produção validada em janela anônima                                             |
+| M6 MCP local               | tools/demandas-mcp.mjs e tools/teste-mcp.mjs com listar_regras, priorizar_demanda, resumo_operacao                                                          | Retorno do MCP igual ao do painel para T1–T6                                                     |
+| M7 Qualidade e publicação  | npm run build → public/, Playwright (npm run test:e2e), workflow do GitHub Actions, deploy na Vercel                                                 | CI verde; URL de produção validada em janela anônima                                             |
 
 **Fechamento** (depois do M7): reversão simulada com git revert numa branch descartável, docs/CONTEUDO_EXTERNO_NAO_CONFIAVEL.md (prompt injection), matriz de governança em CSV e checklist das 8 evidências. Antes da aula, a versão de recuperação (M3–M7 prontos) deve ser testada de ponta a ponta. Detalhes em docs/ROTEIRO_EXECUCAO.md.
 
@@ -199,9 +201,11 @@ painel-produtividade-u06/
 ├── tests/regras.test.mjs \# T1–T11  
 ├── tests/e2e/ \# Playwright  
 ├── tools/demandas-mcp.mjs  
+├── tools/teste-mcp.mjs  
 ├── scripts/build.mjs \# copia para public/  
 ├── docs/  
 ├── .github/workflows/qualidade.yml  
+├── .gitlab-ci.yml # ilustrativo  
 ├── vercel.json  
 └── package.json
 
@@ -214,7 +218,7 @@ Cada etapa da aula se aplica sem mudança de ferramenta; o que muda é o conteú
 | 03–05  | Contas e repositório       | Repositório vazio com um único nome usado no laboratório todo                                                             | URL HTTPS do repositório                             |
 | 11–13  | Concepção                  | Tabela requisito → critério → evidência a partir de RF01–RF13                                                             | Tabela gerada pelo Claude, sem edições               |
 | 15–17  | Construção por marcos      | M1, M2 e M3 conforme o backlog                                                                                            | Diff e testes de cada marco                          |
-| 19–21  | Git local                  | .gitignore com node_modules/, .env, test-results/; commit “chore: baseline painel-demandas”                               | git log --oneline -3                                 |
+| 19–21  | Git local                  | .gitignore com node_modules/, .env, test-results/; commit “chore: baseline painel-produtividade”                               | git log --oneline -3                                 |
 | 22     | GitHub                     | origin apontando para o repositório criado                                                                                | Commit visível no GitHub                             |
 | 23–26  | Build e Vercel             | Build Command npm run build, Output public                                                                                | URL de produção validada                             |
 | 27–31  | Playwright                 | Testes e2e: cadastrar demanda, filtrar por tipo, importar operação e lavrar auto de um ponto, exportar CSV, versão mobile | Relatório HTML com nº de aprovados                   |
@@ -233,13 +237,13 @@ A regra central é simples: a URL da Vercel é pública, então só dados fictí
 
 **Matriz de 5 cenários de uso de agentes de IA** (decisões didáticas, não normativas)
 
-| Cenário                                                                         | Dado                             | Ambiente               | Autonomia         | Aprovação                     | Controle                               | Decisão        | Justificativa                                             |
-|---------------------------------------------------------------------------------|----------------------------------|------------------------|-------------------|-------------------------------|----------------------------------------|----------------|-----------------------------------------------------------|
-| Claude gera o resumo semanal a partir do seed fictício                          | Fictício                         | Local                  | Leitura           | Não exigida                   | Seed revisado no M0                    | Permitido      | Sem dado real e sem efeito externo                        |
-| Claude edita código, cria branch e abre PR                                      | Fictício                         | Desenvolvimento        | Escrita           | Antes de commit, push e merge | PR + CI + Preview                      | Condicionado   | Mudança reversível, mas chega à produção                  |
-| Servidor cola a planilha real da operação no painel aberto no próprio navegador | Restrito (alvos de fiscalização) | Local, só no navegador | Nenhuma do agente | Autorização da chefia         | Nunca vai ao repositório nem ao deploy | Condicionado   | Planejamento operacional sigiloso até a ação              |
-| Colar despacho real do SIGADOC no chat para resumir                             | Restrito / pessoal               | Serviço externo        | Leitura           | Sem base institucional        | —                                      | Não autorizado | Dado pessoal e processo em curso fora do ambiente oficial |
-| Publicar na Vercel a planilha da operação com coordenadas reais                 | Restrito                         | Produção pública       | Publicação        | —                             | —                                      | Não autorizado | Expõe alvos antes da fiscalização; exposição irreversível |
+| Cenário                                                                         | Dado                             | Ambiente               | Autonomia         | Aprovação                     | Controle                               | Decisão        | Justificativa                                             | Responsável pela revisão | Evidência necessária |
+|---------------------------------------------------------------------------------|----------------------------------|------------------------|-------------------|-------------------------------|----------------------------------------|----------------|-----------------------------------------------------------|---|---|
+| Claude gera o resumo semanal a partir do seed fictício                          | Fictício                         | Local                  | Leitura           | Não exigida                   | Seed revisado no M0                    | Permitido      | Sem dado real e sem efeito externo                        | Servidor (usuário) | Resumo gerado e seed |
+| Claude edita código, cria branch e abre PR                                      | Fictício                         | Desenvolvimento        | Escrita           | Antes de commit, push e merge | PR + CI + Preview                      | Condicionado   | Mudança reversível, mas chega à produção                  | Servidor (usuário) | PR, checks do CI e Preview |
+| Servidor cola a planilha real da operação no painel aberto no próprio navegador | Restrito (alvos de fiscalização) | Local, só no navegador | Nenhuma do agente | Autorização da chefia         | Nunca vai ao repositório nem ao deploy | Condicionado   | Planejamento operacional sigiloso até a ação              | Chefia | Termo de autorização; nenhuma cópia no repositório |
+| Colar despacho real do SIGADOC no chat para resumir                             | Restrito / pessoal               | Serviço externo        | Leitura           | Sem base institucional        | —                                      | Não autorizado | Dado pessoal e processo em curso fora do ambiente oficial | Chefia e encarregado de dados | Registro da decisão negativa |
+| Publicar na Vercel a planilha da operação com coordenadas reais                 | Restrito                         | Produção pública       | Publicação        | —                             | —                                      | Não autorizado | Expõe alvos antes da fiscalização; exposição irreversível | Chefia e encarregado de dados | Registro da decisão negativa |
 
 Controles mínimos no projeto: .gitignore para .env e evidências privadas; IDs e nomes de município fictícios no seed; screenshots do Playwright só com o seed; nenhum token ou senha em prompt.
 

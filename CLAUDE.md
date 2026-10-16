@@ -20,7 +20,8 @@ Painel de Demandas: aplicação web estática (HTML/CSS/JS, sem backend) que pri
 
 - `npm test` — testes do motor (M2 em diante)
 - `npm run build` — gera `public/` (M7)
-- `npm run e2e` — Playwright (M7)
+- `npm run quality` — testes do motor e checagens (M2 em diante)
+- `npm run test:e2e` — Playwright; `SITE_URL` aponta para a produção; `npm run report:e2e` abre o relatório (M7)
 
 ## Fontes de verdade
 
