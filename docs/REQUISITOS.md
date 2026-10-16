@@ -21,19 +21,19 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 | RF13 | Persistir no navegador e carregar o exemplo fictício na primeira abertura | M3 |
 | RF14 | Sobrestar demanda aguardando resposta do interessado, ou operação aguardando a identificação do autuado: status "Aguardando" (na operação, pela ação "Sobrestar operação") suspende o prazo, tira a demanda da fila ativa e dos indicadores de prazo, e a lista no filtro e no indicador "Sobrestados" | M4 |
 | RF15 | Organizar a página em abas com o estado no endereço (`#quadro`, `#agenda`, `#afastamentos`, `#relatorios`), topo fixo com a data de referência e "Nova demanda", e faixa "Foco de hoje" de até 3 itens (vencidas, as que vencem hoje, maior placar); 4 indicadores em destaque (Vencidas, Próximos 7 dias, Sobrestados, Concluídas na semana) que filtram a fila, os demais na aba Relatórios; exportações no menu "Exportar" da aba Relatórios. Altera RF04, RF06, RF10 e RF11 | M8 |
+| RF16 | Visão em quadro com colunas por status (A fazer, Em andamento, Sobrestado, Concluída na semana), ordenadas pelo motor, e alternância Lista/Quadro salva no navegador. Altera RF04. | M9 |
+| RF17 | Limite configurável de itens em andamento (padrão 3), com aviso visual ao ultrapassar, sem bloquear. Altera RF05. | M9 |
+| RF18 | Mover card entre colunas arrastando ou por botões (Iniciar, Aguardar, Retomar, Concluir), com teclado; operação só por "Sobrestar/Retomar". Altera RF05. | M9 |
+| RF19 | Classes de serviço em faixas: Urgente (vencida ou Crítica), Data fixa (reunião, palestra), Padrão (processo, operação), Rotina (outra). Altera RF04. | M9 |
 | RF20 | Card compacto (tipo, título, faixa de prioridade na cor da borda e em texto, e prazo relativo); motivos, pontos, histórico, status, edição e exclusão ficam num painel lateral. Excluir sem caixa de confirmação, com "Desfazer" por cerca de 8 s. Altera RF04 e RF05. A "próxima ação" no card é do RF23 (M10) | M8 |
+| RF21 | Métricas de fluxo: idade do card ("parado há N dias"), tempo até concluir e vazão semanal. Altera RF11. | M9 |
 
 ## Evolução proposta: Kanban e GTD (M9–M10)
 
-O M8 (RF15 e RF20) foi entregue e passou para a tabela principal. Os demais ainda não foram implementados. Detalhes, diagnóstico e decisões pendentes em `docs/MELHORIAS_KANBAN_GTD.md`. A coluna "Altera" indica quais requisitos já existentes cada novo requisito modifica.
+O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a tabela principal. Os demais ainda não foram implementados. Detalhes, diagnóstico e decisões pendentes em `docs/MELHORIAS_KANBAN_GTD.md`. A coluna "Altera" indica quais requisitos já existentes cada novo requisito modifica.
 
 | ID | Requisito | Altera | Marco |
 |---|---|---|---|
-| RF16 | Visão em quadro com colunas por status (A fazer, Em andamento, Sobrestado, Concluída na semana), ordenadas pelo motor, e alternância Lista/Quadro salva no navegador | RF04 | M9 |
-| RF17 | Limite configurável de itens em andamento (padrão 3), com aviso visual ao ultrapassar, sem bloquear | RF05 | M9 |
-| RF18 | Mover card entre colunas arrastando ou por botões (Iniciar, Aguardar, Retomar, Concluir), com teclado; operação só por "Sobrestar/Retomar" | RF05 | M9 |
-| RF19 | Classes de serviço em faixas: Urgente (vencida ou Crítica), Data fixa (reunião, palestra), Padrão (processo, operação), Rotina (outra) | RF04 | M9 |
-| RF21 | Métricas de fluxo: idade do card ("parado há N dias"), tempo até concluir e vazão semanal | RF11 | M9 |
 | RF22 | Captura rápida só com título para a caixa de entrada (status `entrada`), processada depois para entrar na fila | RF01, RF05, RF13 | M10 |
 | RF23 | Campo opcional "próxima ação" exibido no card | RF01, RF20 | M10 |
 | RF24 | Campo opcional "contexto" (computador, campo, reunião, telefone) e filtro "O que posso fazer agora" | RF01, RF04 | M10 |

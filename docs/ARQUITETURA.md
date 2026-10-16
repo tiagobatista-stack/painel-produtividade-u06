@@ -37,7 +37,7 @@ painel-produtividade-u06/
 2. `git push` envia ao GitHub; o GitHub Actions executa a qualidade; a Vercel publica `public/` (Preview em branches, Production em `main`).
 3. `js/regras.js` exporta `priorizar` como módulo ES, importado pela interface, pelos testes Node e pelo MCP.
 
-## Evolução (M8 entregue; M9 e M10 planejados)
+## Evolução (M8 e M9 entregues; M10 planejado)
 
 Proposta em `docs/MELHORIAS_KANBAN_GTD.md`. A estrutura se mantém: o motor continua único e a interface ganha módulos de apresentação.
 
@@ -46,11 +46,13 @@ js/foco.js           # (M8, entregue) puro: "Foco de hoje" (vencidas, vencem hoj
 js/ui-abas.js        # (M8, entregue) abas pelo endereço (#quadro, #agenda, #afastamentos, #relatorios)
 js/ui-foco.js        # (M8, entregue) faixa "Foco de hoje"
 js/ui-painel.js      # (M8, entregue) painel lateral da demanda (motivos, pontos, histórico, status, editar, excluir)
-js/quadro.js         # (M9) puro: agrupa por coluna e classe de serviço, conta o limite de itens em andamento, calcula idade e tempo até concluir
-js/ui-quadro.js      # (M9) quadro, arrastar nativo e botões de mover
+js/quadro.js         # (M9, entregue) puro: agrupa por coluna e classe de serviço, conta o limite de itens em andamento, calcula idade e tempo até concluir
+js/ui-quadro.js      # (M9, entregue) quadro, arrastar nativo e botões de mover
+js/ui-cartao.js      # (M9, entregue) card compacto compartilhado pela lista e pelo quadro
 tests/foco.test.mjs  # (M8, entregue) node --test sobre o seed
-tests/quadro.test.mjs  # (M9) node --test sobre o seed
-tests/e2e/13-abas, 14-foco-indicadores, 15-painel-desfazer  # (M8, entregue); os specs 16 em diante ficam para M9 e M10
+tests/quadro.test.mjs  # (M9, entregue) node --test sobre o seed
+tests/e2e/13-abas, 14-foco-indicadores, 15-painel-desfazer  # (M8, entregue)
+tests/e2e/16-quadro  # (M9, entregue); os specs 17 em diante ficam para o M10
 ```
 
 - No M8 o filtro `prazo` de `listarDemandas` (`js/demandas.js`) reaproveita as listas de `itensDosIndicadores` (`js/indicadores.js`): o número de cada indicador e a fila filtrada por ele vêm da mesma fonte. `js/regras.js` não mudou.

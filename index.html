@@ -52,10 +52,15 @@
         <div class="fila-cabecalho">
           <h2 id="titulo-fila" tabindex="-1">Fila de demandas</h2>
           <div class="botoes-cabecalho">
+            <div class="visoes" role="group" aria-label="Visão da fila">
+              <button type="button" id="botao-visao-lista" aria-pressed="true">Lista</button>
+              <button type="button" id="botao-visao-quadro" aria-pressed="false">Quadro</button>
+            </div>
             <button type="button" id="importar-operacao">Importar operação</button>
           </div>
         </div>
 
+        <div id="visao-lista">
         <form id="filtros" class="filtros" role="search" aria-label="Buscar e filtrar demandas">
           <div class="campo">
             <label for="filtro-busca">Buscar</label>
@@ -85,6 +90,14 @@
         <p id="contagem" class="nota" aria-live="polite"></p>
         <p id="fila-vazia" hidden>Nenhuma demanda encontrada.</p>
         <ul id="fila" class="fila"></ul>
+        </div>
+
+        <div id="visao-quadro" hidden>
+          <p id="quadro-vazio" hidden>Nenhuma demanda no quadro.</p>
+          <div id="quadro-grade" class="quadro-grade" role="group" aria-label="Quadro de status, por classe de serviço"></div>
+          <p id="quadro-metricas" class="nota"></p>
+        </div>
+        <p id="quadro-anuncio" class="so-leitor" role="status" aria-live="polite"></p>
       </section>
 
       <section id="erros-validacao" class="erro" hidden>
