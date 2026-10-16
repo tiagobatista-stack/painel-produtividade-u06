@@ -20,7 +20,7 @@ Data de referência dos testes: 2026-10-15. Cada critério gera uma evidência l
 | RF14 | Processo em "Aguardando", ou operação sobrestada pela ação "Sobrestar operação", sai da fila ativa e de abertas/vencidas/7 dias, aparece em "Sobrestados" e no filtro de status; ao voltar a outro status, o prazo registrado vale de novo | T12, T13 + print | M4 |
 | RNF01 | Legível a 360 px | Print mobile | M1 |
 | RNF02 | Seed sem dado real | Revisão no M0 | M0 |
-| RNF03 | Funciona sem backend | Abrir `public/` | M7 |
+| RNF03 | Funciona sem backend | Testes e2e sobre o `public/` servido de forma estática; nenhuma requisição além de GET da própria origem | M7 |
 | RNF04 | Foco visível e navegação por teclado | Teste manual | M3 |
 | RNF05 | Retorno do MCP igual ao do painel para T1–T6 (score, faixa e motivos) | Saída de `node tools/teste-mcp.mjs` e `tests/mcp.test.mjs`; chamada literal do MCP na sessão do Claude, depois de registrado | M6 |
-| RNF06 | `npm run build` gera `public/` | Saída do build | M7 |
+| RNF06 | `npm run build` gera `public/` só com o que o navegador precisa (20 arquivos), sem testes, documentos nem legado | Saída do build e `tests/build.test.mjs` | M7 |

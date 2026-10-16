@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Painel de Demandas</title>
+  <link rel="icon" href="data:,">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -13,7 +14,7 @@
   </header>
 
   <main>
-    <section class="referencia" aria-label="Data de referência">
+    <section class="referencia">
       <label for="data-referencia">Data de referência</label>
       <input type="date" id="data-referencia">
       <button type="button" id="usar-data-seed">Usar data do exemplo</button>
@@ -56,7 +57,7 @@
         </div>
       </div>
 
-      <form id="filtros" class="filtros" role="search" aria-label="Buscar e filtrar demandas" onsubmit="return false">
+      <form id="filtros" class="filtros" role="search" aria-label="Buscar e filtrar demandas">
         <div class="campo">
           <label for="filtro-busca">Buscar</label>
           <input type="search" id="filtro-busca" placeholder="Título, processo, local, origem…" autocomplete="off">

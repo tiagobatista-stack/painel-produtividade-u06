@@ -22,6 +22,7 @@ Painel de Demandas: aplicação web estática (HTML/CSS/JS, sem backend) que pri
 - `npm run build` — gera `public/` (M7)
 - `npm run quality` — testes do motor e checagens (M2 em diante)
 - `npm run mcp:test` — testa o servidor MCP local `demandas-lab` (`tools/demandas-mcp.mjs`, somente leitura; ver `docs/MCP.md`). Registrar o MCP no Claude Code só com autorização.
+- `npm run build` gera `public/` com index.html, css/, js/ e data/. O código do navegador não pode ter script, estilo ou manipulador (`onclick=`…) embutido nem recurso externo: a política de conteúdo do `vercel.json` bloqueia, e os testes e2e falham diante de qualquer violação.
 - `npm run test:e2e` — Playwright; `SITE_URL` aponta para a produção; `npm run report:e2e` abre o relatório (M7)
 
 ## Fontes de verdade

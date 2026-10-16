@@ -21,6 +21,8 @@ painel-produtividade-u06/
 ├── tools/teste-mcp.mjs  # teste do servidor MCP
 ├── tools/mcp-apoio.mjs  # cliente JSON-RPC e casos T1–T6 usados pelos testes do MCP
 ├── scripts/build.mjs    # copia o necessário para public/
+├── scripts/serve.mjs    # servidor local (aplica os cabeçalhos do vercel.json)
+├── playwright.config.mjs # desktop e mobile; SITE_URL testa um endereço publicado
 ├── docs/
 ├── legado/
 ├── .github/workflows/qualidade.yml

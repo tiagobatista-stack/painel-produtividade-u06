@@ -14,5 +14,10 @@
     "mcp": "node tools/demandas-mcp.mjs",
     "mcp:test": "node tools/teste-mcp.mjs"
   },
-  "engines": { "node": ">=18" }
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.63.0"
+  }
 }

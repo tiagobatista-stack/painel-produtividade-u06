@@ -269,6 +269,7 @@ async function iniciar() {
   });
   campoData.addEventListener('input', atualizar);
   for (const f of [filtroBusca, filtroTipo, filtroStatus, filtroPrioridade]) f.addEventListener('input', atualizar);
+  $('filtros').addEventListener('submit', (e) => e.preventDefault());
 
   $('nova-demanda').addEventListener('click', (e) => abrirFormulario(null, e.currentTarget));
   $('f-tipo').addEventListener('change', (e) => atualizarCamposDoTipo(e.target.value));

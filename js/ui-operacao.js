@@ -187,7 +187,7 @@ export function botaoSobrestamento(d) {
   const botao = elemento('button', '', sobrestada ? 'Retomar operação' : 'Sobrestar operação');
   botao.type = 'button';
   botao.dataset.foco = `sobrestar-${d.id}`;
-  botao.setAttribute('aria-label', `${sobrestada ? 'Retomar' : 'Sobrestar'} ${d.titulo}`);
+  botao.setAttribute('aria-label', `${sobrestada ? 'Retomar operação' : 'Sobrestar operação'}: ${d.titulo}`);
   botao.addEventListener('click', () => {
     const i = estado.dados.demandas.findIndex((x) => x.id === d.id);
     try {
