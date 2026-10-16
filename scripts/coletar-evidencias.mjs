@@ -56,7 +56,8 @@ const mcp = rodar('03-mcp-t1.txt', 'node tools/teste-mcp.mjs');
 registrar('MCP demandas-lab: T1–T6 iguais ao painel', mcp.codigo === 0 && mcp.texto.includes('TODAS AS VERIFICAÇÕES PASSARAM'), 'ver 03-mcp-t1.txt');
 
 // 4. Playwright local (o próprio teste constrói public/ e o serve)
-const local = rodar('04-e2e-local.txt', 'npx playwright test --reporter=list', { CI: 'true', SITE_URL: '' });
+rmSync(join(RAIZ, 'playwright-report'), { recursive: true, force: true });
+const local = rodar('04-e2e-local.txt', 'npx playwright test --reporter=list,html', { CI: 'true', SITE_URL: '', PLAYWRIGHT_HTML_OPEN: 'never' });
 copiarRelatorio('relatorio-playwright-local');
 const [passL, falL, pulL] = [/(\d+) passed/, /(\d+) failed/, /(\d+) skipped/].map((r) => numero(local.texto, r));
 registrar('Playwright local', local.codigo === 0 && !(falL > 0), `${passL} passam, ${Number.isNaN(falL) ? 0 : falL} falham, ${Number.isNaN(pulL) ? 0 : pulL} pulados`);
@@ -94,7 +95,7 @@ if (URL_PRODUCAO) {
     principal.status === 200 && iguais === arquivos.length && headersOk && ausentes.length === 0, `${iguais}/${arquivos.length} idênticos; cabeçalhos ${headersOk ? 'presentes' : 'AUSENTES'}; fora do ar: ${ausentes.length === 0 ? 'ok' : ausentes.join(', ')}`);
 
   rmSync(join(RAIZ, 'playwright-report'), { recursive: true, force: true });
-  const prod = rodar('07-e2e-producao.txt', 'npx playwright test --reporter=list', { CI: 'true', SITE_URL: URL_PRODUCAO });
+  const prod = rodar('07-e2e-producao.txt', 'npx playwright test --reporter=list,html', { CI: 'true', SITE_URL: URL_PRODUCAO, PLAYWRIGHT_HTML_OPEN: 'never' });
   copiarRelatorio('relatorio-playwright-producao');
   const [passP, falP, pulP] = [/(\d+) passed/, /(\d+) failed/, /(\d+) skipped/].map((r) => numero(prod.texto, r));
   registrar('Playwright contra a URL real', prod.codigo === 0 && !(falP > 0), `${passP} passam, ${Number.isNaN(falP) ? 0 : falP} falham, ${Number.isNaN(pulP) ? 0 : pulP} pulados`);
@@ -102,12 +103,16 @@ if (URL_PRODUCAO) {
   console.log('(sem URL da produção: informe-a como argumento ou em SITE_URL para coletar as evidências da produção)');
 }
 
+const relatorios = ['relatorio-playwright-local', ...(URL_PRODUCAO ? ['relatorio-playwright-producao'] : [])];
+const guardados = relatorios.filter((d) => existsSync(join(PASTA, d, 'index.html')));
+registrar('Relatórios HTML do Playwright guardados', guardados.length === relatorios.length, guardados.length === relatorios.length ? relatorios.join(', ') : `faltando: ${relatorios.filter((d) => !guardados.includes(d)).join(', ')}`);
+
 const resumo = [
   `# Evidências coletadas em ${carimbo}`, '',
   `Commit: \`${commit}\`${URL_PRODUCAO ? ` · Produção: ${URL_PRODUCAO}` : ''}`, '',
   '| Item | Resultado | Detalhe |', '|---|---|---|',
   ...resultados.map((r) => `| ${r.item} | ${r.ok ? 'OK' : 'FALHA'} | ${r.detalhe} |`), '',
-  'Arquivos desta pasta: saídas literais dos comandos (`01` a `07`) e os relatórios HTML do Playwright (abra `index.html` dentro de cada `relatorio-playwright-*`).', '',
+  `Arquivos desta pasta: saídas literais dos comandos (\`01\` a \`07\`) e, em ${guardados.map((d) => `\`${d}\``).join(' e ') || 'nenhuma pasta (relatório não gerado)'}, o relatório HTML do Playwright (abra o \`index.html\` de cada uma).`, '',
   'Não são coletados por este script (dependem do usuário): print dos checks do GitHub Actions no PR, URL de Preview da Vercel, janela anônima da produção e a chamada do MCP dentro da sessão do Claude Code.', '',
 ].join('\n');
 writeFileSync(join(PASTA, 'RESUMO.md'), resumo);
