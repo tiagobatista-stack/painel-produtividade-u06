@@ -72,7 +72,7 @@ test.describe('card compacto e painel lateral (RF20)', () => {
     const c = cartao(page, 'operação de setembro (Sul)');
     await expect(c.locator('details')).toHaveCount(0);
     const p = await abrirPainel(page, 'operação de setembro (Sul)');
-    await expect(p.locator('details.pontos summary')).toContainText('Pontos (');
+    await expect(p.locator('details.pontos > summary')).toContainText('Pontos (');
     await expect(p.getByRole('button', { name: /^Sobrestar operação/ })).toBeVisible();
   });
 });
@@ -124,12 +124,12 @@ test.describe('excluir sem confirmação, com Desfazer (RF20)', () => {
     await abrir(page);
     const alvo = 'operação de setembro (Sul)';
     const p = await abrirPainel(page, alvo);
-    const pontos = await p.locator('details.pontos summary').textContent();
+    const pontos = await p.locator('details.pontos > summary').textContent();
     await p.getByRole('button', { name: /^Excluir/ }).click();
     await expect(cartao(page, alvo)).toHaveCount(0);
     await desfazer(page).click();
     const volta = await abrirPainel(page, alvo);
-    await expect(volta.locator('details.pontos summary')).toHaveText(pontos);
+    await expect(volta.locator('details.pontos > summary')).toHaveText(pontos);
     await fecharPainel(page);
   });
 

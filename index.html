@@ -36,6 +36,7 @@
 
     <nav class="abas" aria-label="Seções do painel">
       <a href="#quadro" data-aba="quadro">Quadro</a>
+      <a href="#pontos" data-aba="pontos">Pontos</a>
       <a href="#agenda" data-aba="agenda">Agenda</a>
       <a href="#afastamentos" data-aba="afastamentos">Afastamentos</a>
       <a href="#relatorios" data-aba="relatorios">Relatórios</a>
@@ -104,6 +105,53 @@
       <section id="erros-validacao" class="erro" hidden>
         <h2>Demandas com erro de validação</h2>
         <ul id="lista-erros"></ul>
+      </section>
+    </section>
+
+    <section id="aba-pontos" class="aba" data-aba-painel="pontos" aria-label="Pontos" hidden>
+      <section aria-labelledby="titulo-pontos">
+        <h2 id="titulo-pontos" tabindex="-1">Pontos das operações</h2>
+        <p class="nota">Cada ponto é uma demanda: acompanhe se o relatório foi concluído e se os autos foram lavrados.</p>
+        <ul id="pontos-indicadores" class="indicadores"></ul>
+
+        <form id="filtros-pontos" class="filtros" role="search" aria-label="Buscar e filtrar pontos">
+          <div class="campo">
+            <label for="p-busca">Buscar</label>
+            <input type="search" id="p-busca" placeholder="Município, ponto, relatório, anotação…" autocomplete="off">
+          </div>
+          <div class="campo">
+            <label for="p-operacao">Operação</label>
+            <select id="p-operacao"></select>
+          </div>
+          <div class="campo">
+            <label for="p-situacao">Situação</label>
+            <select id="p-situacao"></select>
+          </div>
+          <div class="campo campo-acao">
+            <button type="button" id="p-limpar" disabled>Limpar filtros</button>
+          </div>
+        </form>
+
+        <div class="fila-cabecalho">
+          <p id="pontos-contagem" class="nota" aria-live="polite"></p>
+          <div class="visoes" role="group" aria-label="Visão dos pontos">
+            <button type="button" id="pontos-visao-lista" aria-pressed="true">Lista</button>
+            <button type="button" id="pontos-visao-mapa" aria-pressed="false">Mapa</button>
+          </div>
+        </div>
+        <p id="pontos-vazio" hidden>Nenhum ponto encontrado.</p>
+        <ul id="pontos-lista" class="fila"></ul>
+
+        <div id="pontos-mapa" class="mapa" hidden>
+          <p class="nota">Mapa local, sem mapa-base: mostra a posição relativa dos pontos pela longitude e pela latitude, na mesma lista filtrada acima. Nenhum dado sai do navegador.</p>
+          <p id="mapa-vazio" hidden>Nenhum ponto com coordenadas na lista atual.</p>
+          <div id="mapa-svg-caixa" class="mapa-caixa"></div>
+          <ul id="mapa-legenda" class="mapa-legenda" aria-label="Legenda do mapa"></ul>
+          <section id="mapa-sem-coordenada" hidden aria-labelledby="mapa-sem-coordenada-titulo">
+            <h3 id="mapa-sem-coordenada-titulo">Pontos sem coordenadas</h3>
+            <ul id="mapa-sem-coordenada-lista" class="mapa-sem-coordenada"></ul>
+          </section>
+        </div>
       </section>
     </section>
 
@@ -289,6 +337,29 @@
     </form>
   </dialog>
 
+  <dialog id="dialogo-auto" aria-labelledby="auto-titulo">
+    <form id="form-auto" novalidate>
+      <h2 id="auto-titulo">Registrar auto</h2>
+      <p id="auto-resumo" class="nota"></p>
+      <div id="auto-resumo-erros" class="erro" role="alert" tabindex="-1" hidden></div>
+      <div class="campo">
+        <label for="auto-tipo">Tipo do auto</label>
+        <select id="auto-tipo"></select>
+        <span class="erro-campo" id="auto-erro-tipo"></span>
+      </div>
+      <div class="campo">
+        <label for="auto-data">Data do auto</label>
+        <input id="auto-data" type="date">
+        <span class="erro-campo" id="auto-erro-data"></span>
+      </div>
+      <p class="nota">Um ponto pode ter vários autos: registre um de cada vez.</p>
+      <div class="acoes">
+        <button type="submit" class="primario">Registrar auto</button>
+        <button type="button" id="auto-cancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="dialogo-retorno" aria-labelledby="ret-titulo">
     <form id="form-retorno" novalidate>
       <h2 id="ret-titulo">Registrar retorno</h2>
@@ -342,6 +413,7 @@
       <h2 id="painel-titulo"></h2>
       <button type="button" id="painel-fechar">Fechar</button>
     </div>
+    <p id="painel-aviso" class="erro painel-aviso" role="alert" hidden></p>
     <div id="painel-corpo" class="painel-corpo"></div>
   </dialog>
 

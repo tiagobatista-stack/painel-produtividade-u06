@@ -11,6 +11,7 @@ import { desenharResumo, iniciarExportacao } from './ui-exportacao.js';
 import { desenharCalendario, iniciarCalendario } from './ui-calendario.js';
 import { abrirAba, iniciarAbas } from './ui-abas.js';
 import { desenharFoco } from './ui-foco.js';
+import { desenharPontos, iniciarPontos } from './ui-pontos.js';
 import { abrirPainel, desenharPainel, fecharPainel, iniciarPainel } from './ui-painel.js';
 import { cartao } from './ui-cartao.js';
 import { definirVisao, desenharQuadro, iniciarQuadro, visaoAtual } from './ui-quadro.js';
@@ -144,6 +145,7 @@ function atualizar() {
   desenharIndicadores(calcularIndicadores(estado.dados.demandas, hoje));
   desenharResumo(hoje);
   desenharCalendario(hoje);
+  desenharPontos();
   desenharAgenda(hoje);
   desenharFila(hoje);
   desenharQuadro(hoje);
@@ -326,6 +328,7 @@ async function iniciar() {
   iniciarOperacoes();
   iniciarAfastamentos();
   iniciarCalendario();
+  iniciarPontos();
   iniciarQuadro({ mudarStatus });
   iniciarPainel({ editar: (d, botao) => abrirFormulario(d, botao), excluir: excluirDemanda, mudarStatus });
   iniciarExportacao();

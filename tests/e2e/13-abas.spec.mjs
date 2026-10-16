@@ -2,18 +2,18 @@ import { test, expect, abrir, irParaAba } from './apoio.mjs';
 
 const nav = (page) => page.getByRole('navigation', { name: 'Seções do painel' });
 const aba = (page, nome) => page.locator(`[data-aba-painel="${nome}"]`);
-const ROTULOS = { quadro: 'Quadro', agenda: 'Agenda', afastamentos: 'Afastamentos', relatorios: 'Relatórios' };
+const ROTULOS = { quadro: 'Quadro', pontos: 'Pontos', agenda: 'Agenda', afastamentos: 'Afastamentos', relatorios: 'Relatórios' };
 
 test.describe('abas pelo endereço e topo fixo (RF15)', () => {
   test('abre no Quadro e cada aba mostra só o seu conteúdo', async ({ page }) => {
     await abrir(page);
     await expect(nav(page).getByRole('link', { name: 'Quadro' })).toHaveAttribute('aria-current', 'page');
     await expect(aba(page, 'quadro')).toBeVisible();
-    for (const nome of ['agenda', 'afastamentos', 'relatorios']) await expect(aba(page, nome)).toBeHidden();
+    for (const nome of ['pontos', 'agenda', 'afastamentos', 'relatorios']) await expect(aba(page, nome)).toBeHidden();
     // "Quadro" mostra a fila atual (o quadro Kanban é do M9)
     await expect(page.locator('#fila > li')).toHaveCount(10);
 
-    for (const nome of ['agenda', 'afastamentos', 'relatorios']) {
+    for (const nome of ['pontos', 'agenda', 'afastamentos', 'relatorios']) {
       await irParaAba(page, ROTULOS[nome]);
       await expect(page).toHaveURL(new RegExp(`#${nome}$`));
       await expect(aba(page, nome)).toBeVisible();
@@ -52,6 +52,7 @@ test.describe('abas pelo endereço e topo fixo (RF15)', () => {
     await abrir(page);
     await nav(page).getByRole('link', { name: 'Quadro' }).focus();
     await page.keyboard.press('Tab');
+    await page.keyboard.press('Tab'); // Quadro, Pontos, Agenda
     const agenda = nav(page).getByRole('link', { name: 'Agenda' });
     await expect(agenda).toBeFocused();
     expect(await agenda.evaluate((el) => getComputedStyle(el).outlineStyle)).not.toBe('none'); // contorno de foco visível
@@ -82,7 +83,7 @@ test.describe('abas pelo endereço e topo fixo (RF15)', () => {
     expect((await baixo.boundingBox()).y).toBeGreaterThanOrEqual(topoBaixo - 1);
   });
 
-  test('cabe na largura em todas as abas, e as quatro abas aparecem inteiras', async ({ page }) => {
+  test('cabe na largura em todas as abas, e as cinco abas aparecem inteiras', async ({ page }) => {
     await abrir(page);
     for (const rotulo of Object.values(ROTULOS)) {
       await irParaAba(page, rotulo);

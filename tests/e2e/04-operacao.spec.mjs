@@ -23,11 +23,11 @@ test.describe('operação de alertas', () => {
     // o auto só vem depois do relatório concluído
     const ponto1 = page.locator('#ponto-DEM-0014-1');
     await ponto1.selectOption({ label: 'Auto lavrado' });
-    await expect(page.locator('#erro')).toContainText('O auto só pode ser lavrado depois do relatório concluído.');
+    await expect(page.locator('#painel-aviso')).toContainText('O auto só pode ser lavrado depois do relatório concluído.');
     await expect(ponto1).toHaveValue('vistoriado');
 
     await ponto1.selectOption({ label: 'Relatório concluído' });
-    await expect(page.locator('#erro')).toBeHidden();
+    await expect(page.locator('#painel-aviso')).toBeHidden();
     expect((await complementares(page))[2]).toBe('3'); // autos a lavrar: 2 + 1
     await page.locator('#ponto-DEM-0014-1').selectOption({ label: 'Auto lavrado' });
     expect((await complementares(page))[2]).toBe('2');

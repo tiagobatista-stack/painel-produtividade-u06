@@ -3,10 +3,10 @@
 // CSV pensado para o Excel em português: separador ";", UTF-8 com BOM, datas dd/mm/aaaa, vírgula decimal, linhas CRLF.
 // Células de texto que começam com = + - @ ou tabulação ganham um apóstrofo, para não virarem fórmula (injeção de CSV),
 // já que títulos, municípios e notas podem vir de planilhas coladas.
-import { autosALavrar, estaConcluida, estaSobrestada, prazoDemanda, relatoriosPendentes } from './indicadores.js';
+import { autosALavrar, autosDoPonto, estaConcluida, estaSobrestada, prazoDemanda, relatorioDoPonto, relatoriosPendentes } from './indicadores.js';
 import { priorizar } from './regras.js';
 import { esforcoHoras } from './operacoes.js';
-import { ETAPAS_PONTO, ORIGENS, STATUS, TIPOS } from './rotulos.js';
+import { ETAPAS_PONTO, ORIGENS, ROTULO_AUTO_SEM_TIPO, STATUS, TIPOS, TIPOS_AUTO } from './rotulos.js';
 
 const BOM = '﻿';
 const SEPARADOR = ';';
@@ -42,7 +42,7 @@ const porId = (a, b) => a.id.localeCompare(b.id);
 export const CABECALHO_DEMANDAS = [
   'ID', 'TIPO', 'TITULO', 'ORIGEM', 'STATUS', 'PRAZO', 'CRIADA_EM', 'CONCLUIDA_EM', 'ESFORCO_H', 'FAIXA', 'SCORE',
   'PROCESSO', 'ETAPA', 'DATA_HORA', 'LOCAL', 'PUBLICO', 'EQUIPE', 'SAIDA', 'RETORNO', 'PONTOS',
-  'RELATORIOS_PENDENTES', 'AUTOS_A_LAVRAR', 'SOBRESTADA',
+  'RELATORIOS_PENDENTES', 'AUTOS_A_LAVRAR', 'SOBRESTADA', 'OBSERVACOES',
 ];
 
 // Todas as demandas (inclusive concluídas e sobrestadas), sem coordenadas. Faixa e score só existem para as ativas.
@@ -80,15 +80,21 @@ export function csvDemandas(demandas, hoje, contexto = {}) {
       operacao ? String(relatoriosPendentes(d)) : '',
       operacao ? String(autosALavrar(d)) : '',
       estaSobrestada(d) ? 'sim' : 'não',
+      celulaTexto(d.observacoes ?? ''),
     ];
   });
   return montarCsv(CABECALHO_DEMANDAS, linhas);
 }
 
+// Autos do ponto em uma célula: "Tipo (dd/mm/aaaa) | Tipo (dd/mm/aaaa)".
+function descreverAutos(ponto) {
+  return autosDoPonto(ponto).map((a) => `${a.tipo ? TIPOS_AUTO[a.tipo] : ROTULO_AUTO_SEM_TIPO} (${a.data ? a.data.split('-').reverse().join('/') : 'sem data'})`).join(' | ');
+}
+
 // As 8 primeiras colunas são as da planilha da coordenação, para as linhas de uma operação poderem ser coladas de volta na importação.
 export const CABECALHO_PONTOS = [
   'N_PONTO', 'EQUIPE', 'COORD_X', 'COORD_Y', 'MUNICIPIO', 'DAT_SAIDA', 'DAT_RETOR', 'NOT_PLANEJ',
-  'ETAPA', 'DATA_RELATORIO', 'DATA_AUTO', 'OPERACAO_ID', 'OPERACAO',
+  'ETAPA', 'DATA_RELATORIO', 'DATA_AUTO', 'OPERACAO_ID', 'OPERACAO', 'RELATORIO', 'AUTOS', 'OBSERVACOES',
 ];
 
 // Pontos de todas as operações, inclusive coordenadas.
@@ -113,6 +119,9 @@ export function csvPontos(demandas) {
           celulaData(p.data_auto),
           celulaTexto(d.id),
           celulaTexto(d.titulo),
+          celulaTexto(relatorioDoPonto(d, p.n)?.id ?? ''),
+          celulaTexto(descreverAutos(p)),
+          celulaTexto(p.observacoes ?? ''),
         ])
     );
   return montarCsv(CABECALHO_PONTOS, linhas);

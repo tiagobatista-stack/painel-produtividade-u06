@@ -9,6 +9,7 @@ const DIAS_SEMANA = [
 ];
 const MAX_NO_DIA = 3; // eventos visíveis na célula; o restante vira "+N"
 const PRAZOS = ['prazo_processo', 'prazo_demanda', 'prazo_relatorio'];
+const SITUACAO_OPERACAO = { aberta: 'em andamento', sobrestada: 'sobrestada', concluida: 'concluída' };
 
 let mesDaReferencia = null; // mês (AAAA-MM) da data de referência
 let mesExibido = null;
@@ -32,7 +33,8 @@ function rotuloDia(dia, hoje) {
   const quando = `${nomeDoDia(dia.data)}${dia.data === hoje ? ' (hoje)' : ''}`;
   const eventos = dia.eventos.length ? plural(dia.eventos.length, 'compromisso', 'compromissos') : 'nenhum compromisso';
   const afastamentos = dia.afastamentos.map((a) => `, ${TIPOS_AFASTAMENTO[a.tipo]}`).join('');
-  return `${quando}: ${eventos}${afastamentos}`;
+  const operacoes = dia.operacoes.map((o) => `, operação ${o.equipe}`).join('');
+  return `${quando}: ${eventos}${afastamentos}${operacoes}`;
 }
 
 function celula(dia, hoje) {
@@ -47,6 +49,7 @@ function celula(dia, hoje) {
   botao.setAttribute('aria-label', rotuloDia(dia, hoje));
   botao.append(elemento('span', 'dia-numero', String(Number(dia.data.slice(8)))));
   for (const a of dia.afastamentos) botao.append(elemento('span', `faixa faixa-${a.tipo}`, TIPOS_AFASTAMENTO[a.tipo]));
+  for (const o of dia.operacoes) botao.append(elemento('span', `periodo periodo-${o.situacao}`, `Operação ${o.equipe.replace(/^Equipe\s+/i, '')}`));
   for (const e of dia.eventos.slice(0, MAX_NO_DIA)) botao.append(elemento('span', `chip chip-${classeEvento(e, hoje)}`, e.titulo));
   if (dia.eventos.length > MAX_NO_DIA) botao.append(elemento('span', 'chip-mais', `+${dia.eventos.length - MAX_NO_DIA}`));
   botao.addEventListener('click', () => {
@@ -72,6 +75,12 @@ function desenharDetalhe(semanas, hoje) {
   const itens = dia.afastamentos.map((a) =>
     itemDetalhe('período', TIPOS_AFASTAMENTO[a.tipo], elemento('span', 'evento-titulo', `${formatarData(a.inicio)} a ${formatarData(a.fim)} · ${SITUACOES_AFASTAMENTO[a.situacao]}`), `evento-${a.tipo}`)
   );
+  for (const o of dia.operacoes) {
+    const ir = elemento('button', 'evento-titulo link', `${o.equipe} · ${formatarData(o.saida)} a ${formatarData(o.retorno)} · ${SITUACAO_OPERACAO[o.situacao]}`);
+    ir.type = 'button';
+    ir.addEventListener('click', () => estado.irParaDemanda(o.id));
+    itens.push(itemDetalhe('período', 'Operação', ir, `evento-operacao evento-operacao-${o.situacao}`));
+  }
   for (const e of dia.eventos) {
     const ir = elemento('button', 'evento-titulo link', e.titulo);
     ir.type = 'button';

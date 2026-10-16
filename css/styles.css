@@ -269,7 +269,11 @@ button.dia[aria-pressed="true"] { background: var(--azul-claro); border-color: v
 .hoje button.dia { border: 2px solid var(--azul); }
 .hoje .dia-numero { background: var(--azul); color: #fff; border-radius: 999px; padding: 0 6px; align-self: flex-start; }
 .dia-numero { font-weight: 700; font-size: 0.85rem; }
-.faixa, .chip {
+.periodo-aberta { background: #e0f2fe; border-color: #0369a1; color: #0c4a6e; }
+.periodo-sobrestada { background: #f3e8ff; border-color: #7c3aed; color: #581c87; }
+.periodo-concluida { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
+.evento-operacao-concluida { opacity: 0.8; }
+.faixa, .chip, .periodo {
   display: block; font-size: 0; height: 6px; border-radius: 3px; border-left: 3px solid;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
@@ -285,7 +289,7 @@ button.link:hover { background: none; color: #2563eb; }
 @media (min-width: 600px) {
   .calendario { border-spacing: 4px; }
   button.dia { min-height: 96px; padding: 4px 6px; }
-  .faixa, .chip { font-size: 0.72rem; height: auto; padding: 1px 4px; }
+  .faixa, .chip, .periodo { font-size: 0.72rem; height: auto; padding: 1px 4px; }
 }
 
 /* ---- M8: card compacto e painel lateral ---- */
@@ -352,3 +356,82 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 @media (min-width: 600px) {
   .quadro-grade { grid-template-columns: repeat(4, minmax(240px, 1fr)); }
 }
+
+/* ---- Relatórios agrupados, autos e anotações ---- */
+.painel-aviso { margin: 8px 16px 0; }
+.painel-anotacoes { display: grid; gap: 4px; }
+.anotacao { display: grid; gap: 4px; }
+.rotulo-anotacao { font-weight: 600; font-size: 0.95rem; }
+.anotacao textarea { width: 100%; resize: vertical; font: inherit; color: var(--texto); border: 1px solid var(--azul); border-radius: 8px; padding: 6px 8px; background: #fff; }
+.anotacao-estado { margin: 0; }
+.anotacao button { justify-self: start; }
+.demanda-obs { font-size: 0.78rem; font-weight: 600; color: #854d0e; }
+.selo-relatorio { margin-left: 6px; padding: 0 6px; font-size: 0.78rem; font-weight: 700; color: var(--azul); border: 1px solid var(--azul); border-radius: 999px; }
+.ponto-dica, .ponto-marcar { font-size: 0.82rem; }
+.ponto-marcar { display: flex; align-items: center; gap: 6px; }
+.ponto-marcar input { width: 1.1rem; height: 1.1rem; }
+.ponto-autos { display: grid; gap: 4px; }
+.autos { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.auto { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.9rem; }
+.ponto-autos button, .auto button { min-height: 36px; padding: 2px 8px; font-size: 0.85rem; justify-self: start; }
+.ponto-obs { font-size: 0.9rem; }
+.ponto-obs summary { cursor: pointer; color: var(--suave); }
+.relatorios-bloco { display: grid; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--borda); }
+.relatorios-bloco h4 { margin: 0; font-size: 0.95rem; }
+.relatorios-bloco > button { justify-self: start; }
+.relatorio-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 6px 8px; border: 1px solid var(--borda); border-radius: 8px; }
+
+/* ---- Aba Pontos ---- */
+.ponto-card { display: grid; gap: 4px; padding: 10px 12px; background: #fff; border: 1px solid var(--borda); border-left: 5px solid #475569; border-radius: 10px; }
+.ponto-card-topo { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; }
+.ponto-card-topo strong { overflow-wrap: anywhere; }
+.ponto-card-operacao { margin: 0; font-size: 0.82rem; color: var(--suave); }
+.ponto-card-linha { margin: 0; font-size: 0.9rem; overflow-wrap: anywhere; }
+.ponto-card-obs { margin: 0; padding: 4px 8px; font-size: 0.85rem; background: #fffbeb; border-left: 3px solid #b45309; color: #78350f; white-space: pre-line; overflow-wrap: anywhere; }
+.ponto-card > button { justify-self: start; min-height: 40px; }
+.selo-situacao { padding: 0 8px; font-size: 0.78rem; font-weight: 700; border: 1px solid currentColor; border-radius: 999px; }
+.selo-situacao-planejado { color: #475569; }
+.selo-situacao-aguardando_relatorio { color: var(--alerta); }
+.selo-situacao-a_lavrar { color: #9a3412; }
+.selo-situacao-com_auto { color: #15803d; }
+.selo-situacao-encerrado_sem_auto { color: #6d28d9; }
+.situacao-planejado { border-left-color: #475569; }
+.situacao-aguardando_relatorio { border-left-color: var(--alerta); }
+.situacao-a_lavrar { border-left-color: #c2410c; }
+.situacao-com_auto { border-left-color: #15803d; }
+.situacao-encerrado_sem_auto { border-left-color: #7c3aed; }
+#pontos-indicadores { margin: 8px 0; }
+@media (min-width: 600px) {
+  #pontos-indicadores { grid-template-columns: repeat(5, 1fr); }
+  #filtros-pontos { grid-template-columns: 2fr 2fr 1fr auto; }
+  #filtros-pontos .campo:first-child { grid-column: auto; }
+}
+@media (max-width: 420px) {
+  .abas a { padding: 6px 5px; font-size: 0.8rem; }
+}
+
+/* ---- Mapa dos pontos (SVG local) ---- */
+.mapa-caixa { overflow: hidden; background: #fff; border: 1px solid var(--borda); border-radius: 10px; }
+.mapa-svg { display: block; width: 100%; height: auto; max-height: 75vh; }
+.mapa-fundo { fill: #f8fafc; }
+.mapa-grade { stroke: #cbd5e1; stroke-width: 1; stroke-dasharray: 4 4; }
+.mapa-grade-rotulo, .mapa-escala-rotulo { font-size: 15px; fill: #64748b; }
+.mapa-escala { stroke: #334155; stroke-width: 3; }
+.mapa-municipio { font-size: 17px; font-weight: 700; fill: #1e2a5e; paint-order: stroke; stroke: #f8fafc; stroke-width: 4px; stroke-linejoin: round; }
+.marcador { cursor: pointer; }
+.marcador-area { fill: transparent; }
+.marcador:hover .marcador-forma { stroke-width: 4; }
+.marcador:focus { outline: none; }
+.marcador:focus .marcador-area { fill: rgba(37, 99, 235, 0.18); stroke: #2563eb; stroke-width: 3; }
+.marcador-forma { stroke: #0f172a; stroke-width: 2; }
+.forma-planejado { fill: #fff; stroke: #475569; stroke-width: 3; }
+.forma-aguardando_relatorio { fill: #dc2626; }
+.forma-a_lavrar { fill: #f97316; }
+.forma-com_auto { fill: #16a34a; }
+.forma-encerrado_sem_auto { fill: #8b5cf6; }
+.mapa-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0; padding: 0; list-style: none; font-size: 0.85rem; }
+.legenda-item { display: flex; align-items: center; gap: 6px; }
+.legenda-icone { width: 22px; height: 22px; }
+.mapa-sem-coordenada { display: grid; gap: 4px; margin: 4px 0 0; padding-left: 18px; font-size: 0.9rem; }
+.mapa h3 { margin: 12px 0 0; font-size: 0.95rem; }
+#pontos-lista[hidden], #pontos-mapa[hidden] { display: none; }

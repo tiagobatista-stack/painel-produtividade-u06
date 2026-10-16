@@ -83,7 +83,9 @@ test('o código do navegador não depende de recursos externos nem de manipulado
   }
   for (const f of listar(join(saida, 'js'))) {
     const fonte = readFileSync(f, 'utf8');
-    assert.equal(/https?:\/\//.test(fonte), false, `URL externa em ${relative(saida, f)}`);
+    // O endereço do espaço de nomes do SVG é só um identificador (document.createElementNS), não uma requisição.
+    const semNamespaceSvg = fonte.replaceAll('http://www.w3.org/2000/svg', '');
+    assert.equal(/https?:\/\//.test(semNamespaceSvg), false, `URL externa em ${relative(saida, f)}`);
     assert.equal(/\beval\(|new Function|\.innerHTML\s*=/.test(fonte), false, `construção insegura em ${relative(saida, f)}`);
   }
 });

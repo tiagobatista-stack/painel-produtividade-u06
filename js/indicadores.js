@@ -32,8 +32,32 @@ export function prazoDemanda(d) {
   return dataValida(d.prazo) ? d.prazo : null;
 }
 
+// Relatório que reúne o ponto (`relatorios[]` da operação), ou null quando o ponto tem relatório próprio.
+export function relatorioDoPonto(operacao, numero) {
+  return (operacao.relatorios ?? []).find((r) => r.pontos.includes(numero)) ?? null;
+}
+
+// Chave do relatório do ponto: o id do grupo ou, para ponto solto, o próprio número do ponto.
+function chaveDoRelatorio(operacao, ponto) {
+  return relatorioDoPonto(operacao, ponto.n)?.id ?? `P${ponto.n}`;
+}
+
+// Relatórios (não pontos) ainda por concluir: pontos agrupados contam 1 só, pois são somados no mesmo relatório.
 export function relatoriosPendentes(d) {
-  return d.tipo === 'operacao' ? d.pontos.filter((p) => ETAPAS_PENDENTES.includes(p.etapa)).length : 0;
+  if (d.tipo !== 'operacao') return 0;
+  return new Set(d.pontos.filter((p) => ETAPAS_PENDENTES.includes(p.etapa)).map((p) => chaveDoRelatorio(d, p))).size;
+}
+
+// Chave do relatório de cada ponto de uma operação (para contar relatórios distintos).
+export function chaveRelatorioDoPonto(operacao, ponto) {
+  return chaveDoRelatorio(operacao, ponto);
+}
+
+// Autos do ponto. Ponto antigo em "auto lavrado" sem lista `autos` vale como 1 auto de tipo não informado, na data do auto.
+export function autosDoPonto(ponto) {
+  if (Array.isArray(ponto.autos) && ponto.autos.length > 0) return ponto.autos;
+  if (ponto.etapa === 'auto_lavrado') return [{ id: 'A1', tipo: null, data: ponto.data_auto ?? null }];
+  return [];
 }
 
 export function autosALavrar(d) {

@@ -53,7 +53,8 @@
     {
       "id": "DEM-0003", "tipo": "processo", "titulo": "Manifestação em procedimento do Ministério Público (fictício)",
       "origem": "mp", "status": "em_andamento", "prazo": "2026-10-13", "criada_em": "2026-10-01", "esforco_h": 4,
-      "processo": "SEMA-PRO-FICT-0042", "etapa": "parecer", "historico": []
+      "processo": "SEMA-PRO-FICT-0042", "etapa": "parecer", "historico": [],
+      "observacoes": "Feito: minuta do parecer enviada à chefia em 12/10. Pendente: aguardar a análise jurídica e anexar a resposta ao processo."
     },
     {
       "id": "DEM-0004", "tipo": "processo", "titulo": "Informação técnica para ofício do Poder Judiciário (fictício)",

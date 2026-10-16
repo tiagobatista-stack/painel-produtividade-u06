@@ -1,11 +1,12 @@
 // Painel lateral de uma demanda: prioridade e motivos, dados, pontos da operação, histórico, status, editar e excluir.
 // É um <dialog> modal (foco preso, Esc fecha) estilizado como gaveta; o conteúdo é refeito a cada atualização da tela.
 import { autosALavrar, relatoriosPendentes } from './indicadores.js';
-import { itemDaDemanda } from './demandas.js';
+import { OBSERVACOES_MAX, ErroCadastro, itemDaDemanda, salvarObservacoes } from './demandas.js';
+import { caixaDeAnotacao } from './ui-anotacoes.js';
 import { esforcoHoras } from './operacoes.js';
 import { ORIGENS, STATUS, TIPOS } from './rotulos.js';
-import { $, elemento, estado, formatarData, hojeAtual, opcoes, textoPrazo } from './ui-comum.js';
-import { abrirRetorno, blocoPontos, botaoSobrestamento, temPlanejados } from './ui-operacao.js';
+import { $, elemento, estado, formatarData, hojeAtual, mostrarAviso, opcoes, persistir, textoPrazo } from './ui-comum.js';
+import { abrirRetorno, avisarNoPainel, blocoPontos, botaoSobrestamento, temPlanejados } from './ui-operacao.js';
 
 const painel = $('painel-demanda');
 let idAberto = null;
@@ -49,6 +50,38 @@ function blocoMotivos({ motivos }) {
   const lista = elemento('ul');
   lista.append(...motivos.map((m) => elemento('li', '', m)));
   bloco.append(elemento('h3', '', 'Por que esta prioridade?'), lista);
+  return bloco;
+}
+
+// Anotações da demanda: o que já foi executado e o que está pendente. Vale para todos os tipos, inclusive operação.
+function blocoAnotacoes(d) {
+  const bloco = elemento('section', 'painel-anotacoes');
+  bloco.append(
+    caixaDeAnotacao({
+      chave: d.id,
+      titulo: 'Anotações',
+      valor: d.observacoes ?? '',
+      max: OBSERVACOES_MAX,
+      linhas: 5,
+      ajuda: 'Registre o que já foi executado e o que está pendente. Use só dados fictícios neste exemplo.',
+      aoSalvar: (texto) => {
+        const i = estado.dados.demandas.findIndex((x) => x.id === d.id);
+        try {
+          estado.dados.demandas[i] = salvarObservacoes(estado.dados.demandas[i], texto, hojeAtual());
+        } catch (e) {
+          if (!(e instanceof ErroCadastro)) throw e;
+          avisarNoPainel(Object.values(e.erros)[0]);
+          return false;
+        }
+        avisarNoPainel('');
+        mostrarAviso('');
+        persistir();
+        estado.focoApos = `anotacao-${d.id}`;
+        estado.atualizar();
+        return true;
+      },
+    })
+  );
   return bloco;
 }
 
@@ -109,7 +142,7 @@ export function desenharPainel(hoje) {
   const topo = elemento('p', 'demanda-topo');
   topo.append(elemento('span', 'etiqueta', TIPOS[d.tipo]), elemento('span', 'status', STATUS[d.status]));
   $('painel-corpo').replaceChildren(
-    ...[topo, blocoDados(item, hoje), blocoMotivos(item), d.tipo === 'operacao' ? blocoPontos(d) : null, blocoHistorico(d), blocoAcoes(item)].filter(Boolean)
+    ...[topo, blocoDados(item, hoje), blocoMotivos(item), blocoAnotacoes(d), d.tipo === 'operacao' ? blocoPontos(d) : null, blocoHistorico(d), blocoAcoes(item)].filter(Boolean)
   );
   painel.scrollTop = rolagem;
 }
