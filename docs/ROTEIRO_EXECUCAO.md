@@ -25,7 +25,7 @@ Cada marco: **plano → seu OK → implementação → evidência literal → co
 | 08–09 | Sessão Claude (Desktop ou VS Code) na pasta do projeto | primeira resposta explica o projeto, sem editar nada |
 | 10 | `/status` e `/permissions` dentro do Claude | diretório e permissões conferidos |
 
-Decisões já tomadas: `legado/index.html` mantido como referência; nome do repositório; afastamentos em lista própria; etapas `encerrado_*`; N = 10 dias e 3 h por relatório (editáveis).
+Decisões já tomadas: `legado/` (dashboard antigo e a aula) mantido como referência local, fora do Git; nome do repositório; afastamentos em lista própria; etapas `encerrado_*`; N = 10 dias e 3 h por relatório (editáveis).
 
 ## Concepção e M0 (slides 11–13) — concluído
 

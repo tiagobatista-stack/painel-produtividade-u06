@@ -8,7 +8,7 @@ Painel de Demandas: fila única priorizada por prazo e criticidade para reuniõe
 - `docs/ROTEIRO_EXECUCAO.md` — roteiro por marco (M0–M7)
 - `docs/REQUISITOS.md`, `docs/REGRAS_PRIORIDADE.md`, `docs/CRITERIOS_ACEITE.md`, `docs/ARQUITETURA.md`, `docs/MCP.md`
 - `data/seed.json` — exemplo fictício
-- `legado/` — dashboard anterior, apenas referência
+- `legado/` — material de referência local (dashboard anterior e a aula); não é versionado
 
 ## Status
 

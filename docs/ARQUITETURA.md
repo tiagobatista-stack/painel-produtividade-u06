@@ -6,7 +6,7 @@ Tudo roda no navegador, sem backend. A única peça compartilhada é o motor de 
 
 - **Código-fonte (editado na raiz):** `index.html`, `css/`, `js/`, `data/`, `tests/`, `tools/`, `scripts/`, `docs/`.
 - **Pasta gerada:** `public/`, criada por `npm run build` (`scripts/build.mjs`) e publicada pela Vercel. Está no `.gitignore`; nunca se edita à mão.
-- **Referência:** `legado/index.html` (dashboard antigo), fora do build e da publicação.
+- **Referência:** `legado/` (dashboard antigo e a aula), local e fora do Git, do build e da publicação.
 
 ```
 painel-produtividade-u06/
@@ -24,7 +24,7 @@ painel-produtividade-u06/
 ├── scripts/serve.mjs    # servidor local (aplica os cabeçalhos do vercel.json)
 ├── playwright.config.mjs # desktop e mobile; SITE_URL testa um endereço publicado
 ├── docs/
-├── legado/
+├── legado/              # referência local, fora do Git
 ├── .github/workflows/qualidade.yml
 ├── .gitlab-ci.yml       # ilustrativo (slide 44), sem repositório GitLab
 ├── vercel.json

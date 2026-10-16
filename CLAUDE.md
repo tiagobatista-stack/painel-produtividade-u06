@@ -14,7 +14,7 @@ Painel de Demandas: aplicação web estática (HTML/CSS/JS, sem backend) que pri
 
 - `js/regras.js`: motor de prioridade, módulo ES puro (`export function priorizar`), sem DOM nem storage. É a única fonte das regras, usada pela interface, pelos testes Node e pelo MCP.
 - `js/app.js`: interface. `data/seed.json`: exemplo fictício. `tests/`: `regras.test.mjs` (node --test) e `e2e/` (Playwright). `tools/demandas-mcp.mjs`: MCP local. `scripts/build.mjs`: copia o necessário para `public/`.
-- `legado/index.html`: dashboard antigo, só referência; não editar nem publicar.
+- `legado/` (local, fora do Git): dashboard antigo e a aula, só referência; não editar nem publicar.
 
 ## Comandos
 
