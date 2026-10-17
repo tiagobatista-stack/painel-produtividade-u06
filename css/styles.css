@@ -260,7 +260,7 @@ button.fechar { font-size: 1.4rem; line-height: 1; padding: 2px 10px; }
 .grade-campos .campo { min-width: 0; }
 /* Asterisco dos obrigatórios por CSS: não entra no nome acessível do campo (que já tem aria-required). */
 label.obrig::after { content: " *" / ""; color: var(--alerta); }
-.dica { font-size: 0.78rem; color: var(--suave); }
+.dica { font-size: max(0.78rem, 12px); color: var(--suave); } /* nunca abaixo de 12 px, mesmo com a fonte do navegador reduzida */
 .dialogo-demanda textarea { min-height: 4.5rem; }
 
 .anotacao-nova { display: flex; gap: 8px; }
@@ -509,5 +509,7 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 /* Localização no formulário de demanda e no painel lateral. */
 .linha-localizar { display: flex; gap: 8px; }
 .linha-localizar input { flex: 1; min-width: 0; }
-.aviso-coordenada { display: grid; gap: 2px; margin: 0; padding: 8px 10px; border-left: 4px solid #b45309; background: #fffbeb; font-size: 0.88rem; }
-.aviso-coordenada[hidden] { display: none; }
+/* Linha de aviso sob o campo (valor convertido, hemisfério assumido, fora de MT, fora da lista de municípios). */
+.aviso-campo { font-size: max(0.82rem, 12px); color: #92400e; overflow-wrap: anywhere; }
+.aviso-campo:empty { display: none; }
+.campo .mostrar-concluidas[hidden] { display: none; }

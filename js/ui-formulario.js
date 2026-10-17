@@ -1,10 +1,11 @@
 // Interface do formulário de demanda (nova e edição): campos por tipo, prévia da prioridade calculada e anotações.
 import { linkParaLocalizar } from './camadas-mapa.js';
-import { lerParDeCoordenadas } from './coordenadas.js';
-import { ErroCadastro, TIPOS_CADASTRAVEIS, criarDemanda, editarDemanda, origensDoTipo } from './demandas.js';
+import { descreverEixo, lerParDeCoordenadas } from './coordenadas.js';
+import { ErroCadastro, TIPOS_CADASTRAVEIS, criarDemanda, editarDemanda, manualIgualACalculada, origensDoTipo } from './demandas.js';
+import { normalizarMunicipio } from './municipios.js';
 import { ErroValidacao, priorizar } from './regras.js';
 import { ETAPAS, ORIGENS, PRIORIDADE_MANUAL, STATUS, TIPOS } from './rotulos.js';
-import { $, abrirEmNovaAba, criarGestorErros, estado, hojeAtual, opcoes, persistir } from './ui-comum.js';
+import { $, abrirEmNovaAba, criarGestorErros, estado, hojeAtual, mostrarMensagem, opcoes, persistir } from './ui-comum.js';
 import { criarEditorAnotacoes } from './ui-anotacoes.js';
 
 const CAMPOS = [
@@ -29,6 +30,7 @@ const anotacoes = criarEditorAnotacoes();
 let editando = null; // demanda em edição, ou null quando é nova
 let gatilho = null; // elemento que abriu o formulário, para devolver o foco
 let salvouNoDialogo = false; // distingue salvar de cancelar ao fechar o formulário
+let pendentesAdicionadas = 0; // anotações que estavam só digitadas e entraram ao tentar salvar (para o aviso depois de salvar)
 
 // ---------- Prévia da prioridade calculada (sempre a calculada, mesmo com ajuste manual) ----------
 
@@ -41,7 +43,13 @@ function rascunho() {
   return { id: 'previa', tipo, origem: $('f-origem').value, prazo: $('f-prazo').value, status: $('f-status').value };
 }
 
+function ajusteIgualACalculada() {
+  const escolhida = $('f-prioridade_manual').value;
+  return escolhida !== '' && manualIgualACalculada(rascunho(), { prioridade_manual: escolhida }, hojeAtual(), { afastamentos: estado.dados.afastamentos });
+}
+
 function atualizarPrevia() {
+  atualizarMotivo(); // prazo, origem ou status podem mudar a faixa calculada e, com ela, se o motivo é exigido
   const previa = $('previa-prioridade');
   const linhas = [];
   try {
@@ -54,7 +62,8 @@ function atualizarPrevia() {
     linhas.push(['Prioridade calculada: informe o prazo para calcular.']);
   }
   const manual = PRIORIDADE_MANUAL[$('f-prioridade_manual').value];
-  if (manual) linhas.push([`Ajuste manual: ${manual}. A faixa manual define a posição na fila; o score calculado continua valendo dentro dela.`]);
+  if (manual && ajusteIgualACalculada()) linhas.push([`Ajuste manual: ${manual} é igual à calculada; use Automática. Será gravada como Automática, sem motivo.`]);
+  else if (manual) linhas.push([`Ajuste manual: ${manual}. A faixa manual define a posição na fila; o score calculado continua valendo dentro dela.`]);
   previa.replaceChildren(...linhas.map(([forte, resto]) => {
     const bloco = document.createElement('div');
     const negrito = document.createElement('strong');
@@ -75,7 +84,6 @@ function atualizarCamposDoTipo(tipo) {
   for (const campo of formulario.querySelectorAll('[data-tipos]')) {
     campo.hidden = !campo.dataset.tipos.split(' ').includes(tipo);
   }
-  atualizarAvisosDeCoordenada();
   const atual = $('f-origem').value;
   const validas = origensDoTipo(tipo);
   opcoes($('f-origem'), validas.map((o) => [o, ORIGENS[o]]), validas.includes(atual) ? atual : validas[0]);
@@ -83,17 +91,31 @@ function atualizarCamposDoTipo(tipo) {
   if (etapas) opcoes($('f-etapa'), [['', 'Sem etapa'], ...Object.entries(etapas)], '');
 }
 
-// Avisos de coordenada enquanto se digita (hemisfério assumido, ponto fora de Mato Grosso). Os erros só aparecem ao salvar.
-function atualizarAvisosDeCoordenada() {
-  const { avisos } = lerParDeCoordenadas($('f-latitude').value, $('f-longitude').value);
-  const caixa = $('avisos-coordenada');
-  caixa.replaceChildren(...avisos.map((aviso) => {
-    const linha = document.createElement('span');
-    linha.textContent = aviso;
-    linha.className = 'aviso-linha';
-    return linha;
+// Sob cada campo de coordenada, em tempo real: o valor convertido (copiável para QGIS, GPS ou planilha), o hemisfério assumido e
+// se o eixo cai fora de Mato Grosso. Ex.: "= -11,053889 · hemisfério assumido: S · fora de MT". Os erros só aparecem ao salvar.
+function atualizarLinhasDeCoordenada() {
+  for (const [campo, eixo, linha] of [['f-latitude', 'y', 'a-latitude'], ['f-longitude', 'x', 'a-longitude']]) {
+    const d = descreverEixo($(campo).value, eixo);
+    $(linha).textContent = d
+      ? [`= ${d.decimal}`, d.assumido && `hemisfério assumido: ${d.hemisferio}`, d.foraDeMT && 'fora de MT'].filter(Boolean).join(' · ')
+      : '';
+  }
+}
+
+// Município: a lista de MT é só sugestão (aceita texto livre). Fora da lista, aparece discretamente "fora da lista de MT".
+function preencherSugestoesDeMunicipio() {
+  const lista = $('lista-municipios');
+  if (!estado.municipios || lista.childElementCount > 0) return;
+  lista.replaceChildren(...estado.municipios.nomes.map((nome) => {
+    const opcao = document.createElement('option');
+    opcao.value = nome;
+    return opcao;
   }));
-  caixa.hidden = avisos.length === 0 || $('f-latitude').closest('[data-tipos]').hidden;
+}
+
+function atualizarAvisoDeMunicipio() {
+  const { naLista } = normalizarMunicipio($('f-municipio').value, estado.municipios);
+  $('a-municipio').textContent = naLista === false ? 'fora da lista de MT' : '';
 }
 
 // "Localizar": abre o OpenStreetMap em nova aba (a página não faz requisição). Coordenadas inválidas são mostradas, não ignoradas.
@@ -111,8 +133,9 @@ function localizar() {
   abrirEmNovaAba(url);
 }
 
+// O motivo só é pedido quando o ajuste manual muda a faixa: se repete a calculada, não há o que justificar.
 function atualizarMotivo() {
-  $('campo-motivo').hidden = $('f-prioridade_manual').value === '';
+  $('campo-motivo').hidden = $('f-prioridade_manual').value === '' || ajusteIgualACalculada();
 }
 
 export function abrirFormulario(demanda, origemDoClique) {
@@ -140,8 +163,10 @@ export function abrirFormulario(demanda, origemDoClique) {
     $('f-prioridade_manual').value = demanda.prioridade_manual ?? '';
   }
   // Demanda nova começa sem prazo: a data de referência não é um padrão.
-  atualizarMotivo();
-  atualizarAvisosDeCoordenada();
+  preencherSugestoesDeMunicipio();
+  atualizarAvisoDeMunicipio();
+  atualizarLinhasDeCoordenada();
+  pendentesAdicionadas = 0;
   anotacoes.carregar(demanda?.anotacoes ?? []);
   atualizarPrevia();
   dialogo.showModal();
@@ -150,15 +175,26 @@ export function abrirFormulario(demanda, origemDoClique) {
 
 function enviarFormulario(evento) {
   evento.preventDefault();
+  // O que ficou digitado na caixa de nova anotação entra como anotação; se não puder, o texto fica e a gravação para.
+  const pendente = anotacoes.concluirPendente();
+  if (pendente.erro) {
+    gestor.mostrar({ anotacoes: pendente.erro });
+    return;
+  }
+  pendentesAdicionadas += pendente.adicionadas;
   const entrada = { ...Object.fromEntries(new FormData(formulario)), anotacoes: anotacoes.obter() };
   const hoje = hojeAtual();
+  const contexto = { afastamentos: estado.dados.afastamentos, municipios: estado.municipios };
+  let gravada;
   try {
     if (editando) {
       const i = estado.dados.demandas.findIndex((d) => d.id === editando.id);
-      estado.dados.demandas[i] = editarDemanda(editando, entrada, hoje);
+      gravada = editarDemanda(editando, entrada, hoje, contexto);
+      estado.dados.demandas[i] = gravada;
       estado.focoApos = document.querySelector(`[data-foco="editar-${editando.id}"]`) ? `editar-${editando.id}` : `abrir-${editando.id}`;
     } else {
-      const nova = criarDemanda(entrada, estado.dados.demandas, hoje);
+      const nova = criarDemanda(entrada, estado.dados.demandas, hoje, contexto);
+      gravada = nova;
       estado.dados.demandas.push(nova);
       estado.focoApos = `abrir-${nova.id}`;
     }
@@ -171,6 +207,11 @@ function enviarFormulario(evento) {
   salvouNoDialogo = true;
   dialogo.close();
   estado.atualizar();
+  const avisos = [];
+  if (pendentesAdicionadas === 1) avisos.push('1 anotação pendente foi adicionada.');
+  else if (pendentesAdicionadas > 1) avisos.push(`${pendentesAdicionadas} anotações pendentes foram adicionadas.`);
+  if (entrada.prioridade_manual && !gravada.prioridade_manual) avisos.push('A prioridade escolhida era igual à calculada: a demanda foi gravada como Automática.');
+  if (avisos.length) mostrarMensagem(avisos.join(' '));
 }
 
 export function iniciarFormulario() {
@@ -184,7 +225,13 @@ export function iniciarFormulario() {
     if (!$('f-prazo').value && e.target.value) $('f-prazo').value = e.target.value.slice(0, 10);
   });
   formulario.addEventListener('input', atualizarPrevia);
-  for (const id of ['f-latitude', 'f-longitude']) $(id).addEventListener('input', atualizarAvisosDeCoordenada);
+  for (const id of ['f-latitude', 'f-longitude']) $(id).addEventListener('input', atualizarLinhasDeCoordenada);
+  $('f-municipio').addEventListener('input', atualizarAvisoDeMunicipio);
+  $('f-municipio').addEventListener('change', () => {
+    // Ao confirmar o campo, mostra o nome oficial quando ele combina com a lista ("juína" vira "Juína").
+    $('f-municipio').value = normalizarMunicipio($('f-municipio').value, estado.municipios).valor;
+    atualizarAvisoDeMunicipio();
+  });
   $('f-localizar').addEventListener('click', localizar);
   formulario.addEventListener('change', atualizarPrevia);
   formulario.addEventListener('submit', enviarFormulario);

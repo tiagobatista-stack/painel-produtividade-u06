@@ -75,6 +75,20 @@ export const foraDeMatoGrosso = (latitude, longitude) =>
   latitude < CAIXA_DE_MATO_GROSSO.latitude[0] || latitude > CAIXA_DE_MATO_GROSSO.latitude[1] ||
   longitude < CAIXA_DE_MATO_GROSSO.longitude[0] || longitude > CAIXA_DE_MATO_GROSSO.longitude[1];
 
+// Um eixo só, para a linha sob cada campo do formulário: "= -11,053889 · hemisfério assumido: S · fora de MT".
+// null se o campo está vazio ou o valor não é válido (os erros aparecem só ao salvar).
+export function descreverEixo(digitado, eixo) {
+  const r = lerCoordenadaDoFormulario(digitado, eixo);
+  if (r.vazio || r.invalido) return null;
+  const [minimo, maximo] = eixo === 'y' ? CAIXA_DE_MATO_GROSSO.latitude : CAIXA_DE_MATO_GROSSO.longitude;
+  return {
+    decimal: r.valor.toFixed(6).replace('.', ','),
+    assumido: r.assumido,
+    hemisferio: eixo === 'y' ? 'S' : 'O',
+    foraDeMT: r.valor < minimo || r.valor > maximo,
+  };
+}
+
 const ERRO_LATITUDE = `Latitude inválida. Use decimal (-11,42) ou graus, minutos e segundos (11° 25' 12" S).`;
 const ERRO_LONGITUDE = `Longitude inválida. Use decimal (-58,75) ou graus, minutos e segundos (58° 45' 00" O).`;
 

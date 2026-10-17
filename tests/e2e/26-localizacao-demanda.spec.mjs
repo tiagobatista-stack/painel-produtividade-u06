@@ -7,7 +7,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
 
 const dialogo = (page, nome = 'Nova demanda') => page.getByRole('dialog', { name: nome });
 const campo = (page, rotulo, nome = 'Nova demanda') => dialogo(page, nome).getByLabel(rotulo, { exact: true });
-const avisos = (page) => page.locator('#avisos-coordenada');
+const linha = (page, eixo) => page.locator(`#a-${eixo}`); // linha sob o campo: valor convertido e avisos
 
 async function abrirNova(page) {
   await abrir(page);
@@ -72,33 +72,40 @@ test.describe('localização no formulário de demanda', () => {
     expect([guardada.coord_y, guardada.coord_x, guardada.coord_y_texto, guardada.coord_x_texto]).toEqual([-17.5, -29.25, `17° 30' 00" S`, `29° 15' 00" O`]);
   });
 
-  test('cadastra em decimal sem hemisfério: assume S e O e avisa, sem bloquear', async ({ page }) => {
+  test('cadastra em decimal sem hemisfério: assume S e O, mostra o valor convertido e avisa, sem bloquear', async ({ page }) => {
     await abrirNova(page);
     await campo(page, 'Tipo').selectOption({ label: 'Outra' });
     await preencherBasico(page);
-    await expect(avisos(page)).toBeHidden();
+    await expect(linha(page, 'latitude')).toHaveText('');
     await campo(page, 'Latitude').fill('17,5');
-    await expect(avisos(page)).toContainText('Latitude: hemisfério não informado: assumido S.');
+    await expect(linha(page, 'latitude')).toHaveText('= -17,500000 · hemisfério assumido: S'); // -17,5 está na faixa de latitude de MT; só a longitude sai dela
     await campo(page, 'Longitude').fill('29,25');
-    await expect(avisos(page)).toContainText('Longitude: hemisfério não informado: assumido O.');
-    await expect(avisos(page)).toContainText('fora de Mato Grosso'); // o exemplo fica no Atlântico: aviso, não erro
+    await expect(linha(page, 'longitude')).toHaveText('= -29,250000 · hemisfério assumido: O · fora de MT'); // o exemplo fica no Atlântico: aviso, não erro
     await salvar(page);
     await expect(dialogo(page)).toBeHidden();
     const p = await abrirPainel(page, TITULO);
     await expect(p.locator('.painel-coordenada')).toContainText('(-17,500000, -29,250000)');
   });
 
-  test('N, L e E são aceitos e avisam que o ponto fica fora de Mato Grosso', async ({ page }) => {
+  test('N, L e E são aceitos e avisam, por eixo, que o ponto fica fora de Mato Grosso', async ({ page }) => {
     await abrirNova(page);
     await campo(page, 'Latitude').fill(`11° 25' 12" N`);
     await campo(page, 'Longitude').fill(`58° 45' 00" L`);
-    await expect(avisos(page)).toHaveCount(1);
-    await expect(avisos(page)).toContainText('fora de Mato Grosso');
-    await expect(avisos(page)).not.toContainText('hemisfério não informado');
-    // Dentro de Mato Grosso, com S e O escritos, nenhum aviso.
+    await expect(linha(page, 'latitude')).toHaveText('= 11,420000 · fora de MT');
+    await expect(linha(page, 'longitude')).toHaveText('= 58,750000 · fora de MT');
+    await expect(linha(page, 'latitude')).not.toContainText('hemisfério assumido');
+    // Dentro de Mato Grosso, com S e O escritos: só o valor convertido, sem aviso nenhum.
     await campo(page, 'Latitude').fill(`11° 25' 12" S`);
     await campo(page, 'Longitude').fill(`58° 45' 00" O`);
-    await expect(avisos(page)).toBeHidden();
+    await expect(linha(page, 'latitude')).toHaveText('= -11,420000');
+    await expect(linha(page, 'longitude')).toHaveText('= -58,750000');
+    // Cada eixo é avaliado sozinho: latitude dentro de MT e longitude fora.
+    await campo(page, 'Longitude').fill('-30');
+    await expect(linha(page, 'latitude')).toHaveText('= -11,420000');
+    await expect(linha(page, 'longitude')).toHaveText('= -30,000000 · fora de MT');
+    // Valor inválido ou campo vazio: a linha some (o erro só aparece ao salvar).
+    await campo(page, 'Latitude').fill('abc');
+    await expect(linha(page, 'latitude')).toHaveText('');
   });
 
   test('só uma das coordenadas, valor inválido ou impossível: erro ao lado do campo, sem repetir o digitado', async ({ page }) => {

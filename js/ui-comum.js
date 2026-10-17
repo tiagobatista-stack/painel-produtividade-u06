@@ -9,6 +9,7 @@ export const estado = {
   seed: null,
   dados: null, // { versao, demandas, afastamentos }
   storage: null,
+  municipios: null, // índice de municípios de MT (js/municipios.js), ou null se a lista não carregou: o campo segue como texto livre
   focoApos: null, // valor de data-foco a restaurar depois de redesenhar
   pontosAbertos: new Set(), // operações com a lista de pontos aberta
   anotacoesAbertas: new Set(), // demandas com a lista de anotações aberta no cartão

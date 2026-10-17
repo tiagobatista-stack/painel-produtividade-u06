@@ -48,7 +48,7 @@ function analisarImportacao() {
     previa.replaceChildren(elemento('p', 'nota', 'Cole as linhas da planilha (com a linha de cabeçalho) ou use a planilha de exemplo.'));
     return null;
   }
-  const leitura = lerPlanilha(texto);
+  const leitura = lerPlanilha(texto, { municipios: estado.municipios });
   if (!leitura.ok) {
     previa.replaceChildren(listaDeErros('A planilha tem problemas:', leitura.erros.map((e) => (e.linha ? `Linha ${e.linha}${e.campo ? `, ${e.campo}` : ''}: ${e.mensagem}` : e.mensagem))));
     return null;

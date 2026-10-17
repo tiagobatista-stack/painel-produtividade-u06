@@ -16,3 +16,6 @@ resumo-semanal-*.txt
 painel-*.json
 # material de referência local (dashboard antigo e a aula): não é versionado nem publicado
 legado/
+
+# Chave do WMS/WFS da SEMA para o script de conferência (nunca no repositório)
+config.local.json

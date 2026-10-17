@@ -1,6 +1,7 @@
 import { calcularIndicadores, estaConcluida, estaSobrestada } from './indicadores.js';
 import { ErroCadastro, FILTROS_PADRAO, alterarStatus, filtrosEmUso, listarDemandas, removerDemanda, restaurarDemanda } from './demandas.js';
 import { carregar } from './armazenamento.js';
+import { criarIndiceDeMunicipios } from './municipios.js';
 import { FILTRO_PRAZO, STATUS, TIPOS } from './rotulos.js';
 import {
   $, elemento, estado, formatarData, hojeAtual, hojeLocal, mostrarAviso, mostrarMensagem, opcoes, persistir, restaurarFoco,
@@ -225,8 +226,16 @@ async function iniciar() {
     return;
   }
 
+  // A lista de municípios é só sugestão: se não carregar, o campo continua aceitando texto livre.
+  try {
+    const resposta = await fetch('data/municipios-mt.json');
+    if (resposta.ok) estado.municipios = criarIndiceDeMunicipios(await resposta.json());
+  } catch {
+    estado.municipios = null;
+  }
+
   estado.storage = acessarStorage();
-  const carga = carregar(estado.storage, estado.seed);
+  const carga = carregar(estado.storage, estado.seed, { municipios: estado.municipios });
   estado.dados = carga.dados;
   if (carga.origem === 'seed') persistir();
 

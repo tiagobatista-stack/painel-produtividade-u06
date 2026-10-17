@@ -155,7 +155,7 @@ O fluxo da demanda que exige vistoria é: **análise → decisão de vistoria �
 | 3 | Descrição ("Contexto, objetivo e próximos passos") |
 | 4 | Status \| Prioridade |
 | 5 | Responsável ("Nome ou equipe") \| Prazo |
-| 6 | Município ("Ex.: Cuiabá - MT") \| Protocolo/referência ("SEMA-PRO-FICT-0000") |
+| 6 | Município ("Ex.: Cuiabá", com a lista de MT como sugestão) \| Protocolo/referência ("SEMA-PRO-FICT-0000") |
 | 7 | Etapa (só processo) \| Esforço estimado (h); na operação, Prazo dos relatórios \| Horas por relatório. Reunião e palestra mostram antes Data e hora \| Local (e Público) |
 | 8 | Endereço ou referência espacial + "Localizar" (RF48) |
 | 9 | Latitude \| Longitude, em decimal ou GMS (RF42) |
@@ -164,7 +164,15 @@ O fluxo da demanda que exige vistoria é: **análise → decisão de vistoria �
 
 - **Coordenadas (RF42):** valem para todos os tipos, menos a operação, e são opcionais; aceitam decimal ou GMS, com `°`, `'`, `"`, espaços, vírgula ou ponto decimal; minutos e segundos menores que 60. **Hemisfério opcional:** sem ele, assume S e O e mostra "hemisfério não informado: assumido S/O"; N, L e E são aceitos e geram o aviso de fora de Mato Grosso (latitude de 7° a 18° S, longitude de 50° a 62° O), sem bloquear. Exemplos: 11° 25' 12,00" S → -11,420000; 58° 45' 00,00" O → -58,750000; `11,42` (sem sinal) → -11,420000 com o aviso. Guarda também o texto digitado.
 - **"Localizar" (RF48):** com coordenadas válidas, abre o ponto no OpenStreetMap em nova aba; sem coordenadas e com endereço, abre a busca do endereço. A página não faz requisição de rede; o link só abre com o clique, e o aviso abaixo do botão informa que o texto vai para o serviço de mapas.
-- **Dados de exemplo:** o seed continua sem coordenadas e com protocolos no formato `SEMA-PRO-FICT-…`.
+- **Dados de exemplo:** o seed traz quatro demandas com endereço e coordenadas fictícias (no Atlântico), a DEM-0011 sem localização, municípios fictícios e protocolos no formato `SEMA-PRO-FICT-…`.
+
+## Ajustes do formulário (branch `fix/form-demanda-ajustes`)
+
+- **Anotação pendente:** o texto que ficou na caixa de nova anotação vira anotação ao salvar, com o aviso "1 anotação pendente foi adicionada." (ou "n anotações pendentes foram adicionadas."). Se não puder entrar (lista com 100 anotações, ou mais de 280 caracteres), o salvamento para, a mensagem aparece e o texto fica na caixa.
+- **Município:** lista dos municípios de MT como **sugestão** (`data/municipios-mt.json`, do IBGE; ver `docs/MUNICIPIOS_MT.md`), busca enquanto digita, padronização por caixa e acento ("juína" vira "Juína"), texto livre aceito, marca discreta "fora da lista de MT" só no formulário, migração dos valores já salvos e importação da planilha.
+- **Coordenadas:** sob cada campo, em tempo real e na mesma linha do aviso, o valor convertido com hífen (`= -11,053889`), o hemisfério assumido e "fora de MT", avaliado por eixo.
+- **Ajuste manual igual à calculada:** a tela mostra "igual à calculada; use Automática", o motivo deixa de ser exigido e a demanda é gravada como Automática, com aviso depois de salvar. Vale também para a operação.
+- **Legibilidade:** dicas e avisos dos campos com no mínimo 12 px; a opção "Mostrar concluídas" só aparece quando há anotação concluída.
 
 ## Fora do escopo
 

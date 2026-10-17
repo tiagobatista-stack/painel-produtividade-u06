@@ -24,7 +24,7 @@ test.describe('formulário de demanda: campos, prioridade e anotações', () => 
     await expect(dialogo.getByLabel('Prazo', { exact: true })).toHaveValue(''); // a data de referência não é padrão
     await expect(dialogo.getByLabel('Descrição')).toHaveAttribute('placeholder', 'Contexto, objetivo e próximos passos');
     await expect(dialogo.getByLabel('Responsável')).toHaveAttribute('placeholder', 'Nome ou equipe');
-    await expect(dialogo.getByLabel('Município')).toHaveAttribute('placeholder', 'Ex.: Cuiabá - MT');
+    await expect(dialogo.getByLabel('Município')).toHaveAttribute('placeholder', 'Ex.: Cuiabá');
     await expect(dialogo.getByLabel('Protocolo/referência')).toHaveAttribute('placeholder', 'SEMA-PRO-FICT-0000');
     await expect(dialogo.getByLabel('Prioridade')).toHaveValue('');
     await expect(dialogo.getByLabel('Prioridade').locator('option')).toHaveText(['Automática (calculada)', 'Baixa', 'Média', 'Alta', 'Crítica']);
@@ -101,8 +101,9 @@ test.describe('formulário de demanda: campos, prioridade e anotações', () => 
     await nova.press('Enter');
     await expect(dialogo).toBeVisible(); // Enter não envia o formulário
     await colar(nova, 'Segunda\nTerceira\n\n');
-    await expect(dialogo.getByRole('checkbox')).toHaveCount(4); // 3 anotações + "Mostrar concluídas"
+    await expect(dialogo.getByRole('checkbox')).toHaveCount(3); // só as 3 anotações: "Mostrar concluídas" só aparece quando há uma concluída
     await dialogo.getByRole('checkbox', { name: 'Terceira' }).check();
+    await expect(dialogo.getByRole('checkbox')).toHaveCount(4); // agora com "Mostrar concluídas"
     await expect(dialogo.getByRole('checkbox', { name: 'Terceira' })).toBeChecked();
     await expect(dialogo.locator('.lista-anotacoes li').last()).toContainText('Terceira'); // concluída vai para o fim
     await dialogo.getByRole('checkbox', { name: 'Terceira' }).uncheck();

@@ -2,6 +2,7 @@
 // Colunas: N_PONTO, EQUIPE, COORD_X, COORD_Y, MUNICIPIO, DAT_SAIDA, DAT_RETOR, NOT_PLANEJ.
 import { MENSAGEM_COORDENADA, lerNumero } from './coordenadas.js';
 import { dataValida } from './indicadores.js';
+import { normalizarMunicipio } from './municipios.js';
 
 const COLUNAS = ['N_PONTO', 'EQUIPE', 'COORD_X', 'COORD_Y', 'MUNICIPIO', 'DAT_SAIDA', 'DAT_RETOR', 'NOT_PLANEJ'];
 const OBRIGATORIAS = ['N_PONTO', 'EQUIPE', 'MUNICIPIO', 'DAT_SAIDA', 'DAT_RETOR'];
@@ -52,7 +53,8 @@ export function lerData(valor) {
 }
 
 // Retorna { ok, erros: [{ linha, campo, mensagem }], operacao?: { equipe, saida, retorno, pontos, municipios } }
-export function lerPlanilha(texto) {
+// `contexto.municipios` (opcional): índice de municípios para padronizar o nome ("juína" vira "Juína"); fora da lista, fica como veio.
+export function lerPlanilha(texto, contexto = {}) {
   const erros = [];
   const erro = (linha, campo, mensagem) => erros.push({ linha, campo, mensagem });
   // O Excel grava CSV em UTF-8 com BOM; ele não faz parte do cabeçalho.
@@ -95,7 +97,7 @@ export function lerPlanilha(texto) {
 
     const equipe = cel(l, 'EQUIPE');
     if (!equipe) erro(n, 'EQUIPE', 'Informe a equipe.');
-    const municipio = cel(l, 'MUNICIPIO');
+    const municipio = normalizarMunicipio(cel(l, 'MUNICIPIO'), contexto.municipios).valor;
     if (!municipio) erro(n, 'MUNICIPIO', 'Informe o município.');
     const saida = lerData(cel(l, 'DAT_SAIDA'));
     if (!saida) erro(n, 'DAT_SAIDA', 'DAT_SAIDA inválida (use dd/mm/aaaa ou aaaa-mm-dd).');
