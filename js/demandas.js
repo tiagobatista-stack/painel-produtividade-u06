@@ -1,4 +1,5 @@
 // Cadastro, edição, status e filtros. Funções puras: não alteram os argumentos e não tocam em tela nem armazenamento.
+import { lerParDeCoordenadas } from './coordenadas.js';
 import { dataValida, estaConcluida, estaSobrestada, itensDosIndicadores, prazoDemanda } from './indicadores.js';
 import { ErroValidacao, faixaManual, priorizar, priorizarFila } from './regras.js';
 import { ETAPAS, ETAPA_ANTIGA, ORIGENS, PRIORIDADE_MANUAL, STATUS, TIPOS } from './rotulos.js';
@@ -27,7 +28,11 @@ const DESCRICAO_MAX = 2000;
 const MOTIVO_MAX = 200;
 const CURTO_MAX = 120;
 // Campos opcionais: quando ficam vazios na edição, o valor antigo é removido em vez de ficar para trás.
-const OPCIONAIS = ['descricao', 'responsavel', 'municipio', 'protocolo', 'etapa', 'prioridade_manual', 'motivo_ajuste'];
+const OPCIONAIS = [
+  'descricao', 'responsavel', 'municipio', 'protocolo', 'etapa', 'prioridade_manual', 'motivo_ajuste',
+  'endereco', 'coord_x', 'coord_y', 'coord_x_texto', 'coord_y_texto',
+];
+const ENDERECO_MAX = 200;
 
 const texto = (v) => (typeof v === 'string' ? v.trim() : '');
 const vazio = (v) => v === undefined || v === null || String(v).trim() === '';
@@ -63,12 +68,30 @@ function normalizarComuns(dados, limpo, erros, hoje) {
   limpo.anotacoes = normalizarAnotacoes(dados.anotacoes, hoje);
 }
 
+// Localização (todas as demandas, menos a operação, cujos pontos têm coordenada própria): endereço ou referência espacial e
+// latitude e longitude, opcionais. Sem hemisfério assume S e O. Guarda o decimal (6 casas) e o texto digitado.
+function normalizarLocalizacao(dados, limpo, erros) {
+  const endereco = texto(dados.endereco);
+  if (endereco.length > ENDERECO_MAX) erros.endereco = `Use no máximo ${ENDERECO_MAX} caracteres.`;
+  else if (endereco) limpo.endereco = endereco;
+
+  const par = lerParDeCoordenadas(dados.latitude, dados.longitude);
+  Object.assign(erros, par.erros);
+  if (!par.vazio && Object.keys(par.erros).length === 0) {
+    limpo.coord_y = par.latitude;
+    limpo.coord_x = par.longitude;
+    limpo.coord_y_texto = par.latitudeTexto;
+    limpo.coord_x_texto = par.longitudeTexto;
+  }
+}
+
 // Valida e normaliza os campos de acordo com o tipo. Lança ErroCadastro com todos os erros encontrados.
 function normalizar(tipo, dados, hoje) {
   const erros = {};
   const limpo = {};
 
   normalizarComuns(dados, limpo, erros, hoje);
+  normalizarLocalizacao(dados, limpo, erros);
 
   limpo.origem = dados.origem;
   if (!origensDoTipo(tipo).includes(limpo.origem)) erros.origem = 'Escolha uma origem válida para este tipo.';
@@ -146,8 +169,14 @@ function editarOperacao(original, dados, hoje) {
 }
 
 // Quem edita sem informar `anotacoes` (por exemplo, outro módulo) não apaga a lista existente.
+// O mesmo vale para a localização: sem endereço, latitude e longitude no que chegou, ficam os valores da demanda.
 function semAnotacoesOmitidas(original, dados) {
-  return dados.anotacoes === undefined ? { ...dados, anotacoes: original.anotacoes } : dados;
+  let completo = dados.anotacoes === undefined ? { ...dados, anotacoes: original.anotacoes } : dados;
+  if (completo.endereco === undefined && completo.latitude === undefined && completo.longitude === undefined) {
+    const decimal = (v) => (Number.isFinite(v) ? String(v) : undefined);
+    completo = { ...completo, endereco: original.endereco, latitude: original.coord_y_texto ?? decimal(original.coord_y), longitude: original.coord_x_texto ?? decimal(original.coord_x) };
+  }
+  return completo;
 }
 
 function semOpcionais(demanda) {
@@ -164,6 +193,8 @@ function eventosEdicao(original, limpo, hoje) {
   if (rotuloPrioridade(original) !== rotuloPrioridade(limpo)) {
     eventos.push({ data: hoje, evento: `Prioridade: ${rotuloPrioridade(original)} → ${rotuloPrioridade(limpo)}` });
   }
+  const local = (x) => [x.endereco ?? '', x.coord_y ?? '', x.coord_x ?? ''].join('|');
+  if (local(original) !== local(limpo)) eventos.push({ data: hoje, evento: 'Localização alterada' });
   for (const evento of eventosDeConclusao(original.anotacoes, limpo.anotacoes)) eventos.push({ data: hoje, evento });
   return eventos;
 }
@@ -289,7 +320,7 @@ export function normalizarBusca(s) {
 }
 
 function textoPesquisavel(d) {
-  const partes = [d.id, d.titulo, d.descricao, d.responsavel, d.municipio, d.protocolo, ETAPAS.processo[d.etapa], d.local, d.equipe, TIPOS[d.tipo], ORIGENS[d.origem]];
+  const partes = [d.id, d.titulo, d.descricao, d.responsavel, d.municipio, d.endereco, d.protocolo, ETAPAS.processo[d.etapa], d.local, d.equipe, TIPOS[d.tipo], ORIGENS[d.origem]];
   if (d.anotacoes) partes.push(...d.anotacoes.map((a) => a.texto));
   if (d.pontos) partes.push(...d.pontos.map((p) => p.municipio));
   return normalizarBusca(partes.filter(Boolean).join(' '));

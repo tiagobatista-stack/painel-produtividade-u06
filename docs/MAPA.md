@@ -9,7 +9,7 @@ Estado: o SVG local da aba Pontos e o **mapa v1** (Leaflet local, OpenStreetMap,
 | Etapa | Entrega | Requisito |
 |---|---|---|
 | v1 (entregue) | Mapa dos pontos das operações com Leaflet local: Lista \| Mapa, filtros da lista, OpenStreetMap e satélite da SEMA; popup; escala; coordenada em GMS sob o cursor, com botão de copiar | RF41 |
-| 2 | PR B: coordenada (decimal ou GMS) e endereço na Nova demanda; demandas com coordenada aparecem no mapa | RF42, RF48 |
+| 2 (entregue) | PR B: coordenada (decimal ou GMS) e endereço na Nova demanda e na edição; demandas com coordenada aparecem no mapa | RF42, RF48 |
 | 3 | Clicar no mapa para preencher a coordenada | RF63 |
 | 4 | Exportar GeoJSON, KML e GPX | RF64 |
 | 5 | Camadas da SEMA via WMS (UC, TI, embargos, CAR) | RF65 |
@@ -58,5 +58,5 @@ Unitários de conversão de coordenadas (`tests/coordenadas.test.mjs`) e de dado
 ## Limitações conhecidas do v1
 
 - **Marcadores sobrepostos:** no enquadramento automático, os pontos de uma mesma operação ficam a poucas centenas de metros e se empilham; é preciso aproximar. O agrupamento automático está planejado para depois (RF54).
-- **Demandas no mapa:** o código e o popup estão prontos, mas **nenhuma demanda do exemplo tem coordenada** e o formulário só ganha os campos no PR B (RF42). O teste usa uma demanda de teste gravada no armazenamento do navegador.
+- **Demandas no mapa:** aparecem as demandas abertas com coordenada (4 no exemplo, todas fictícias, em pleno Atlântico, mais as que o usuário cadastrar). Operações aparecem pelos pontos. A busca vale para as demandas; escolher uma operação ou uma situação de ponto as esconde.
 - **Camada escolhida fica salva:** quem escolheu OpenStreetMap ou Satélite volta a pedir blocos ao abrir o mapa na vez seguinte.

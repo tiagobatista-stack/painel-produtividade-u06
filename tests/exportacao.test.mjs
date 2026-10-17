@@ -46,7 +46,7 @@ test('número com vírgula decimal e data dd/mm/aaaa', () => {
   assert.equal(celulaData('15/10/2026'), '');
 });
 
-test('CSV de demandas: BOM, CRLF, cabeçalho, 13 linhas, ordenado por id, sem coordenadas', () => {
+test('CSV de demandas: BOM, CRLF, cabeçalho, 13 linhas, ordenado por id, com endereço e coordenadas no fim', () => {
   const csv = csvDemandas(seed.demandas, HOJE, ctx);
   assert.equal(csv.charCodeAt(0), 0xfeff);
   assert.ok(csv.endsWith('\r\n'));
@@ -56,8 +56,14 @@ test('CSV de demandas: BOM, CRLF, cabeçalho, 13 linhas, ordenado por id, sem co
   assert.equal(linhas[0], CABECALHO_DEMANDAS.join(';'));
   assert.ok(linhas.every((l) => celulas(l).length === CABECALHO_DEMANDAS.length));
   assert.deepEqual(linhas.slice(1).map((l) => celulas(l)[0]), seed.demandas.map((d) => d.id).sort());
-  assert.equal(CABECALHO_DEMANDAS.some((c) => c.startsWith('COORD')), false);
-  assert.equal(csv.includes('-20,1'), false); // nenhum valor de coordenada
+  assert.deepEqual(CABECALHO_DEMANDAS.slice(-3), ['ENDERECO', 'COORD_X', 'COORD_Y']);
+  const col = (id, nome) => celulas(linhaDoId(csv, id))[CABECALHO_DEMANDAS.indexOf(nome)];
+  // Demanda com localização no exemplo (fictícia, no Atlântico): endereço e decimal com vírgula; longitude é X e latitude é Y.
+  assert.equal(col('DEM-0003', 'ENDERECO'), 'Rodovia Fictícia, km 40 (referência fictícia)');
+  assert.equal(col('DEM-0003', 'COORD_X'), '-27,2');
+  assert.equal(col('DEM-0003', 'COORD_Y'), '-12,5');
+  // Sem localização, e a operação (que tem coordenada nos pontos), ficam vazias.
+  for (const id of ['DEM-0011', 'DEM-0001']) for (const nome of ['ENDERECO', 'COORD_X', 'COORD_Y']) assert.equal(col(id, nome), '', `${id} ${nome}`);
 });
 
 test('CSV de demandas: operação, processo, sobrestada, concluída e reunião', () => {

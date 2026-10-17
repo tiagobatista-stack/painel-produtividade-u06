@@ -145,3 +145,8 @@ export function restaurarFoco() {
     estado.focoApos = null;
   }
 }
+
+// Abre um endereço em nova aba, sem enviar a origem da página nem dar a ela acesso à aba que abriu.
+export function abrirEmNovaAba(url) {
+  window.open(url, '_blank', 'noopener,noreferrer');
+}

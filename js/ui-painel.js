@@ -1,11 +1,13 @@
 // Painel lateral de uma demanda: prioridade e motivos, dados, pontos da operação, histórico, status, editar e excluir.
 // É um <dialog> modal (foco preso, Esc fecha) estilizado como gaveta; o conteúdo é refeito a cada atualização da tela.
+import { linkParaLocalizar } from './camadas-mapa.js';
+import { coordenadaDecimal, coordenadaEmGms } from './coordenadas.js';
 import { autosALavrar, relatoriosPendentes } from './indicadores.js';
 import { itemDaDemanda } from './demandas.js';
 import { blocoAnotacoes } from './ui-anotacoes.js';
 import { esforcoHoras } from './operacoes.js';
 import { ETAPAS, ORIGENS, STATUS, TIPOS } from './rotulos.js';
-import { $, elemento, estado, formatarData, hojeAtual, opcoes, textoPrazo } from './ui-comum.js';
+import { $, abrirEmNovaAba, elemento, estado, formatarData, hojeAtual, opcoes, textoPrazo } from './ui-comum.js';
 import { abrirRetorno, blocoPontos, botaoSobrestamento, temPlanejados } from './ui-operacao.js';
 
 const painel = $('painel-demanda');
@@ -39,6 +41,18 @@ function blocoDados(item, hoje) {
   }
   if (d.responsavel) bloco.append(linha(`Responsável: ${d.responsavel}`));
   if (d.municipio) bloco.append(linha(`Município: ${d.municipio}`));
+  if (d.endereco) bloco.append(linha(`Endereço: ${d.endereco}`));
+  if (Number.isFinite(d.coord_y) && Number.isFinite(d.coord_x)) {
+    bloco.append(linha(`Coordenadas: ${coordenadaEmGms(d.coord_y, d.coord_x)} (${coordenadaDecimal(d.coord_y, d.coord_x)})`, 'demanda-detalhe painel-coordenada'));
+  }
+  const localizar = linkParaLocalizar({ latitude: d.coord_y, longitude: d.coord_x, endereco: d.endereco });
+  if (localizar) {
+    const botao = elemento('button', 'link', 'Localizar no OpenStreetMap');
+    botao.type = 'button';
+    botao.setAttribute('aria-label', `Localizar ${d.titulo} no OpenStreetMap (abre em outra aba)`);
+    botao.addEventListener('click', () => abrirEmNovaAba(localizar));
+    bloco.append(botao);
+  }
   if (d.data_hora) {
     const [dia, hora] = d.data_hora.split('T');
     bloco.append(linha(`${formatarData(dia)} às ${hora} · ${d.local}${d.publico !== undefined ? ` · ${d.publico} pessoas` : ''}`));

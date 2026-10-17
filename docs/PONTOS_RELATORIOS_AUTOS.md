@@ -16,7 +16,7 @@ Requisitos RF34 a RF42 em `docs/REQUISITOS.md`; critérios em `docs/CRITERIOS_AC
 | Exportações (RF39) | CSV de pontos com `RELATORIO`, `AUTOS` e `OBSERVACOES` no fim; CSV de demandas com `OBSERVACOES`. |
 | Calendário da programação (RF40) | O período de saída a retorno aparece em todos os dias, mais o evento de retorno; operação concluída ou sobrestada fica como faixa discreta, sem prazo. |
 | Mapa (RF41) | Visão "Mapa" na aba Pontos: hoje um SVG local sem mapa-base; as camadas e as etapas seguintes estão **especificadas** em `docs/MAPA.md`. |
-| Coordenada na Nova demanda (RF42) | **Especificado:** latitude e longitude, em decimal ou GMS, com hemisfério opcional (ver `docs/REQUISITOS.md`, linha Localização e Vistoria). |
+| Coordenada na Nova demanda (RF42) | **Entregue (PR B):** latitude e longitude, em decimal ou GMS, com hemisfério opcional (ver `docs/REQUISITOS.md`, linha Localização e Vistoria). |
 
 ## Situação do ponto
 

@@ -201,17 +201,22 @@ test('demandas com coordenada viram marcadores; operação, concluída e sem coo
   ];
   const todas = [...seed.demandas, ...lista];
   const m = demandasDoMapa(todas, SEM_FILTRO, HOJE);
-  assert.deepEqual(m.map((x) => x.painelId), ['DEM-9001']);
+  // O exemplo traz quatro demandas com localização (fictícia, no Atlântico); a de teste é a quinta.
+  assert.deepEqual(m.map((x) => x.painelId).sort(), ['DEM-0003', 'DEM-0004', 'DEM-0007', 'DEM-0010', 'DEM-9001']);
+  const teste = m.filter((x) => x.painelId === 'DEM-9001');
+  assert.equal(teste.length, 1);
+  m.splice(0, m.length, ...teste);
   assert.equal(m[0].tipo, 'demanda');
   assert.equal(m[0].lat, -12.1);
   assert.equal(m[0].lon, -30.5);
   assert.equal(m[0].faixa, 'Baixa');
   assert.equal(m[0].prazo, '2026-10-20');
   assert.equal(m[0].etapa, 'A fazer');
-  assert.equal(marcadoresDeDemandas(listarDemandas(todas, { status: 'abertas' }, HOJE).itens).length, 1);
+  assert.equal(marcadoresDeDemandas(listarDemandas(todas, { status: 'abertas' }, HOJE).itens).length, 5);
   // Uma operação (que tem pontos) não vira marcador de demanda, mesmo que tivesse coord_x e coord_y.
   const comOperacao = seed.demandas.map((d) => (d.tipo === 'operacao' ? { ...d, coord_x: -30, coord_y: -12 } : d));
-  assert.deepEqual(demandasDoMapa(comOperacao, SEM_FILTRO, HOJE), []);
+  const doExemplo = demandasDoMapa(comOperacao, SEM_FILTRO, HOJE).map((x) => x.painelId).sort();
+  assert.deepEqual(doExemplo, ['DEM-0003', 'DEM-0004', 'DEM-0007', 'DEM-0010']);
 });
 
 test('as demandas no mapa obedecem à busca e somem quando se filtra por operação ou situação de ponto', () => {
@@ -221,7 +226,9 @@ test('as demandas no mapa obedecem à busca e somem quando se filtra por operaç
   assert.equal(demandasDoMapa(todas, { ...SEM_FILTRO, busca: 'nada disso' }, HOJE).length, 0);
   assert.equal(demandasDoMapa(todas, { ...SEM_FILTRO, situacao: 'a_lavrar' }, HOJE).length, 0);
   assert.equal(demandasDoMapa(todas, { ...SEM_FILTRO, operacao: 'DEM-0001' }, HOJE).length, 0);
-  assert.equal(demandasDoMapa(todas, {}, HOJE).length, 1); // filtros ausentes valem como vazios
+  assert.equal(demandasDoMapa(todas, {}, HOJE).length, 5); // filtros ausentes valem como vazios
+  // A busca também olha o endereço da demanda.
+  assert.deepEqual(demandasDoMapa(todas, { ...SEM_FILTRO, busca: 'ponte' }, HOJE).map((x) => x.painelId), ['DEM-0007']);
 });
 
 test('a etapa do processo aparece por extenso e o prazo vencido muda a faixa', () => {

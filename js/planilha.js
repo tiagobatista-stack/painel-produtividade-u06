@@ -1,5 +1,6 @@
 // Leitura da planilha da operação colada pelo analista (texto copiado do Excel). Função pura.
 // Colunas: N_PONTO, EQUIPE, COORD_X, COORD_Y, MUNICIPIO, DAT_SAIDA, DAT_RETOR, NOT_PLANEJ.
+import { MENSAGEM_COORDENADA, lerNumero } from './coordenadas.js';
 import { dataValida } from './indicadores.js';
 
 const COLUNAS = ['N_PONTO', 'EQUIPE', 'COORD_X', 'COORD_Y', 'MUNICIPIO', 'DAT_SAIDA', 'DAT_RETOR', 'NOT_PLANEJ'];
@@ -48,43 +49,6 @@ export function lerData(valor) {
   if (!m) return null;
   const iso = `${m[1]}-${m[2]}-${m[3]}`;
   return dataValida(iso) ? iso : null;
-}
-
-// Graus, minutos e segundos: 10° 30' 15,5" S (também ′ ″ ’ ”, espaços variáveis, vírgula ou ponto decimal).
-// O hemisfério é opcional; S, W e O (oeste) ficam negativos. Na coluna X (longitude) só valem E, L, W, O; na Y (latitude), N e S.
-const DMS = /^([+-]?)\s*(\d{1,3})\s*[°º˚]\s*(?:(\d{1,2})\s*['′’‘]\s*(?:(\d{1,2}(?:[.,]\d+)?)\s*(?:"|″|”|“|''|′′|’’)\s*)?)?([A-Za-z])?$/;
-const HEMISFERIOS = { x: { E: 1, L: 1, W: -1, O: -1 }, y: { N: 1, S: -1 } };
-const LIMITE_GRAUS = { x: 180, y: 90 };
-
-function lerGrausMinutosSegundos(v, eixo) {
-  const m = DMS.exec(v);
-  if (!m) return null;
-  const graus = Number(m[2]);
-  const minutos = Number(m[3] ?? 0);
-  const segundos = Number((m[4] ?? '0').replace(',', '.'));
-  if (minutos >= 60 || segundos >= 60) return null;
-  let sinal = m[1] === '-' ? -1 : 1;
-  if (m[5]) {
-    const h = HEMISFERIOS[eixo][m[5].toUpperCase()];
-    if (h === undefined) return null;
-    if (h < 0) sinal = -1;
-    else if (m[1] === '-') return null; // "-" com hemisfério positivo se contradiz
-  }
-  const valor = graus + minutos / 60 + segundos / 3600;
-  if (valor > LIMITE_GRAUS[eixo]) return null;
-  return Math.round(sinal * valor * 1e7) / 1e7;
-}
-
-const MENSAGEM_COORDENADA = (campo, hemisferio) => `${campo} não é um número nem graus, minutos e segundos (ex.: 10° 30' 15,5" ${hemisferio[0]}).`;
-
-// eixo: 'x' (longitude) ou 'y' (latitude). Aceita decimal (com vírgula) ou graus, minutos e segundos.
-function lerNumero(valor, eixo) {
-  const bruto = String(valor ?? '').trim();
-  if (bruto === '') return { vazio: true };
-  const n = Number(bruto.replace(',', '.'));
-  if (Number.isFinite(n)) return { valor: n };
-  const dms = lerGrausMinutosSegundos(bruto, eixo);
-  return dms === null ? { invalido: true } : { valor: dms };
 }
 
 // Retorna { ok, erros: [{ linha, campo, mensagem }], operacao?: { equipe, saida, retorno, pontos, municipios } }
