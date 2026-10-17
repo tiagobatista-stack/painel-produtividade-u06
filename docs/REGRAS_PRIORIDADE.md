@@ -70,7 +70,8 @@ Nenhum peso da tabela de pontuação muda. As regras abaixo só agrupam ou retir
 | T12 | Processo vencido há 5 dias, origem Ministério Público, status Aguardando (sobrestado) — também com prazo vazio | — | fora da fila (sobrestada) |
 | T12b | Operação sobrestada (aguardando identificação do autuado), com prazo vencido e relatórios pendentes | — | fora da fila (sobrestada) |
 | T13 | O mesmo processo após voltar para "Em andamento" (prazo registrado mantido) | 90 | Crítica |
-| T14 | Reunião do T6 (vence em 5 dias, chefia, 35 calculados) com ajuste manual Alta e motivo: faixa efetiva Alta (manual), calculada Média 35. Na fila: T5 (55) → T14 (35) → Média automática de 40 → processo de 90 com ajuste manual Baixa → Baixa automática | 35 (calculado) | Alta (manual) |
+| T14 | Processo, origem Denúncia, prazo em 12 dias, dentro de compensação de 2026-10-26 a 2026-10-28 | 45 | Alta |
+| T18 | Reunião do T6 (vence em 5 dias, chefia, 35 calculados) com ajuste manual Alta e motivo: faixa efetiva Alta (manual), calculada Média 35. Na fila: T5 (55) → T15 (35) → Média automática de 40 → processo de 90 com ajuste manual Baixa → Baixa automática | 35 (calculado) | Alta (manual) |
 
 ## Conferência do seed (hoje = 2026-10-15)
 

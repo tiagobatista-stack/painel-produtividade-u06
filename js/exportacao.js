@@ -3,7 +3,7 @@
 // CSV pensado para o Excel em português: separador ";", UTF-8 com BOM, datas dd/mm/aaaa, vírgula decimal, linhas CRLF.
 // Células de texto que começam com = + - @ ou tabulação ganham um apóstrofo, para não virarem fórmula (injeção de CSV),
 // já que títulos, municípios e notas podem vir de planilhas coladas.
-import { autosALavrar, estaConcluida, estaSobrestada, prazoDemanda, relatoriosPendentes } from './indicadores.js';
+import { autosALavrar, autosDoPonto, estaConcluida, estaSobrestada, prazoDemanda, relatorioDoPonto, relatoriosPendentes } from './indicadores.js';
 import { faixaManual, priorizar } from './regras.js';
 import { anotacoesEmTexto } from './anotacoes.js';
 import { esforcoHoras } from './operacoes.js';

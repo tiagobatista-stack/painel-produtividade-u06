@@ -1,4 +1,4 @@
-import { test, expect, abrir, cartao } from './apoio.mjs';
+import { test, expect, abrir, abrirPainel, cartao, fecharPainel, painel } from './apoio.mjs';
 
 const abrirNovo = async (page) => {
   await page.getByRole('button', { name: 'Nova demanda' }).click();
@@ -76,11 +76,11 @@ test.describe('formulário de demanda: campos, prioridade e anotações', () => 
     await dialogo.getByRole('button', { name: 'Salvar demanda' }).click();
     await expect(dialogo).toBeHidden();
 
-    const c = cartao(page, 'Demanda com ajuste');
-    await expect(c.locator('.prioridade')).toHaveText('Prioridade Baixa (manual) · calculada: Crítica 90');
-    await c.getByText('Por que esta prioridade?').click();
-    await expect(c).toContainText('Ajuste manual: Baixa. Motivo: Aguarda decisão de outra área');
-    await expect(c).toContainText('Prazo vencido (+50)');
+    const p = await abrirPainel(page, 'Demanda com ajuste');
+    await expect(p.locator('.prioridade')).toHaveText('Prioridade Baixa (manual) · calculada: Crítica 90');
+    await expect(p).toContainText('Ajuste manual: Baixa. Motivo: Aguarda decisão de outra área');
+    await expect(p).toContainText('Prazo vencido (+50)');
+    await fecharPainel(page);
     // a faixa manual define o grupo: a demanda (90 calculados) abre o grupo Baixa, depois de todas as Média
     const titulos = await page.locator('#fila .demanda-titulo').allTextContents();
     expect(titulos.indexOf('Demanda com ajuste')).toBe(titulos.indexOf('Palestra sobre prevenção de desmatamento') - 1); // primeira do grupo Baixa (score 90 > 20)
@@ -109,21 +109,22 @@ test.describe('formulário de demanda: campos, prioridade e anotações', () => 
     await dialogo.getByRole('button', { name: 'Salvar demanda' }).click();
     await expect(dialogo).toBeHidden();
 
-    const c = cartao(page, 'Demanda com anotações');
-    await expect(c.getByText('Anotações 0/3')).toBeVisible();
-    await c.getByText('Anotações 0/3').click();
-    await c.getByRole('checkbox', { name: 'Segunda' }).check();
-    await expect(c.getByText('Anotações 1/3')).toBeVisible();
-    await expect(c.getByRole('checkbox', { name: 'Segunda' })).toBeFocused(); // o foco acompanha o item
-    await expect(c.locator('.anotacao-cartao').last()).toContainText('Segunda'); // concluída vai para o fim
-    await c.getByText(/Histórico/).click();
-    await expect(c).toContainText('Anotação concluída: Segunda');
-    await expect(c.locator('.prioridade')).toHaveText(/^Prioridade .* pontos$/); // anotações não alteram a prioridade
+    await expect(cartao(page, 'Demanda com anotações').locator('.demanda-obs')).toHaveText('Anotações 0/3');
+    const p = await abrirPainel(page, 'Demanda com anotações');
+    await p.getByText('Anotações 0/3').click();
+    await p.getByRole('checkbox', { name: 'Segunda' }).check();
+    await expect(p.getByText('Anotações 1/3')).toBeVisible();
+    await expect(p.getByRole('checkbox', { name: 'Segunda' })).toBeFocused(); // o foco acompanha o item
+    await expect(p.locator('.anotacao-cartao').last()).toContainText('Segunda'); // concluída vai para o fim
+    await p.getByText(/^Histórico/).click();
+    await expect(p).toContainText('Anotação concluída: Segunda');
+    await expect(p.locator('.prioridade')).toHaveText(/^Prioridade .* pontos$/); // anotações não alteram a prioridade
+    await fecharPainel(page);
+    await expect(cartao(page, 'Demanda com anotações').locator('.demanda-obs')).toHaveText('Anotações 1/3');
 
     await page.reload();
-    await expect(page.getByRole('button', { name: 'Usar data do exemplo' })).toBeVisible();
-    await page.getByRole('button', { name: /Usar data do exemplo/ }).click();
-    await expect(cartao(page, 'Demanda com anotações').getByText('Anotações 1/3')).toBeVisible(); // persiste
+    await abrir(page);
+    await expect(cartao(page, 'Demanda com anotações').locator('.demanda-obs')).toHaveText('Anotações 1/3'); // persiste
   });
 
   test('anotações no formulário: editar ao clicar, remover com "Desfazer" por 5 s e mostrar/ocultar concluídas', async ({ page }) => {
@@ -157,12 +158,12 @@ test.describe('formulário de demanda: campos, prioridade e anotações', () => 
 
   test('anotações por teclado: marcar com Espaço no cartão', async ({ page }) => {
     await abrir(page);
-    const c = cartao(page, 'Manifestação em procedimento do Ministério Público');
-    await c.getByText(/Anotações 1\/3/).press('Enter'); // abre pelo teclado
-    const caixa = c.getByRole('checkbox', { name: 'Redigir a minuta da manifestação' });
+    const p = await abrirPainel(page, 'Manifestação em procedimento do Ministério Público');
+    await p.getByText('Anotações 1/3').press('Enter'); // abre pelo teclado
+    const caixa = p.getByRole('checkbox', { name: 'Redigir a minuta da manifestação' });
     await caixa.focus();
     await caixa.press('Space');
-    await expect(c.getByText('Anotações 2/3')).toBeVisible();
+    await expect(p.getByText('Anotações 2/3')).toBeVisible();
   });
 
   test('texto com HTML em título, descrição e anotação aparece como texto puro, sem executar', async ({ page }) => {
@@ -179,27 +180,28 @@ test.describe('formulário de demanda: campos, prioridade e anotações', () => 
     await expect(dialogo.getByRole('checkbox', { name: perigoso })).toBeVisible();
     await expect(dialogo.locator('.lista-anotacoes img')).toHaveCount(0);
     await dialogo.getByRole('button', { name: 'Salvar demanda' }).click();
-    const c = cartao(page, 'Título com HTML');
-    await expect(c.locator('.demanda-descricao')).toHaveText(perigoso);
-    await c.getByText(/Anotações 0\/1/).click();
-    await expect(c.locator('.anotacao-cartao')).toHaveText(perigoso);
-    await expect(c.locator('img')).toHaveCount(0);
+    const p = await abrirPainel(page, 'Título com HTML');
+    await expect(p.locator('.demanda-descricao-painel')).toHaveText(perigoso);
+    await p.getByText('Anotações 0/1').click();
+    await expect(p.locator('.anotacao-cartao')).toHaveText(perigoso);
+    await expect(p.locator('img')).toHaveCount(0);
+    await fecharPainel(page);
     await expect(page.locator('#fila img')).toHaveCount(0);
     expect(alertas).toBe(0);
   });
 
   test('migração: processo antigo abre com protocolo e etapa da lista; Etapa e Protocolo editáveis', async ({ page }) => {
     await abrir(page);
-    await page.getByRole('button', { name: /^Editar Resposta à chefia sobre processo/ }).click(); // era etapa "despacho"
+    const painelDaDemanda = await abrirPainel(page, 'Resposta à chefia sobre processo');
+    await painelDaDemanda.getByRole('button', { name: /^Editar Resposta à chefia sobre processo/ }).click(); // era etapa "despacho"
     const dialogo = page.getByRole('dialog', { name: 'Editar demanda' });
     await expect(dialogo.getByLabel('Protocolo/referência')).toHaveValue('SEMA-PRO-FICT-0063');
     await expect(dialogo.getByLabel('Etapa')).toHaveValue('analise');
     await dialogo.getByLabel('Etapa').selectOption({ label: 'Parecer' });
     await dialogo.getByLabel('Responsável').fill('Equipe Teste');
     await dialogo.getByRole('button', { name: 'Salvar demanda' }).click();
-    const c = cartao(page, 'Resposta à chefia sobre processo');
-    await expect(c).toContainText('Processo SEMA-PRO-FICT-0063 · etapa: Parecer');
-    await expect(c).toContainText('Responsável: Equipe Teste');
+    await expect(painel(page)).toContainText('Processo SEMA-PRO-FICT-0063 · etapa: Parecer');
+    await expect(painel(page)).toContainText('Responsável: Equipe Teste');
   });
 
   test('layout: duas colunas a partir de 600 px, uma no celular, cabeçalho e rodapé fixos, sem rolagem horizontal', async ({ page }) => {
@@ -243,8 +245,10 @@ test.describe('formulário de demanda: campos, prioridade e anotações', () => 
     await abrir(page);
     for (const largura of [1366, 390]) {
       await page.setViewportSize({ width: largura, height: 800 });
-      await cartao(page, 'Manifestação em procedimento do Ministério Público').getByText(/Anotações/).click();
+      const p = await abrirPainel(page, 'Manifestação em procedimento do Ministério Público');
+      await p.getByText('Anotações 1/3').click();
       expect(await semRolagemHorizontal(page)).toBe(true);
+      await fecharPainel(page);
     }
   });
 });

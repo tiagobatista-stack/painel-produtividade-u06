@@ -285,3 +285,199 @@ label.obrig::after { content: " *" / ""; color: var(--alerta); }
   .grade-campos { grid-template-columns: 1fr 1fr; }
   .grade-campos .inteira { grid-column: 1 / -1; }
 }
+
+/* ---- Calendário mensal ---- */
+.calendario-mes { margin: 0 0 6px; font-weight: 700; }
+.legenda { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 8px; font-size: 0.82rem; color: var(--suave); }
+.legenda li { display: flex; align-items: center; gap: 4px; }
+.marca { display: inline-block; width: 14px; height: 12px; border-radius: 3px; border: 1px solid; border-left-width: 4px; }
+.marca-ferias, .faixa-ferias { background: #ccfbf1; border-color: #0f766e; color: #134e4a; }
+.marca-licenca_premio, .faixa-licenca_premio { background: #ede9fe; border-color: #6d28d9; color: #4c1d95; }
+.marca-compensacao, .faixa-compensacao { background: #fef3c7; border-color: #b45309; color: #78350f; }
+.marca-prazo, .chip-prazo { background: #dbeafe; border-color: #1d4ed8; color: #1e3a8a; }
+.marca-compromisso, .chip-compromisso { background: #dcfce7; border-color: #15803d; color: #14532d; }
+.marca-atrasado, .chip-atrasado { background: var(--alerta-fundo); border-color: var(--alerta); color: var(--alerta); }
+
+.calendario-rolagem { overflow-x: auto; }
+.calendario { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 2px; }
+.calendario th { font-size: 0.78rem; font-weight: 600; color: var(--suave); padding: 2px 0; }
+.calendario abbr { text-decoration: none; }
+.calendario td { vertical-align: top; padding: 0; }
+button.dia {
+  width: 100%; min-height: 44px; padding: 3px; display: flex; flex-direction: column; gap: 2px;
+  text-align: left; background: #fff; border-color: var(--borda); border-radius: 6px; overflow: hidden;
+}
+button.dia:hover { background: var(--azul-claro); }
+button.dia[aria-pressed="true"] { background: var(--azul-claro); border-color: var(--azul); box-shadow: inset 0 0 0 1px var(--azul); }
+.fora-do-mes button.dia { background: #f6f7fb; color: var(--suave); }
+.hoje button.dia { border: 2px solid var(--azul); }
+.hoje .dia-numero { background: var(--azul); color: #fff; border-radius: 999px; padding: 0 6px; align-self: flex-start; }
+.dia-numero { font-weight: 700; font-size: 0.85rem; }
+.periodo-aberta { background: #e0f2fe; border-color: #0369a1; color: #0c4a6e; }
+.periodo-sobrestada { background: #f3e8ff; border-color: #7c3aed; color: #581c87; }
+.periodo-concluida { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
+.evento-operacao-concluida { opacity: 0.8; }
+.faixa, .chip, .periodo {
+  display: block; font-size: 0; height: 6px; border-radius: 3px; border-left: 3px solid;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.chip-mais { font-size: 0.7rem; color: var(--suave); }
+
+.calendario-detalhe { margin-top: 8px; background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 8px 12px; }
+.calendario-detalhe h3 { margin: 0 0 6px; font-size: 0.95rem; }
+.calendario-detalhe[hidden] { display: none; }
+button.link { padding: 0; border: 0; background: none; text-align: left; text-decoration: underline; color: var(--azul); min-height: 32px; }
+button.link:hover { background: none; color: #2563eb; }
+.evento-atrasado .evento-tipo { color: var(--alerta); font-weight: 700; }
+
+@media (min-width: 600px) {
+  .calendario { border-spacing: 4px; }
+  button.dia { min-height: 96px; padding: 4px 6px; }
+  .faixa, .chip, .periodo { font-size: 0.72rem; height: auto; padding: 1px 4px; }
+}
+
+/* ---- M8: card compacto e painel lateral ---- */
+button.demanda-abrir {
+  width: 100%; min-height: 44px; display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; text-align: left;
+  color: inherit; background: transparent; border: 0; border-radius: 0 10px 10px 0;
+}
+button.demanda-abrir:hover { background: rgba(30, 42, 94, 0.06); }
+button.demanda-abrir .demanda-titulo { margin: 0; font-size: 1rem; font-weight: 600; }
+button.demanda-abrir .demanda-prazo { margin: 0; }
+
+dialog.painel-lateral {
+  position: fixed; inset: 0 0 0 auto; margin: 0; padding: 0;
+  width: min(480px, 100vw); max-width: 100vw; height: 100vh; height: 100dvh; max-height: 100dvh;
+  border-width: 0 0 0 2px; border-radius: 0; background: #fff;
+}
+dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
+.painel-topo {
+  position: sticky; top: 0; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+  padding: 12px 16px 8px; background: #fff; border-bottom: 1px solid var(--borda);
+}
+.painel-topo h2 { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+.painel-corpo { display: grid; gap: 10px; padding: 10px 16px 16px; }
+.painel-corpo p { margin: 0; }
+.painel-motivos h3 { margin: 0 0 4px; font-size: 0.95rem; }
+.painel-motivos ul { margin: 0 0 0 16px; list-style: disc; font-size: 0.88rem; }
+
+/* ---- M9: quadro (Kanban) ---- */
+.visoes { display: inline-flex; }
+.visoes button { border-radius: 0; }
+.visoes button:first-child { border-radius: 8px 0 0 8px; }
+.visoes button:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
+.visoes button[aria-pressed="true"] { background: var(--azul); color: #fff; font-weight: 600; }
+
+.quadro-grade {
+  display: grid; grid-template-columns: repeat(4, minmax(78vw, 1fr)); gap: 6px 8px; align-items: start;
+  overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 8px;
+}
+.quadro-cab, .quadro-celula { scroll-snap-align: start; min-width: 0; }
+.quadro-cab { padding: 8px 10px; background: #fff; border: 1px solid var(--borda); border-radius: 8px; border-top: 4px solid var(--azul); }
+.quadro-cab h3 { display: inline; margin: 0; font-size: 0.95rem; }
+.quadro-contagem { margin-left: 6px; font-weight: 700; }
+.quadro-limite { display: block; margin-top: 4px; font-size: 0.82rem; color: var(--suave); }
+.quadro-limite input { width: 4.5em; padding: 2px 6px; }
+.quadro-cab.acima-do-limite { background: var(--alerta-fundo); border-color: var(--alerta); border-top-color: var(--alerta); }
+.quadro-cab.acima-do-limite .quadro-contagem { color: var(--alerta); }
+.quadro-aviso { margin: 4px 0 0; font-size: 0.82rem; font-weight: 700; color: var(--alerta); }
+.quadro-faixa {
+  grid-column: 1 / -1; position: sticky; left: 0; margin: 10px 0 0; padding-bottom: 2px; font-size: 0.85rem;
+  text-transform: uppercase; letter-spacing: 0.04em; color: var(--suave); border-bottom: 1px solid var(--borda);
+}
+.quadro-celula {
+  display: grid; gap: 8px; align-content: start; min-height: 52px; padding: 6px; margin: 0;
+  background: rgba(30, 42, 94, 0.04); border: 1px dashed var(--borda); border-radius: 8px; list-style: none;
+}
+.quadro-celula.alvo { background: var(--azul-claro); border-color: var(--azul); outline: 2px solid var(--azul); }
+.quadro-cartao[draggable="true"] { cursor: grab; }
+.quadro-cartao.arrastando { opacity: 0.45; }
+.quadro-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 12px 10px; }
+.quadro-acoes button { min-height: 40px; padding: 4px 10px; font-size: 0.85rem; }
+.quadro-idade { margin-right: auto; font-size: 0.8rem; color: var(--suave); }
+.so-leitor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+@media (min-width: 600px) {
+  .quadro-grade { grid-template-columns: repeat(4, minmax(240px, 1fr)); }
+}
+
+/* ---- Relatórios agrupados, autos e anotações ---- */
+.painel-aviso { margin: 8px 16px 0; }
+.painel-anotacoes { display: grid; gap: 4px; }
+.anotacao { display: grid; gap: 4px; }
+.rotulo-anotacao { font-weight: 600; font-size: 0.95rem; }
+.anotacao textarea { width: 100%; resize: vertical; font: inherit; color: var(--texto); border: 1px solid var(--azul); border-radius: 8px; padding: 6px 8px; background: #fff; }
+.anotacao-estado { margin: 0; }
+.anotacao button { justify-self: start; }
+.demanda-obs { font-size: 0.78rem; font-weight: 600; color: #854d0e; }
+.selo-relatorio { margin-left: 6px; padding: 0 6px; font-size: 0.78rem; font-weight: 700; color: var(--azul); border: 1px solid var(--azul); border-radius: 999px; }
+.ponto-dica, .ponto-marcar { font-size: 0.82rem; }
+.ponto-marcar { display: flex; align-items: center; gap: 6px; }
+.ponto-marcar input { width: 1.1rem; height: 1.1rem; }
+.ponto-autos { display: grid; gap: 4px; }
+.autos { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
+.auto { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.9rem; }
+.ponto-autos button, .auto button { min-height: 36px; padding: 2px 8px; font-size: 0.85rem; justify-self: start; }
+.ponto-obs { font-size: 0.9rem; }
+.ponto-obs summary { cursor: pointer; color: var(--suave); }
+.relatorios-bloco { display: grid; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--borda); }
+.relatorios-bloco h4 { margin: 0; font-size: 0.95rem; }
+.relatorios-bloco > button { justify-self: start; }
+.relatorio-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 6px 8px; border: 1px solid var(--borda); border-radius: 8px; }
+
+/* ---- Aba Pontos ---- */
+.ponto-card { display: grid; gap: 4px; padding: 10px 12px; background: #fff; border: 1px solid var(--borda); border-left: 5px solid #475569; border-radius: 10px; }
+.ponto-card-topo { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; }
+.ponto-card-topo strong { overflow-wrap: anywhere; }
+.ponto-card-operacao { margin: 0; font-size: 0.82rem; color: var(--suave); }
+.ponto-card-linha { margin: 0; font-size: 0.9rem; overflow-wrap: anywhere; }
+.ponto-card-obs { margin: 0; padding: 4px 8px; font-size: 0.85rem; background: #fffbeb; border-left: 3px solid #b45309; color: #78350f; white-space: pre-line; overflow-wrap: anywhere; }
+.ponto-card > button { justify-self: start; min-height: 40px; }
+.selo-situacao { padding: 0 8px; font-size: 0.78rem; font-weight: 700; border: 1px solid currentColor; border-radius: 999px; }
+.selo-situacao-planejado { color: #475569; }
+.selo-situacao-aguardando_relatorio { color: var(--alerta); }
+.selo-situacao-a_lavrar { color: #9a3412; }
+.selo-situacao-com_auto { color: #15803d; }
+.selo-situacao-encerrado_sem_auto { color: #6d28d9; }
+.situacao-planejado { border-left-color: #475569; }
+.situacao-aguardando_relatorio { border-left-color: var(--alerta); }
+.situacao-a_lavrar { border-left-color: #c2410c; }
+.situacao-com_auto { border-left-color: #15803d; }
+.situacao-encerrado_sem_auto { border-left-color: #7c3aed; }
+#pontos-indicadores { margin: 8px 0; }
+@media (min-width: 600px) {
+  #pontos-indicadores { grid-template-columns: repeat(5, 1fr); }
+  #filtros-pontos { grid-template-columns: 2fr 2fr 1fr auto; }
+  #filtros-pontos .campo:first-child { grid-column: auto; }
+}
+@media (max-width: 420px) {
+  /* Cinco abas: com fonte mais larga (Linux, por exemplo) elas quebram em duas linhas em vez de rolar dentro da barra. */
+  .abas { flex-wrap: wrap; overflow-x: visible; }
+  .abas a { padding: 6px 5px; font-size: 0.8rem; }
+}
+
+/* ---- Mapa dos pontos (SVG local) ---- */
+.mapa-caixa { overflow: hidden; background: #fff; border: 1px solid var(--borda); border-radius: 10px; }
+.mapa-svg { display: block; width: 100%; height: auto; max-height: 75vh; }
+.mapa-fundo { fill: #f8fafc; }
+.mapa-grade { stroke: #cbd5e1; stroke-width: 1; stroke-dasharray: 4 4; }
+.mapa-grade-rotulo, .mapa-escala-rotulo { font-size: 15px; fill: #64748b; }
+.mapa-escala { stroke: #334155; stroke-width: 3; }
+.mapa-municipio { font-size: 17px; font-weight: 700; fill: #1e2a5e; paint-order: stroke; stroke: #f8fafc; stroke-width: 4px; stroke-linejoin: round; }
+.marcador { cursor: pointer; }
+.marcador-area { fill: transparent; }
+.marcador:hover .marcador-forma { stroke-width: 4; }
+.marcador:focus { outline: none; }
+.marcador:focus .marcador-area { fill: rgba(37, 99, 235, 0.18); stroke: #2563eb; stroke-width: 3; }
+.marcador-forma { stroke: #0f172a; stroke-width: 2; }
+.forma-planejado { fill: #fff; stroke: #475569; stroke-width: 3; }
+.forma-aguardando_relatorio { fill: #dc2626; }
+.forma-a_lavrar { fill: #f97316; }
+.forma-com_auto { fill: #16a34a; }
+.forma-encerrado_sem_auto { fill: #8b5cf6; }
+.mapa-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0; padding: 0; list-style: none; font-size: 0.85rem; }
+.legenda-item { display: flex; align-items: center; gap: 6px; }
+.legenda-icone { width: 22px; height: 22px; }
+.mapa-sem-coordenada { display: grid; gap: 4px; margin: 4px 0 0; padding-left: 18px; font-size: 0.9rem; }
+.mapa h3 { margin: 12px 0 0; font-size: 0.95rem; }
+#pontos-lista[hidden], #pontos-mapa[hidden] { display: none; }

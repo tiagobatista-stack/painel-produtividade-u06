@@ -156,58 +156,62 @@ test.describe('relatório agrupado e autos de cada ponto', () => {
 });
 
 test.describe('anotações: o que já foi feito e o que está pendente', () => {
-  test('a demanda tem uma caixa de anotações; salvar fica no histórico, no card e na busca', async ({ page }) => {
+  // As anotações da demanda são uma lista com caixa de seleção (formulário "Editar demanda"; marcar no painel).
+  async function editarAnotacoes(page, p, texto) {
+    await p.getByRole('button', { name: /^Editar / }).click();
+    const dialogo = page.getByRole('dialog', { name: 'Editar demanda' });
+    await dialogo.getByLabel('Anotações', { exact: true }).fill(texto);
+    await dialogo.getByLabel('Anotações', { exact: true }).press('Enter');
+    return dialogo;
+  }
+
+  test('a demanda tem anotações em lista; ficam no histórico, no card e na busca', async ({ page }) => {
     await abrir(page);
     const p = await abrirPainel(page, PROCESSO);
-    const caixa = p.getByLabel('Anotações', { exact: true });
-    const salvar = p.getByRole('button', { name: 'Salvar anotações' });
-    await expect(caixa).toHaveValue('');
-    await expect(salvar).toBeDisabled();
-    await caixa.fill('Feito: minuta enviada à chefia.\nPendente: aguardar a resposta do jurídico.');
-    await expect(p).toContainText('Alterações ainda não salvas');
-    await expect(salvar).toBeEnabled();
-    await salvar.click();
-    await expect(p.getByLabel('Anotações', { exact: true })).toHaveValue('Feito: minuta enviada à chefia.\nPendente: aguardar a resposta do jurídico.');
-    await expect(p).toContainText('Anotações salvas');
-    await expect(p.getByRole('button', { name: 'Salvar anotações' })).toBeDisabled();
-    await expect(p.getByLabel('Anotações', { exact: true })).toBeFocused();
+    await expect(p.getByText(/^Anotações \d+\/\d+$/)).toHaveCount(0);
+    const dialogo = await editarAnotacoes(page, p, 'Feito: minuta enviada à chefia.');
+    await dialogo.getByLabel('Anotações', { exact: true }).fill('Pendente: aguardar a resposta do jurídico.');
+    await dialogo.getByLabel('Anotações', { exact: true }).press('Enter');
+    await dialogo.getByRole('checkbox', { name: 'Feito: minuta enviada à chefia.' }).check();
+    await dialogo.getByRole('button', { name: 'Salvar demanda' }).click();
+    await expect(p.getByText('Anotações 1/2')).toBeVisible();
+    await p.getByText('Anotações 1/2').click();
+    await expect(p.getByRole('checkbox', { name: 'Feito: minuta enviada à chefia.' })).toBeChecked();
     await p.getByText(/^Histórico \(\d+\)/).click();
-    await expect(p).toContainText('Anotações iniciadas');
+    await expect(p).toContainText('Anotação concluída: Feito: minuta enviada à chefia.');
     await fecharPainel(page);
 
-    await expect(cartao(page, PROCESSO).locator('.demanda-obs')).toHaveText('Com anotações');
+    await expect(cartao(page, PROCESSO).locator('.demanda-obs')).toHaveText('Anotações 1/2');
     await filtros(page).getByLabel('Buscar').fill('resposta do jurídico');
     await expect(page.locator('#fila > li')).toHaveCount(1);
     await expect(cartao(page, PROCESSO)).toHaveCount(1);
 
     await page.reload();
     await abrir(page);
-    const depois = await abrirPainel(page, PROCESSO);
-    await expect(depois.getByLabel('Anotações', { exact: true })).toHaveValue(/Pendente: aguardar a resposta do jurídico\./);
+    await expect(cartao(page, PROCESSO).locator('.demanda-obs')).toHaveText('Anotações 1/2');
   });
 
-  test('apagar o texto apaga a anotação; o rascunho não salvo sobrevive a outra alteração no painel', async ({ page }) => {
+  test('remover todas as anotações tira o indicador do card; marcar no painel não precisa abrir o formulário', async ({ page }) => {
     await abrir(page);
     let p = await abrirPainel(page, PROCESSO);
-    await p.getByLabel('Anotações', { exact: true }).fill('Primeira versão.');
-    await p.getByRole('button', { name: 'Salvar anotações' }).click();
-    await p.getByLabel('Anotações', { exact: true }).fill('Texto digitado e ainda não salvo.');
-    await p.getByLabel('Status', { exact: true }).selectOption({ label: 'Em andamento' }); // redesenha o painel
-    await expect(p.getByLabel('Anotações', { exact: true })).toHaveValue('Texto digitado e ainda não salvo.');
-    await expect(p).toContainText('Alterações ainda não salvas');
-
-    await p.getByLabel('Anotações', { exact: true }).fill('');
-    await p.getByRole('button', { name: 'Salvar anotações' }).click();
-    await expect(p.getByLabel('Anotações', { exact: true })).toHaveValue('');
+    const dialogo = await editarAnotacoes(page, p, 'Primeira versão.');
+    await dialogo.getByRole('button', { name: 'Salvar demanda' }).click();
+    await p.getByText('Anotações 0/1').click();
+    await p.getByRole('checkbox', { name: 'Primeira versão.' }).check();
+    await expect(p.getByText('Anotações 1/1')).toBeVisible();
+    await p.getByRole('button', { name: /^Editar / }).click();
+    const d2 = page.getByRole('dialog', { name: 'Editar demanda' });
+    await d2.getByRole('button', { name: 'Remover anotação: Primeira versão.' }).click();
+    await d2.getByRole('button', { name: 'Salvar demanda' }).click();
     await fecharPainel(page);
     await expect(cartao(page, PROCESSO).locator('.demanda-obs')).toHaveCount(0);
   });
 
-  test('a anotação de operação e a de cada ponto são separadas e persistem', async ({ page }) => {
+  test('a anotação da operação (lista) e a de cada ponto (texto) são separadas e persistem', async ({ page }) => {
     await abrir(page);
     const p = await abrirPainel(page, 'operação de outubro (Norte)');
-    await p.getByLabel('Anotações', { exact: true }).fill('Operação: faltam as fotos dos pontos 10 a 13.');
-    await p.getByRole('button', { name: 'Salvar anotações' }).click();
+    const dialogo = await editarAnotacoes(page, p, 'Operação: faltam as fotos dos pontos 10 a 13.');
+    await dialogo.getByRole('button', { name: 'Salvar demanda' }).click();
     await p.locator('details.pontos > summary').click();
     await ponto(p, 10).getByText('Anotação do ponto', { exact: true }).click();
     await ponto(p, 10).getByRole('textbox', { name: 'Anotação do ponto 10' }).fill('Pendente: fotografar a área.');
@@ -217,7 +221,8 @@ test.describe('anotações: o que já foi feito e o que está pendente', () => {
     await expect(ponto(p, 11).getByText('Anotação do ponto', { exact: true })).toBeVisible(); // os outros pontos seguem sem anotação
 
     const salvo = await page.evaluate(() => JSON.parse(localStorage.getItem('painel-demandas:v1')).demandas.find((d) => d.id === 'DEM-0001'));
-    expect(salvo.observacoes).toBe('Operação: faltam as fotos dos pontos 10 a 13.');
+    expect(salvo.anotacoes.map((a) => a.texto)).toEqual(['Operação: faltam as fotos dos pontos 10 a 13.']);
+    expect(salvo.observacoes).toBeUndefined();
     expect(salvo.pontos.find((x) => x.n === 10).observacoes).toBe('Pendente: fotografar a área.');
     expect(salvo.pontos.find((x) => x.n === 11).observacoes).toBeUndefined();
   });
@@ -225,9 +230,9 @@ test.describe('anotações: o que já foi feito e o que está pendente', () => {
   test('anotação longa demais é recusada pelo limite do campo', async ({ page }) => {
     await abrir(page);
     const p = await abrirPainel(page, PROCESSO);
-    const caixa = p.getByLabel('Anotações', { exact: true });
-    await expect(caixa).toHaveAttribute('maxlength', '2000');
-    await caixa.fill('x'.repeat(2000));
-    await expect(p).toContainText('2000/2000');
+    await p.getByRole('button', { name: /^Editar / }).click();
+    const dialogo = page.getByRole('dialog', { name: 'Editar demanda' });
+    await expect(dialogo.getByLabel('Anotações', { exact: true })).toHaveAttribute('maxlength', '280');
+    await dialogo.getByRole('button', { name: 'Cancelar' }).click();
   });
 });

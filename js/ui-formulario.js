@@ -120,11 +120,11 @@ function enviarFormulario(evento) {
     if (editando) {
       const i = estado.dados.demandas.findIndex((d) => d.id === editando.id);
       estado.dados.demandas[i] = editarDemanda(editando, entrada, hoje);
-      estado.focoApos = `editar-${editando.id}`;
+      estado.focoApos = document.querySelector(`[data-foco="editar-${editando.id}"]`) ? `editar-${editando.id}` : `abrir-${editando.id}`;
     } else {
       const nova = criarDemanda(entrada, estado.dados.demandas, hoje);
       estado.dados.demandas.push(nova);
-      estado.focoApos = `editar-${nova.id}`;
+      estado.focoApos = `abrir-${nova.id}`;
     }
   } catch (e) {
     if (!(e instanceof ErroCadastro)) throw e;
