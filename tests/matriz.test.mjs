@@ -26,13 +26,13 @@ function celulas(linha) {
   return saida;
 }
 
-test('a matriz tem exatamente 5 cenários, de C1 a C5, com todos os campos preenchidos', () => {
-  assert.equal(matriz.cenarios.length, 5);
-  assert.deepEqual(matriz.cenarios.map((c) => c.id), ['C1', 'C2', 'C3', 'C4', 'C5']);
+test('a matriz tem exatamente 7 cenários, de C1 a C7, com todos os campos preenchidos', () => {
+  assert.equal(matriz.cenarios.length, 7);
+  assert.deepEqual(matriz.cenarios.map((c) => c.id), ['C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7']);
   for (const c of matriz.cenarios) {
     for (const [, campo] of COLUNAS) assert.ok(typeof c[campo] === 'string' && c[campo].trim() !== '', `${c.id}: campo ${campo} vazio`);
   }
-  assert.equal(new Set(matriz.cenarios.map((c) => c.cenario)).size, 5);
+  assert.equal(new Set(matriz.cenarios.map((c) => c.cenario)).size, 7);
 });
 
 test('as decisões são as três previstas e todas aparecem', () => {
@@ -55,10 +55,10 @@ test('o CSV versionado é igual ao gerado a partir do JSON (se falhar: npm run m
   assert.equal(csv, gerarCsv(matriz), 'docs/MATRIZ_GOVERNANCA.csv está desatualizado em relação a docs/matriz-governanca.json');
 });
 
-test('o CSV tem BOM, CRLF, cabeçalho e as 5 linhas com 11 colunas', () => {
+test('o CSV tem BOM, CRLF, cabeçalho e as 7 linhas com 11 colunas', () => {
   assert.equal(csv.charCodeAt(0), 0xfeff);
   const linhas = csv.replace(/^﻿/, '').split('\r\n').filter(Boolean);
-  assert.equal(linhas.length, 6);
+  assert.equal(linhas.length, 8);
   assert.deepEqual(celulas(linhas[0]), COLUNAS.map(([cabecalho]) => cabecalho));
   linhas.slice(1).forEach((linha, i) => {
     const c = celulas(linha);
@@ -80,7 +80,7 @@ test('.gitattributes força CRLF no CSV, para o checkout no Linux (CI) não entr
   assert.match(atributos, /^docs\/MATRIZ_GOVERNANCA\.csv\s+text\s+eol=crlf$/m);
 });
 
-test('a proposta traz os mesmos 5 cenários da matriz', () => {
+test('a proposta traz os mesmos 7 cenários da matriz', () => {
   const proposta = readFileSync(new URL('../docs/PROPOSTA_PAINEL_DEMANDAS.md', import.meta.url), 'utf8');
   for (const c of matriz.cenarios) assert.ok(proposta.includes(c.cenario), `${c.id} não aparece na proposta: ${c.cenario}`);
 });

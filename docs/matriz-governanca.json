@@ -1,5 +1,5 @@
 {
-  "titulo": "Matriz de governança — 5 cenários de uso de agentes de IA (fictícios, didáticos, não normativos)",
+  "titulo": "Matriz de governança — 7 cenários de uso de agentes de IA (fictícios, didáticos, não normativos)",
   "fonte": "docs/PROPOSTA_PAINEL_DEMANDAS.md, seção Governança e dados",
   "cenarios": [
     {
@@ -66,6 +66,32 @@
       "justificativa": "Expõe alvos antes da fiscalização; exposição irreversível",
       "responsavel_revisao": "Chefia e encarregado de dados",
       "evidencia_necessaria": "Registro da decisão negativa; varredura do histórico antes de publicar (sem dados reais); coordenadas do exemplo fictícias"
+    },
+    {
+      "id": "C6",
+      "cenario": "Uso real com coordenadas: só local ou publicação privada",
+      "dado": "Restrito (alvos de fiscalização e dados pessoais)",
+      "ambiente": "Local, só no navegador, ou publicação privada (com acesso restrito)",
+      "autonomia": "Nenhuma do agente",
+      "aprovacao": "Autorização da chefia",
+      "controle": "Ficha, contatos, equipe e coordenadas reais só no navegador; nunca no repositório nem na Vercel pública; camadas externas do mapa só por escolha do usuário",
+      "decisao": "Condicionado",
+      "justificativa": "O mapa e o roteiro concentram alvos e dados pessoais; a região vista vai ao servidor de blocos e a publicação pública é irreversível",
+      "responsavel_revisao": "Chefia e encarregado de dados",
+      "evidencia_necessaria": "Termo de autorização; nenhuma coordenada ou ficha real no repositório (varredura do histórico); teste e2e com servidores de mapa bloqueados; seed com coordenadas no Atlântico e \"CPF fictício\""
+    },
+    {
+      "id": "C7",
+      "cenario": "Compartilhamento da ficha ou do Roteiro de Fiscalização por mensageiro",
+      "dado": "Restrito / pessoal",
+      "ambiente": "Serviço externo",
+      "autonomia": "Publicação",
+      "aprovacao": "Sem base institucional",
+      "controle": "—",
+      "decisao": "Não autorizado",
+      "justificativa": "Contém CPF, telefone, endereço e alvos; mensageiro comercial foge do controle institucional e do sigilo funcional (LGPD)",
+      "responsavel_revisao": "Chefia e encarregado de dados",
+      "evidencia_necessaria": "Registro da decisão negativa; o roteiro traz o rodapé \"Uso interno — contém dados pessoais (LGPD)\"; entrega apenas por canal institucional aprovado"
     }
   ]
 }
