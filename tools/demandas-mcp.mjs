@@ -63,7 +63,7 @@ const FERRAMENTAS = [
             required: ['inicio', 'fim'],
             additionalProperties: false,
           },
-          description: 'Férias ou licenças agendadas; prazo dentro de um período soma pontos.',
+          description: 'Férias, licenças ou compensações agendadas; prazo dentro de um período soma pontos.',
         },
       },
       required: ['tipo'],
@@ -132,7 +132,7 @@ function listarRegras() {
       { criterio: 'Origem', condicao: 'Chefia ou coordenação', pontos: REGRAS.chefia },
       { criterio: 'Operação', condicao: `${pend10.minimo} ou mais relatórios pendentes`, pontos: pend10.pontos },
       { criterio: 'Operação', condicao: `${pend5.minimo} a ${pend10.minimo - 1} relatórios pendentes`, pontos: pend5.pontos },
-      { criterio: 'Afastamento', condicao: 'prazo dentro de férias ou licença-prêmio agendada', pontos: REGRAS.afastamento },
+      { criterio: 'Afastamento', condicao: 'prazo dentro de férias, licença-prêmio ou compensação agendada', pontos: REGRAS.afastamento },
     ],
     faixas: REGRAS.faixas.map((f, i) => {
       const acima = REGRAS.faixas[i - 1];

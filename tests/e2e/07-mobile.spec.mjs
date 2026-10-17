@@ -1,4 +1,4 @@
-import { test, expect, abrir, cadastrarProcesso, importarExemplo } from './apoio.mjs';
+import { test, expect, abrir, abrirMenuExportar, abrirPainel, cadastrarProcesso, importarExemplo } from './apoio.mjs';
 
 // Versão mobile (360 px): só roda no projeto "mobile".
 test.skip(({ isMobile }) => !isMobile, 'somente no projeto mobile');
@@ -12,7 +12,8 @@ test.describe('versão mobile (360 px)', () => {
     expect(await semRolagemHorizontal(page)).toBe(true);
     await expect(page.locator('#fila > li').first()).toBeVisible();
     await expect(page.getByRole('button', { name: 'Nova demanda' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Exportar demandas (CSV)' })).toBeVisible();
+    await abrirMenuExportar(page); // as exportações ficam no menu "Exportar" da aba Relatórios
+    expect(await semRolagemHorizontal(page)).toBe(true);
   });
 
   test('os cartões da fila ocupam uma coluna e cabem na tela', async ({ page }) => {
@@ -50,7 +51,7 @@ test.describe('versão mobile (360 px)', () => {
     await expect(page.locator('#contagem')).toHaveText('11 demandas');
     await importarExemplo(page);
     await expect(page.locator('#contagem')).toHaveText('12 demandas');
-    const op = page.locator('#fila > li', { hasText: 'Equipe Fictícia Leste' });
+    const op = await abrirPainel(page, 'Equipe Fictícia Leste'); // os pontos e o retorno ficam no painel lateral
     await op.getByRole('button', { name: /Registrar retorno de/ }).tap();
     await page.getByRole('dialog', { name: 'Registrar retorno' }).getByRole('button', { name: 'Registrar retorno' }).tap();
     await expect(op.locator('details.pontos')).toHaveJSProperty('open', true);

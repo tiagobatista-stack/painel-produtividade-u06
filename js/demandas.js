@@ -252,22 +252,30 @@ function textoPesquisavel(d) {
 }
 
 // Estado padrão dos filtros: é o que "Limpar filtros" restaura. O status padrão é a fila ativa, não "todos".
-export const FILTROS_PADRAO = Object.freeze({ busca: '', tipo: '', status: 'abertas', prioridade: '' });
+export const FILTROS_PADRAO = Object.freeze({ busca: '', tipo: '', status: 'abertas', prioridade: '', prazo: '' });
+
+// Recortes do filtro "prazo": cada um é um indicador da tela e usa a mesma lista dele (itensDosIndicadores).
+const RECORTE_DO_PRAZO = { vencidas: 'vencidas', proximos7: 'proximos7', semana: 'concluidasSemana' };
 
 // Há algum filtro diferente do padrão? Busca só com espaços não conta, porque não filtra nada.
 export function filtrosEmUso(filtros) {
   const f = { ...FILTROS_PADRAO, ...filtros };
-  return f.busca.trim() !== '' || f.tipo !== FILTROS_PADRAO.tipo || f.status !== FILTROS_PADRAO.status || f.prioridade !== FILTROS_PADRAO.prioridade;
+  return f.busca.trim() !== '' || f.tipo !== FILTROS_PADRAO.tipo || f.status !== FILTROS_PADRAO.status || f.prioridade !== FILTROS_PADRAO.prioridade || f.prazo !== FILTROS_PADRAO.prazo;
 }
 
 // Lista a fila conforme os filtros.
-// filtros: { busca, tipo, status, prioridade }
+// filtros: { busca, tipo, status, prioridade, prazo }
 //   status: 'abertas' (padrão: fila ativa) | a_fazer | em_andamento | aguardando (sobrestadas) | concluida
 //   prioridade: faixa ('Crítica' | 'Alta' | 'Média' | 'Baixa'); só existe para demandas abertas.
+//   prazo: '' | 'vencidas' | 'proximos7' (com status abertas) | 'semana' (com status concluida): os mesmos itens do indicador.
+//     Fora dessas combinações (ex.: vencidas com concluída) a lista fica vazia.
 export function listarDemandas(demandas, filtros, hoje, contexto = {}) {
-  const { busca = '', tipo = '', status = 'abertas', prioridade = '' } = filtros;
+  const { busca = '', tipo = '', status = 'abertas', prioridade = '', prazo = '' } = filtros;
   const termos = normalizarBusca(busca).split(/\s+/).filter(Boolean);
-  const confere = (d) => (!tipo || d.tipo === tipo) && termos.every((t) => textoPesquisavel(d).includes(t));
+  const chave = RECORTE_DO_PRAZO[prazo];
+  const idsDoRecorte = chave ? new Set(itensDosIndicadores(demandas, hoje)[chave].map((x) => x.demanda.id)) : null;
+  const confere = (d) =>
+    (!tipo || d.tipo === tipo) && (!idsDoRecorte || idsDoRecorte.has(d.id)) && termos.every((t) => textoPesquisavel(d).includes(t));
 
   if (status === 'concluida') {
     const itens = prioridade

@@ -90,7 +90,7 @@ test('CSV de pontos: 21 linhas, 8 primeiras colunas iguais às da planilha, com 
   assert.equal(linhas[0], CABECALHO_PONTOS.join(';'));
   assert.deepEqual(CABECALHO_PONTOS.slice(0, 8), ['N_PONTO', 'EQUIPE', 'COORD_X', 'COORD_Y', 'MUNICIPIO', 'DAT_SAIDA', 'DAT_RETOR', 'NOT_PLANEJ']);
   assert.ok(linhas.every((l) => celulas(l).length === CABECALHO_PONTOS.length));
-  assert.equal(linhas[1], '1;Equipe Fictícia Norte;-20,113;-15,193;Município Fictício A;03/10/2026;07/10/2026;Possível corte raso;Auto lavrado;09/10/2026;13/10/2026;DEM-0001;Relatórios de vistoria — operação de outubro (Norte)');
+  assert.equal(linhas[1], '1;Equipe Fictícia Norte;-20,113;-15,193;Município Fictício A;03/10/2026;07/10/2026;Possível corte raso;Auto lavrado;09/10/2026;13/10/2026;DEM-0001;Relatórios de vistoria — operação de outubro (Norte);;Auto (tipo não informado) (13/10/2026);');
   assert.equal(celulas(linhas[13])[11], 'DEM-0001'); // último ponto da operação Norte
   assert.equal(celulas(linhas[14])[11], 'DEM-0002'); // depois da operação Norte vem a Sul
 });

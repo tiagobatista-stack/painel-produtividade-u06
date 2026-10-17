@@ -41,9 +41,21 @@ function exportar(chave, gerar) {
   const nome = ARQUIVOS[chave].nome(hoje);
   baixar(nome, gerar(hoje), ARQUIVOS[chave].mime);
   mostrarMensagem(`Arquivo gerado: ${nome}. Guarde-o em local institucional; não o envie ao repositório.`);
+  fecharMenu();
+}
+
+// Recolhe o menu "Exportar" e devolve o foco ao botão que o abre.
+function fecharMenu() {
+  const menu = $('menu-exportar');
+  if (!menu.open) return;
+  menu.open = false;
+  menu.querySelector('summary').focus();
 }
 
 export function iniciarExportacao() {
+  $('menu-exportar').addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') fecharMenu();
+  });
   const contexto = () => ({ afastamentos: estado.dados.afastamentos });
   $('exp-demandas').addEventListener('click', () => exportar('demandas', (hoje) => csvDemandas(estado.dados.demandas, hoje, contexto())));
   $('exp-pontos').addEventListener('click', () => exportar('pontos', () => csvPontos(estado.dados.demandas)));

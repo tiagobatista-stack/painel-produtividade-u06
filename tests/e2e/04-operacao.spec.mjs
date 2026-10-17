@@ -1,4 +1,4 @@
-import { test, expect, abrir, cartao, importarExemplo, indicadores } from './apoio.mjs';
+import { test, expect, abrir, abrirPainel, cartao, complementares, fecharPainel, importarExemplo, indicadores } from './apoio.mjs';
 
 const OPERACAO = 'Equipe Fictícia Leste';
 
@@ -7,30 +7,30 @@ test.describe('operação de alertas', () => {
     await abrir(page);
     await importarExemplo(page);
     await expect(page.locator('#mensagem')).toContainText('Operação importada: 13 pontos');
-    const op = cartao(page, OPERACAO);
+    const op = await abrirPainel(page, OPERACAO);
     await expect(op).toContainText('saída 09/11/2026 · retorno 13/11/2026');
-    expect((await indicadores(page))[3]).toBe('9'); // pontos planejados ainda não são relatórios pendentes
+    expect((await complementares(page))[1]).toBe('9'); // pontos planejados ainda não são relatórios pendentes
 
     await op.getByRole('button', { name: /Registrar retorno de/ }).click();
     const retorno = page.getByRole('dialog', { name: 'Registrar retorno' });
     await expect(retorno.getByLabel('Data efetiva de retorno')).toHaveValue('2026-11-13');
     await retorno.getByRole('button', { name: 'Registrar retorno' }).click();
     await expect(page.locator('#mensagem')).toContainText('Retorno registrado');
-    expect((await indicadores(page))[3]).toBe('22'); // 9 + 13 pontos vistoriados
+    expect((await complementares(page))[1]).toBe('22'); // 9 + 13 pontos vistoriados
     await expect(op).toContainText('13 relatórios pendentes');
     await expect(op.locator('details.pontos')).toHaveJSProperty('open', true);
 
     // o auto só vem depois do relatório concluído
     const ponto1 = page.locator('#ponto-DEM-0014-1');
     await ponto1.selectOption({ label: 'Auto lavrado' });
-    await expect(page.locator('#erro')).toContainText('O auto só pode ser lavrado depois do relatório concluído.');
+    await expect(page.locator('#painel-aviso')).toContainText('O auto só pode ser lavrado depois do relatório concluído.');
     await expect(ponto1).toHaveValue('vistoriado');
 
     await ponto1.selectOption({ label: 'Relatório concluído' });
-    await expect(page.locator('#erro')).toBeHidden();
-    expect((await indicadores(page))[4]).toBe('3'); // autos a lavrar: 2 + 1
+    await expect(page.locator('#painel-aviso')).toBeHidden();
+    expect((await complementares(page))[2]).toBe('3'); // autos a lavrar: 2 + 1
     await page.locator('#ponto-DEM-0014-1').selectOption({ label: 'Auto lavrado' });
-    expect((await indicadores(page))[4]).toBe('2');
+    expect((await complementares(page))[2]).toBe('2');
     await expect(page.locator('#ponto-DEM-0014-1')).toHaveValue('auto_lavrado');
     await expect(page.locator('#ponto-DEM-0014-1')).toBeFocused();
 
@@ -66,29 +66,33 @@ test.describe('operação de alertas', () => {
 
   test('sobrestar a operação (aguardando o autuado) e retomar', async ({ page }) => {
     await abrir(page);
-    const norte = cartao(page, 'operação de outubro (Norte)');
+    const norte = await abrirPainel(page, 'operação de outubro (Norte)');
     await norte.getByRole('button', { name: 'Sobrestar operação' }).click();
     await expect(page.locator('#mensagem')).toContainText('Operação sobrestada');
-    const v = await indicadores(page);
-    expect([v[0], v[3], v[6]]).toEqual(['9', '3', '2']); // abertas, relatórios pendentes, sobrestados
+    await fecharPainel(page);
+    await expect(page.locator('#contagem')).toHaveText('9 demandas'); // abertas
+    expect((await complementares(page))[1]).toBe('3'); // relatórios pendentes
+    expect((await indicadores(page))[2]).toBe('2'); // sobrestados
     await page.getByRole('search').getByLabel('Status').selectOption({ label: 'Sobrestado (aguardando)' });
-    const sobrestada = cartao(page, 'operação de outubro (Norte)');
-    await expect(sobrestada).toContainText('aguardando identificação do autuado');
+    const sobrestada = await abrirPainel(page, 'operação de outubro (Norte)');
+    await expect(sobrestada.locator('.prioridade')).toContainText('aguardando identificação do autuado');
     await sobrestada.getByRole('button', { name: 'Retomar operação' }).click();
+    await fecharPainel(page);
     await page.getByRole('search').getByLabel('Status').selectOption({ label: 'Abertas (ativas)' });
     await expect(page.locator('#contagem')).toHaveText('10 demandas');
-    await expect(cartao(page, 'operação de outubro (Norte)')).toContainText('Prioridade Alta · 68 pontos');
+    const retomada = await abrirPainel(page, 'operação de outubro (Norte)');
+    await expect(retomada.locator('.prioridade')).toHaveText('Prioridade Alta · 68 pontos');
   });
 
   test('edita os parâmetros da operação e o esforço é recalculado', async ({ page }) => {
     await abrir(page);
-    const sul = cartao(page, 'operação de setembro (Sul)');
+    const sul = await abrirPainel(page, 'operação de setembro (Sul)');
     await expect(sul).toContainText('esforço estimado 9 h'); // 3 pendentes × 3 h
     await sul.getByRole('button', { name: /^Editar/ }).click();
     const dialogo = page.getByRole('dialog', { name: 'Editar demanda' });
     await expect(dialogo.getByLabel('Prazo', { exact: true })).toBeHidden();
     await dialogo.getByLabel('Horas por relatório').fill('4');
     await dialogo.getByRole('button', { name: 'Salvar' }).click();
-    await expect(cartao(page, 'operação de setembro (Sul)')).toContainText('esforço estimado 12 h');
+    await expect(sul).toContainText('esforço estimado 12 h'); // o painel segue aberto e se atualiza
   });
 });

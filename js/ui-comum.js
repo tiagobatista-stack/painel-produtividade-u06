@@ -13,6 +13,8 @@ export const estado = {
   pontosAbertos: new Set(), // operações com a lista de pontos aberta
   anotacoesAbertas: new Set(), // demandas com a lista de anotações aberta no cartão
   atualizar: () => {},
+  irParaDemanda: () => {}, // leva ao cartão da demanda na fila; definido por app.js
+  abrirPainel: () => {}, // abre o painel lateral da demanda; definido por app.js
 };
 
 export function hojeLocal() {
@@ -38,6 +40,11 @@ export function textoPrazo(prazo, hoje) {
   return { texto: `${formatarData(prazo)} · em ${dias} ${dias === 1 ? 'dia' : 'dias'}`, vencida: false };
 }
 
+// Classe CSS da faixa de prioridade (Crítica -> faixa-critica).
+export function classeFaixa(faixa) {
+  return `faixa-${faixa.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()}`;
+}
+
 export function elemento(tag, classe, texto) {
   const el = document.createElement(tag);
   if (classe) el.className = classe;
@@ -60,13 +67,31 @@ export function mostrarAviso(mensagem) {
   aviso.hidden = !mensagem;
 }
 
+export const TEMPO_MENSAGEM_MS = 8000;
 let temporizador = null;
-export function mostrarMensagem(mensagem) {
+
+// Mensagem temporária (~8 s). Com `acao` ({ rotulo, fazer }) mostra um botão, usado no "Desfazer" da exclusão.
+export function mostrarMensagem(mensagem, { acao } = {}) {
   const caixa = $('mensagem');
-  caixa.textContent = mensagem;
+  caixa.replaceChildren(mensagem);
+  if (acao) {
+    const botao = elemento('button', '', acao.rotulo);
+    botao.type = 'button';
+    botao.dataset.foco = 'desfazer';
+    botao.addEventListener('click', () => {
+      mostrarMensagem('');
+      acao.fazer();
+    });
+    caixa.append(' ', botao);
+  }
   caixa.hidden = !mensagem;
   clearTimeout(temporizador);
-  if (mensagem) temporizador = setTimeout(() => mostrarMensagem(''), 8000);
+  if (!mensagem) return;
+  temporizador = setTimeout(() => {
+    const comFoco = caixa.contains(document.activeElement); // o foco não pode se perder junto com o botão
+    mostrarMensagem('');
+    if (comFoco) $('titulo-fila').focus();
+  }, TEMPO_MENSAGEM_MS);
 }
 
 export function persistir() {

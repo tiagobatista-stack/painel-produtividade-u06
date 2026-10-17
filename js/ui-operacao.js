@@ -2,10 +2,22 @@
 import { somarDias } from './indicadores.js';
 import { ErroCadastro, validarParametros } from './demandas.js';
 import { lerPlanilha } from './planilha.js';
-import { alterarEtapaPonto, criarOperacao, registrarRetorno, retomarOperacao, sobrestarOperacao } from './operacoes.js';
-import { ETAPAS_PONTO } from './rotulos.js';
-import { $, elemento, estado, formatarData, hojeAtual, mostrarAviso, mostrarMensagem, opcoes, persistir } from './ui-comum.js';
+import {
+  OBSERVACAO_PONTO_MAX, agruparRelatorio, alterarEtapaPonto, alterarEtapaRelatorio, criarOperacao, desfazerRelatorio, registrarAuto, registrarRetorno, removerAuto,
+  retomarOperacao, salvarObservacaoPonto, sobrestarOperacao,
+} from './operacoes.js';
+import { autosDoPonto, relatorioDoPonto } from './indicadores.js';
+import { ETAPAS_PONTO, ROTULO_AUTO_SEM_TIPO, TIPOS_AUTO } from './rotulos.js';
+import { $, criarGestorErros, elemento, estado, formatarData, hojeAtual, mostrarAviso, mostrarMensagem, opcoes, persistir } from './ui-comum.js';
+import { caixaDeAnotacao } from './ui-anotacoes.js';
 
+const dlgAuto = $('dialogo-auto');
+const gestorAuto = criarGestorErros({ resumo: $('auto-resumo-erros'), campos: ['tipo', 'data'], idCampo: (c) => `auto-${c}`, idErro: (c) => `auto-erro-${c}` });
+let operacaoDoAuto = null;
+let pontoDoAuto = null;
+let gatilhoAuto = null;
+let registrouAuto = false;
+const selecionados = new Map(); // id da operação -> números dos pontos marcados para agrupar
 const dlgImportacao = $('dialogo-importacao');
 const dlgRetorno = $('dialogo-retorno');
 let gatilhoImportacao = null;
@@ -90,7 +102,7 @@ function confirmarImportacao(evento) {
   importou = true;
   dlgImportacao.close();
   mostrarMensagem(`Operação importada: ${op.pontos.length} pontos, prazo dos relatórios em ${formatarData(somarDias(op.retorno, op.prazo_dias))}. Use "Registrar retorno" quando a equipe voltar.`);
-  estado.focoApos = `editar-${op.id}`;
+  estado.focoApos = `abrir-${op.id}`;
   estado.atualizar();
 }
 
@@ -131,21 +143,172 @@ function confirmarRetorno(evento) {
 
 // ---------- Pontos no cartão da operação ----------
 
-function mudarEtapa(idOperacao, numero, novaEtapa) {
+// Mostra o aviso dentro do painel lateral quando ele está aberto (o aviso da página fica atrás da janela modal).
+export function avisarNoPainel(mensagem) {
+  const painel = $('painel-demanda');
+  if (painel.open) {
+    $('painel-aviso').textContent = mensagem;
+    $('painel-aviso').hidden = !mensagem;
+  } else {
+    mostrarAviso(mensagem);
+  }
+}
+
+// Aplica uma regra à operação, salva e redesenha. Em caso de erro mostra o aviso e redesenha para devolver os controles ao estado anterior.
+function aplicar(idOperacao, regra, { foco, mensagem } = {}) {
   const i = estado.dados.demandas.findIndex((d) => d.id === idOperacao);
   try {
-    estado.dados.demandas[i] = alterarEtapaPonto(estado.dados.demandas[i], numero, novaEtapa, hojeAtual());
+    estado.dados.demandas[i] = regra(estado.dados.demandas[i]);
   } catch (e) {
     if (!(e instanceof ErroCadastro)) throw e;
-    mostrarAviso(Object.values(e.erros)[0]);
-    estado.focoApos = `ponto-${idOperacao}-${numero}`;
-    estado.atualizar(); // redesenha e devolve o seletor à etapa anterior
-    return;
+    avisarNoPainel(Object.values(e.erros)[0]);
+    estado.focoApos = foco ?? null;
+    estado.atualizar();
+    return false;
   }
+  avisarNoPainel('');
   mostrarAviso('');
   persistir();
-  estado.focoApos = `ponto-${idOperacao}-${numero}`;
+  if (mensagem && !$('painel-demanda').open) mostrarMensagem(mensagem);
+  estado.pontosAbertos.add(idOperacao);
+  estado.focoApos = foco ?? null;
   estado.atualizar();
+  return true;
+}
+
+function mudarEtapa(idOperacao, numero, novaEtapa) {
+  aplicar(idOperacao, (op) => alterarEtapaPonto(op, numero, novaEtapa, hojeAtual()), { foco: `ponto-${idOperacao}-${numero}` });
+}
+
+// ---------- Autos ----------
+
+function abrirAuto(operacao, ponto, gatilho) {
+  operacaoDoAuto = operacao;
+  pontoDoAuto = ponto;
+  gatilhoAuto = gatilho;
+  gestorAuto.limpar();
+  $('auto-resumo').textContent = `${operacao.titulo} · ponto ${ponto.n} (${ponto.municipio})`;
+  opcoes($('auto-tipo'), Object.entries(TIPOS_AUTO), 'auto_infracao');
+  const hoje = hojeAtual();
+  $('auto-data').value = ponto.data_relatorio && hoje < ponto.data_relatorio ? ponto.data_relatorio : hoje;
+  dlgAuto.showModal();
+  $('auto-tipo').focus();
+}
+
+function confirmarAuto(evento) {
+  evento.preventDefault();
+  const i = estado.dados.demandas.findIndex((d) => d.id === operacaoDoAuto.id);
+  try {
+    estado.dados.demandas[i] = registrarAuto(estado.dados.demandas[i], pontoDoAuto.n, { tipo: $('auto-tipo').value, data: $('auto-data').value }, hojeAtual());
+  } catch (e) {
+    if (!(e instanceof ErroCadastro)) throw e;
+    gestorAuto.mostrar(e.erros);
+    return;
+  }
+  persistir();
+  registrouAuto = true;
+  dlgAuto.close();
+  estado.pontosAbertos.add(operacaoDoAuto.id);
+  estado.focoApos = `auto-${operacaoDoAuto.id}-${pontoDoAuto.n}`;
+  estado.atualizar();
+}
+
+function listaDeAutos(operacao, ponto) {
+  const autos = autosDoPonto(ponto);
+  const caixa = elemento('div', 'ponto-autos');
+  if (autos.length) {
+    const lista = elemento('ul', 'autos');
+    for (const a of autos) {
+      const rotulo = a.tipo ? TIPOS_AUTO[a.tipo] : ROTULO_AUTO_SEM_TIPO;
+      const li = elemento('li', 'auto', `${rotulo} · ${a.data ? formatarData(a.data) : 'sem data'}`);
+      const remover = elemento('button', 'perigo', 'Remover');
+      remover.type = 'button';
+      remover.setAttribute('aria-label', `Remover ${rotulo} do ponto ${ponto.n}`);
+      remover.addEventListener('click', () => aplicar(operacao.id, (op) => removerAuto(op, ponto.n, a.id, hojeAtual()), { foco: `ponto-${operacao.id}-${ponto.n}` }));
+      li.append(' ', remover);
+      lista.append(li);
+    }
+    caixa.append(lista);
+  }
+  if (ponto.etapa === 'relatorio_concluido' || ponto.etapa === 'auto_lavrado') {
+    const registrar = elemento('button', '', autos.length ? 'Registrar outro auto' : 'Registrar auto');
+    registrar.type = 'button';
+    registrar.dataset.foco = `auto-${operacao.id}-${ponto.n}`;
+    registrar.setAttribute('aria-label', `${registrar.textContent} no ponto ${ponto.n}`);
+    registrar.addEventListener('click', () => abrirAuto(operacao, ponto, registrar));
+    caixa.append(registrar);
+  }
+  return caixa;
+}
+
+// ---------- Relatórios agrupados ----------
+
+const elegivelParaAgrupar = (operacao, p) => (p.etapa === 'vistoriado' || p.etapa === 'relatorio_elaboracao') && !relatorioDoPonto(operacao, p.n);
+
+const ETAPAS_DO_RELATORIO = [['vistoriado', 'Vistoriado (relatório pendente)'], ['relatorio_elaboracao', 'Relatório em elaboração'], ['relatorio_concluido', 'Relatório concluído']];
+
+function blocoRelatorios(operacao) {
+  const marcados = selecionados.get(operacao.id) ?? new Set();
+  const bloco = elemento('div', 'relatorios-bloco');
+  bloco.append(elemento('h4', '', 'Relatórios'));
+  bloco.append(elemento('p', 'nota', 'Cada ponto tem o seu relatório, a não ser que seja somado a outros no mesmo relatório. Marque 2 ou mais pontos da mesma etapa para agrupá-los.'));
+
+  const agrupar = elemento('button', '', `Agrupar ${marcados.size} ${marcados.size === 1 ? 'ponto marcado' : 'pontos marcados'} em um relatório`);
+  agrupar.type = 'button';
+  agrupar.disabled = marcados.size < 2;
+  agrupar.addEventListener('click', () => {
+    const numeros = [...marcados];
+    selecionados.delete(operacao.id);
+    aplicar(operacao.id, (op) => agruparRelatorio(op, numeros, hojeAtual()), { foco: `ponto-${operacao.id}-${numeros[0]}` });
+  });
+  bloco.append(agrupar);
+
+  for (const grupo of operacao.relatorios ?? []) {
+    const membros = operacao.pontos.filter((p) => grupo.pontos.includes(p.n));
+    const etapas = new Set(membros.map((p) => p.etapa));
+    const concluido = membros.every((p) => p.etapa !== 'vistoriado' && p.etapa !== 'relatorio_elaboracao');
+    const linha = elemento('div', 'relatorio-grupo');
+    linha.append(elemento('strong', '', grupo.id), elemento('span', '', ` · pontos ${grupo.pontos.join(', ')}`));
+    const rotulo = elemento('label', 'rotulo-status', 'Situação do relatório');
+    const select = elemento('select');
+    select.id = `relatorio-${operacao.id}-${grupo.id}`;
+    rotulo.htmlFor = select.id;
+    select.dataset.foco = select.id;
+    const atual = etapas.size === 1 && ETAPAS_DO_RELATORIO.some(([c]) => c === [...etapas][0]) ? [...etapas][0] : concluido ? 'relatorio_concluido' : 'vistoriado';
+    opcoes(select, ETAPAS_DO_RELATORIO, atual);
+    select.addEventListener('change', () => aplicar(operacao.id, (op) => alterarEtapaRelatorio(op, grupo.id, select.value, hojeAtual()), { foco: select.id }));
+    const desfazer = elemento('button', '', 'Desfazer agrupamento');
+    desfazer.type = 'button';
+    desfazer.setAttribute('aria-label', `Desfazer o agrupamento do relatório ${grupo.id}`);
+    desfazer.disabled = concluido;
+    desfazer.addEventListener('click', () => aplicar(operacao.id, (op) => desfazerRelatorio(op, grupo.id, hojeAtual()), { foco: `ponto-${operacao.id}-${grupo.pontos[0]}` }));
+    linha.append(rotulo, select, desfazer);
+    bloco.append(linha);
+  }
+  return bloco;
+}
+
+// Anotação de um ponto (o que já foi feito e o que falta): fica numa seção recolhida do ponto.
+function anotacaoDoPonto(operacao, ponto) {
+  const detalhes = elemento('details', 'ponto-obs');
+  detalhes.open = estado.pontosAbertos.has(`obs-${operacao.id}-${ponto.n}`);
+  detalhes.addEventListener('toggle', () => {
+    if (detalhes.open) estado.pontosAbertos.add(`obs-${operacao.id}-${ponto.n}`);
+    else estado.pontosAbertos.delete(`obs-${operacao.id}-${ponto.n}`);
+  });
+  detalhes.append(elemento('summary', '', ponto.observacoes ? 'Anotação do ponto (preenchida)' : 'Anotação do ponto'));
+  detalhes.append(
+    caixaDeAnotacao({
+      chave: `${operacao.id}-p${ponto.n}`,
+      titulo: `Anotação do ponto ${ponto.n}`,
+      valor: ponto.observacoes ?? '',
+      max: OBSERVACAO_PONTO_MAX,
+      linhas: 3,
+      aoSalvar: (texto) =>
+        aplicar(operacao.id, (op) => salvarObservacaoPonto(op, ponto.n, texto, hojeAtual()), { foco: `anotacao-${operacao.id}-p${ponto.n}` }),
+    })
+  );
+  return detalhes;
 }
 
 export function blocoPontos(d) {
@@ -157,10 +320,13 @@ export function blocoPontos(d) {
   });
   detalhes.append(elemento('summary', '', `Pontos (${d.pontos.length})`));
   const lista = elemento('ul', 'lista-pontos');
+  const marcados = selecionados.get(d.id) ?? new Set();
   for (const p of d.pontos) {
     const li = elemento('li', 'ponto');
     const info = elemento('div', 'ponto-info');
     info.append(elemento('strong', '', `Ponto ${p.n}`), elemento('span', '', ` · ${p.municipio}`));
+    const grupo = relatorioDoPonto(d, p.n);
+    if (grupo) info.append(elemento('span', 'selo-relatorio', `Relatório ${grupo.id}`));
     if (p.nota) info.append(elemento('span', 'ponto-nota', ` · ${p.nota}`));
     const rotulo = elemento('label', 'rotulo-status', 'Etapa');
     const select = elemento('select');
@@ -173,11 +339,36 @@ export function blocoPontos(d) {
     } else {
       opcoes(select, Object.entries(ETAPAS_PONTO).filter(([chave]) => chave !== 'planejado'), p.etapa);
       select.addEventListener('change', () => mudarEtapa(d.id, p.n, select.value));
+      if (grupo) select.setAttribute('aria-describedby', `dica-${d.id}-${p.n}`);
     }
     li.append(info, rotulo, select);
+    if (grupo) {
+      const dica = elemento('p', 'nota ponto-dica', `As etapas do relatório valem para todo o relatório ${grupo.id}; o auto é de cada ponto.`);
+      dica.id = `dica-${d.id}-${p.n}`;
+      li.append(dica);
+    }
+    if (elegivelParaAgrupar(d, p)) {
+      const caixa = elemento('label', 'ponto-marcar');
+      const marca = elemento('input');
+      marca.type = 'checkbox';
+      marca.checked = marcados.has(p.n);
+      marca.addEventListener('change', () => {
+        const conjunto = selecionados.get(d.id) ?? new Set();
+        if (marca.checked) conjunto.add(p.n);
+        else conjunto.delete(p.n);
+        selecionados.set(d.id, conjunto);
+        estado.focoApos = null;
+        estado.atualizar();
+        document.querySelector(`[data-foco="marcar-${d.id}-${p.n}"]`)?.focus();
+      });
+      marca.dataset.foco = `marcar-${d.id}-${p.n}`;
+      caixa.append(marca, ` Marcar o ponto ${p.n} para agrupar`);
+      li.append(caixa);
+    }
+    li.append(listaDeAutos(d, p), anotacaoDoPonto(d, p));
     lista.append(li);
   }
-  detalhes.append(lista);
+  detalhes.append(lista, blocoRelatorios(d));
   return detalhes;
 }
 
@@ -231,6 +422,13 @@ export function iniciarOperacoes() {
   dlgImportacao.addEventListener('close', () => {
     if (!importou && gatilhoImportacao?.isConnected) gatilhoImportacao.focus();
     importou = false;
+  });
+
+  $('form-auto').addEventListener('submit', confirmarAuto);
+  $('auto-cancelar').addEventListener('click', () => dlgAuto.close());
+  dlgAuto.addEventListener('close', () => {
+    if (!registrouAuto && gatilhoAuto?.isConnected) gatilhoAuto.focus();
+    registrouAuto = false;
   });
 
   $('form-retorno').addEventListener('submit', confirmarRetorno);

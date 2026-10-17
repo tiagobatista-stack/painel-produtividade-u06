@@ -9,93 +9,223 @@
 </head>
 <body>
   <header class="topo">
-    <h1>Painel de Demandas</h1>
-    <p class="aviso">Exemplo didático com dados fictícios.</p>
-  </header>
-
-  <main>
-    <section class="referencia">
+    <div class="topo-linha">
+      <div class="topo-titulo">
+        <h1>Painel de Demandas</h1>
+        <p class="aviso">Exemplo didático com dados fictícios.</p>
+      </div>
+      <button type="button" id="nova-demanda" class="primario">Nova demanda</button>
+    </div>
+    <div class="referencia">
       <label for="data-referencia">Data de referência</label>
       <input type="date" id="data-referencia">
       <button type="button" id="usar-data-seed">Usar data do exemplo</button>
-    </section>
+      <a class="link-topo" href="kanban.html">Kanban de projetos</a>
+    </div>
+  </header>
 
+  <main>
     <p id="erro" class="erro" role="alert" hidden></p>
     <p id="mensagem" class="sucesso" role="status" hidden></p>
-    <section id="aviso-afastamento" class="aviso-caixa" aria-label="Afastamento próximo" hidden></section>
 
-    <section aria-labelledby="titulo-indicadores">
-      <h2 id="titulo-indicadores">Indicadores</h2>
-      <ul id="indicadores" class="indicadores"></ul>
+    <section id="foco" class="foco" aria-labelledby="titulo-foco">
+      <h2 id="titulo-foco">Foco de hoje</h2>
+      <p id="foco-vazio" class="nota" hidden>Nenhuma demanda ativa na fila.</p>
+      <ol id="foco-lista" class="foco-lista"></ol>
     </section>
 
-    <section aria-labelledby="titulo-resumo">
-      <h2 id="titulo-resumo">Resumo da semana e exportações</h2>
-      <p id="resumo-periodo" class="nota"></p>
-      <ul id="resumo-semana" class="indicadores resumo"></ul>
-      <p id="resumo-tipos" class="nota"></p>
-      <p class="aviso-dados">Os arquivos exportados contêm os dados cadastrados neste navegador, inclusive as coordenadas dos pontos. Com dados reais, guarde-os em local institucional e nunca no repositório nem na Vercel.</p>
-      <div class="botoes-exportar">
-        <button type="button" id="exp-demandas">Exportar demandas (CSV)</button>
-        <button type="button" id="exp-pontos">Exportar pontos (CSV)</button>
-        <button type="button" id="exp-resumo">Resumo semanal (TXT)</button>
-        <button type="button" id="exp-json">Cópia completa (JSON)</button>
-      </div>
+    <nav class="abas" aria-label="Seções do painel">
+      <a href="#quadro" data-aba="quadro">Quadro</a>
+      <a href="#pontos" data-aba="pontos">Pontos</a>
+      <a href="#agenda" data-aba="agenda">Agenda</a>
+      <a href="#afastamentos" data-aba="afastamentos">Afastamentos</a>
+      <a href="#relatorios" data-aba="relatorios">Relatórios</a>
+    </nav>
+
+    <section id="aba-quadro" class="aba" data-aba-painel="quadro" aria-label="Quadro">
+      <section id="aviso-afastamento" class="aviso-caixa" aria-label="Afastamento próximo" hidden></section>
+
+      <section aria-labelledby="titulo-indicadores">
+        <h2 id="titulo-indicadores">Indicadores</h2>
+        <ul id="indicadores" class="indicadores"></ul>
+      </section>
+
+      <section aria-labelledby="titulo-fila">
+        <div class="fila-cabecalho">
+          <h2 id="titulo-fila" tabindex="-1">Fila de demandas</h2>
+          <div class="botoes-cabecalho">
+            <div class="visoes" role="group" aria-label="Visão da fila">
+              <button type="button" id="botao-visao-lista" aria-pressed="true">Lista</button>
+              <button type="button" id="botao-visao-quadro" aria-pressed="false">Quadro</button>
+            </div>
+            <button type="button" id="importar-operacao">Importar operação</button>
+          </div>
+        </div>
+
+        <div id="visao-lista">
+        <form id="filtros" class="filtros" role="search" aria-label="Buscar e filtrar demandas">
+          <div class="campo">
+            <label for="filtro-busca">Buscar</label>
+            <input type="search" id="filtro-busca" placeholder="Título, processo, local, origem…" autocomplete="off">
+          </div>
+          <div class="campo">
+            <label for="filtro-tipo">Tipo</label>
+            <select id="filtro-tipo"></select>
+          </div>
+          <div class="campo">
+            <label for="filtro-status">Status</label>
+            <select id="filtro-status"></select>
+          </div>
+          <div class="campo">
+            <label for="filtro-prioridade">Prioridade</label>
+            <select id="filtro-prioridade"></select>
+          </div>
+          <div class="campo">
+            <label for="filtro-prazo">Prazo</label>
+            <select id="filtro-prazo"></select>
+          </div>
+          <div class="campo campo-acao">
+            <button type="button" id="limpar-filtros" disabled>Limpar filtros</button>
+          </div>
+        </form>
+
+        <p id="contagem" class="nota" aria-live="polite"></p>
+        <p id="fila-vazia" hidden>Nenhuma demanda encontrada.</p>
+        <ul id="fila" class="fila"></ul>
+        </div>
+
+        <div id="visao-quadro" hidden>
+          <p id="quadro-vazio" hidden>Nenhuma demanda no quadro.</p>
+          <div id="quadro-grade" class="quadro-grade" role="group" aria-label="Quadro de status, por classe de serviço"></div>
+          <p id="quadro-metricas" class="nota"></p>
+        </div>
+        <p id="quadro-anuncio" class="so-leitor" role="status" aria-live="polite"></p>
+      </section>
+
+      <section id="erros-validacao" class="erro" hidden>
+        <h2>Demandas com erro de validação</h2>
+        <ul id="lista-erros"></ul>
+      </section>
     </section>
 
-    <section aria-labelledby="titulo-agenda">
-      <h2 id="titulo-agenda">Agenda dos próximos 7 dias</h2>
-      <div id="agenda" class="agenda"></div>
+    <section id="aba-pontos" class="aba" data-aba-painel="pontos" aria-label="Pontos" hidden>
+      <section aria-labelledby="titulo-pontos">
+        <h2 id="titulo-pontos" tabindex="-1">Pontos das operações</h2>
+        <p class="nota">Cada ponto é uma demanda: acompanhe se o relatório foi concluído e se os autos foram lavrados.</p>
+        <ul id="pontos-indicadores" class="indicadores"></ul>
+
+        <form id="filtros-pontos" class="filtros" role="search" aria-label="Buscar e filtrar pontos">
+          <div class="campo">
+            <label for="p-busca">Buscar</label>
+            <input type="search" id="p-busca" placeholder="Município, ponto, relatório, anotação…" autocomplete="off">
+          </div>
+          <div class="campo">
+            <label for="p-operacao">Operação</label>
+            <select id="p-operacao"></select>
+          </div>
+          <div class="campo">
+            <label for="p-situacao">Situação</label>
+            <select id="p-situacao"></select>
+          </div>
+          <div class="campo campo-acao">
+            <button type="button" id="p-limpar" disabled>Limpar filtros</button>
+          </div>
+        </form>
+
+        <div class="fila-cabecalho">
+          <p id="pontos-contagem" class="nota" aria-live="polite"></p>
+          <div class="visoes" role="group" aria-label="Visão dos pontos">
+            <button type="button" id="pontos-visao-lista" aria-pressed="true">Lista</button>
+            <button type="button" id="pontos-visao-mapa" aria-pressed="false">Mapa</button>
+          </div>
+        </div>
+        <p id="pontos-vazio" hidden>Nenhum ponto encontrado.</p>
+        <ul id="pontos-lista" class="fila"></ul>
+
+        <div id="pontos-mapa" class="mapa" hidden>
+          <p class="nota">Mapa local, sem mapa-base: mostra a posição relativa dos pontos pela longitude e pela latitude, na mesma lista filtrada acima. Nenhum dado sai do navegador.</p>
+          <p id="mapa-vazio" hidden>Nenhum ponto com coordenadas na lista atual.</p>
+          <div id="mapa-svg-caixa" class="mapa-caixa"></div>
+          <ul id="mapa-legenda" class="mapa-legenda" aria-label="Legenda do mapa"></ul>
+          <section id="mapa-sem-coordenada" hidden aria-labelledby="mapa-sem-coordenada-titulo">
+            <h3 id="mapa-sem-coordenada-titulo">Pontos sem coordenadas</h3>
+            <ul id="mapa-sem-coordenada-lista" class="mapa-sem-coordenada"></ul>
+          </section>
+        </div>
+      </section>
     </section>
 
-    <section aria-labelledby="titulo-fila">
-      <div class="fila-cabecalho">
-        <h2 id="titulo-fila" tabindex="-1">Fila de demandas</h2>
-        <div class="botoes-cabecalho">
-          <button type="button" id="importar-operacao">Importar operação</button>
-          <button type="button" id="nova-demanda" class="primario">Nova demanda</button>
+    <section id="aba-agenda" class="aba" data-aba-painel="agenda" aria-label="Agenda e calendário" hidden>
+      <section aria-labelledby="titulo-calendario">
+        <div class="fila-cabecalho">
+          <h2 id="titulo-calendario">Calendário</h2>
+          <div class="botoes-cabecalho">
+            <button type="button" id="mes-anterior" data-foco="mes-anterior"><span aria-hidden="true">‹</span> Mês anterior</button>
+            <button type="button" id="mes-referencia" data-foco="mes-referencia">Mês atual</button>
+            <button type="button" id="mes-seguinte" data-foco="mes-seguinte">Próximo mês <span aria-hidden="true">›</span></button>
+          </div>
         </div>
-      </div>
+        <p id="calendario-mes" class="calendario-mes" aria-live="polite"></p>
+        <ul class="legenda" aria-label="Legenda do calendário">
+          <li><span class="marca marca-ferias"></span>Férias</li>
+          <li><span class="marca marca-licenca_premio"></span>Licença-prêmio</li>
+          <li><span class="marca marca-compensacao"></span>Compensação</li>
+          <li><span class="marca marca-prazo"></span>Prazo</li>
+          <li><span class="marca marca-compromisso"></span>Reunião, palestra ou saída</li>
+          <li><span class="marca marca-atrasado"></span>Prazo vencido</li>
+        </ul>
+        <div class="calendario-rolagem">
+          <table id="calendario" class="calendario" aria-labelledby="calendario-mes"></table>
+        </div>
+        <section id="calendario-detalhe" class="calendario-detalhe" aria-live="polite" aria-labelledby="calendario-detalhe-titulo" hidden>
+          <h3 id="calendario-detalhe-titulo"></h3>
+          <ul id="calendario-detalhe-lista" class="agenda-lista"></ul>
+        </section>
+      </section>
 
-      <form id="filtros" class="filtros" role="search" aria-label="Buscar e filtrar demandas">
-        <div class="campo">
-          <label for="filtro-busca">Buscar</label>
-          <input type="search" id="filtro-busca" placeholder="Título, processo, local, origem…" autocomplete="off">
-        </div>
-        <div class="campo">
-          <label for="filtro-tipo">Tipo</label>
-          <select id="filtro-tipo"></select>
-        </div>
-        <div class="campo">
-          <label for="filtro-status">Status</label>
-          <select id="filtro-status"></select>
-        </div>
-        <div class="campo">
-          <label for="filtro-prioridade">Prioridade</label>
-          <select id="filtro-prioridade"></select>
-        </div>
-        <div class="campo campo-acao">
-          <button type="button" id="limpar-filtros" disabled>Limpar filtros</button>
-        </div>
-      </form>
-
-      <p id="contagem" class="nota" aria-live="polite"></p>
-      <p id="fila-vazia" hidden>Nenhuma demanda encontrada.</p>
-      <ul id="fila" class="fila"></ul>
+      <section aria-labelledby="titulo-agenda">
+        <h2 id="titulo-agenda">Agenda dos próximos 7 dias</h2>
+        <div id="agenda-7-dias" class="agenda"></div>
+      </section>
     </section>
 
-    <section aria-labelledby="titulo-afastamentos">
-      <div class="fila-cabecalho">
-        <h2 id="titulo-afastamentos">Férias e licenças</h2>
-        <button type="button" id="novo-afastamento">Novo afastamento</button>
-      </div>
-      <p id="afastamentos-vazio" class="nota" hidden>Nenhum afastamento agendado.</p>
-      <ul id="lista-afastamentos" class="fila"></ul>
+    <section id="aba-afastamentos" class="aba" data-aba-painel="afastamentos" aria-label="Afastamentos" hidden>
+      <section aria-labelledby="titulo-afastamentos">
+        <div class="fila-cabecalho">
+          <h2 id="titulo-afastamentos">Férias, licenças e compensações</h2>
+          <button type="button" id="novo-afastamento">Novo afastamento</button>
+        </div>
+        <p id="afastamentos-vazio" class="nota" hidden>Nenhum afastamento agendado.</p>
+        <ul id="lista-afastamentos" class="fila"></ul>
+      </section>
     </section>
 
-    <section id="erros-validacao" class="erro" hidden>
-      <h2>Demandas com erro de validação</h2>
-      <ul id="lista-erros"></ul>
+    <section id="aba-relatorios" class="aba" data-aba-painel="relatorios" aria-label="Relatórios" hidden>
+      <section aria-labelledby="titulo-complementares">
+        <h2 id="titulo-complementares">Indicadores complementares</h2>
+        <ul id="indicadores-relatorio" class="indicadores complementares"></ul>
+      </section>
+
+      <section aria-labelledby="titulo-resumo">
+        <h2 id="titulo-resumo">Resumo da semana</h2>
+        <p id="resumo-periodo" class="nota"></p>
+        <ul id="resumo-semana" class="indicadores resumo"></ul>
+        <p id="resumo-tipos" class="nota"></p>
+      </section>
+
+      <section aria-labelledby="titulo-exportar">
+        <h2 id="titulo-exportar">Exportações</h2>
+        <p class="aviso-dados">Os arquivos exportados contêm os dados cadastrados neste navegador, inclusive as coordenadas dos pontos. Com dados reais, guarde-os em local institucional e nunca no repositório nem na Vercel.</p>
+        <details id="menu-exportar" class="menu-exportar">
+          <summary>Exportar</summary>
+          <div class="botoes-exportar">
+            <button type="button" id="exp-demandas">Exportar demandas (CSV)</button>
+            <button type="button" id="exp-pontos">Exportar pontos (CSV)</button>
+            <button type="button" id="exp-resumo">Resumo semanal (TXT)</button>
+            <button type="button" id="exp-json">Cópia completa (JSON)</button>
+          </div>
+        </details>
+      </section>
     </section>
   </main>
 
@@ -261,6 +391,29 @@
     </form>
   </dialog>
 
+  <dialog id="dialogo-auto" aria-labelledby="auto-titulo">
+    <form id="form-auto" novalidate>
+      <h2 id="auto-titulo">Registrar auto</h2>
+      <p id="auto-resumo" class="nota"></p>
+      <div id="auto-resumo-erros" class="erro" role="alert" tabindex="-1" hidden></div>
+      <div class="campo">
+        <label for="auto-tipo">Tipo do auto</label>
+        <select id="auto-tipo"></select>
+        <span class="erro-campo" id="auto-erro-tipo"></span>
+      </div>
+      <div class="campo">
+        <label for="auto-data">Data do auto</label>
+        <input id="auto-data" type="date">
+        <span class="erro-campo" id="auto-erro-data"></span>
+      </div>
+      <p class="nota">Um ponto pode ter vários autos: registre um de cada vez.</p>
+      <div class="acoes">
+        <button type="submit" class="primario">Registrar auto</button>
+        <button type="button" id="auto-cancelar">Cancelar</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="dialogo-retorno" aria-labelledby="ret-titulo">
     <form id="form-retorno" novalidate>
       <h2 id="ret-titulo">Registrar retorno</h2>
@@ -307,6 +460,15 @@
         <button type="button" id="a-cancelar">Cancelar</button>
       </div>
     </form>
+  </dialog>
+
+  <dialog id="painel-demanda" class="painel-lateral" aria-labelledby="painel-titulo">
+    <div class="painel-topo">
+      <h2 id="painel-titulo"></h2>
+      <button type="button" id="painel-fechar">Fechar</button>
+    </div>
+    <p id="painel-aviso" class="erro painel-aviso" role="alert" hidden></p>
+    <div id="painel-corpo" class="painel-corpo"></div>
   </dialog>
 
   <script type="module" src="js/app.js"></script>

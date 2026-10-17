@@ -1,0 +1,65 @@
+/* Kanban de projetos (kanban.html). Usa as variáveis e os componentes de styles.css. */
+textarea {
+  font: inherit; color: var(--texto); width: 100%; resize: vertical;
+  border: 1px solid var(--azul); border-radius: 8px; padding: 6px 8px; background: #fff;
+}
+.campo textarea { min-height: 3.2em; }
+.filtros { margin-bottom: 8px; }
+
+.kanban-grade {
+  display: grid; grid-template-columns: repeat(4, minmax(78vw, 1fr)); gap: 8px; align-items: start;
+  overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 8px;
+}
+.dt-grade { grid-template-columns: repeat(5, minmax(78vw, 1fr)); }
+.kcol { scroll-snap-align: start; min-width: 0; background: rgba(30, 42, 94, 0.05); border: 1px solid var(--borda); border-top: 4px solid var(--azul); border-radius: 8px; padding: 8px; }
+.kcol[data-coluna="andamento"] { border-top-color: #2563eb; }
+.kcol[data-coluna="revisao"] { border-top-color: #7c3aed; }
+.kcol[data-coluna="concluido"] { border-top-color: #15803d; }
+.kcol-titulo { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 0.95rem; }
+.kcol-contagem { min-width: 1.6em; padding: 0 6px; text-align: center; font-weight: 700; background: #fff; border: 1px solid var(--borda); border-radius: 999px; }
+.kcol-lista { display: grid; gap: 8px; align-content: start; min-height: 56px; margin: 0; padding: 0; list-style: none; border-radius: 6px; }
+.kcol-lista.alvo { background: var(--azul-claro); outline: 2px solid var(--azul); }
+.kcol-vazio { padding: 10px; font-size: 0.85rem; text-align: center; color: var(--suave); border: 1px dashed var(--borda); border-radius: 6px; }
+
+.kcard { background: #fff; border: 1px solid var(--borda); border-left: 5px solid #475569; border-radius: 8px; }
+.kcard.prio-alta { border-left-color: var(--alerta); }
+.kcard.prio-media { border-left-color: #a16207; }
+.kcard.prio-baixa { border-left-color: #475569; }
+.kcard.atrasado { background: var(--alerta-fundo); }
+.kcard.concluido { opacity: 0.9; border-left-color: #15803d; }
+.kcard.destaque { box-shadow: 0 0 0 3px #2563eb; }
+.kcard[draggable="true"] { cursor: grab; }
+.kcard.arrastando { opacity: 0.45; }
+button.kcard-abrir {
+  width: 100%; min-height: 44px; display: flex; flex-direction: column; gap: 3px; padding: 8px 10px; text-align: left;
+  color: inherit; background: transparent; border: 0; border-radius: 0 8px 8px 0;
+}
+button.kcard-abrir:hover { background: rgba(30, 42, 94, 0.06); }
+.kcard-topo { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--suave); }
+.selo { padding: 0 6px; font-weight: 700; border: 1px solid currentColor; border-radius: 999px; }
+.selo-alta { color: var(--alerta); }
+.selo-media { color: #854d0e; }
+.selo-baixa { color: #475569; }
+.kcard-titulo { font-size: 1rem; font-weight: 600; overflow-wrap: anywhere; }
+.kcard-desc {
+  font-size: 0.85rem; color: var(--suave); overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.kcard-prazo { font-size: 0.85rem; color: var(--suave); }
+.kcard.atrasado .kcard-prazo { color: var(--alerta); font-weight: 700; }
+.kcard-mover { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px 8px; }
+button.kmover { min-height: 40px; padding: 4px 8px; font-size: 0.82rem; }
+
+.form-nota { display: grid; gap: 8px; margin: 8px 0 12px; padding: 10px 12px; background: #fff; border: 1px solid var(--borda); border-radius: 10px; }
+.nota-dt { padding: 8px 10px; background: #fff; border: 1px solid var(--borda); border-radius: 8px; }
+.nota-dt-texto { margin: 0 0 6px; overflow-wrap: anywhere; }
+.nota-dt-acoes { display: flex; flex-wrap: wrap; gap: 6px; }
+.nota-dt-acoes button { min-height: 40px; padding: 4px 8px; font-size: 0.85rem; }
+
+@media (min-width: 700px) {
+  .kanban-grade { grid-template-columns: repeat(4, minmax(220px, 1fr)); }
+  .dt-grade { grid-template-columns: repeat(5, minmax(200px, 1fr)); }
+  .form-nota { grid-template-columns: 200px 1fr auto; align-items: end; }
+  .form-nota .erro { grid-column: 1 / -1; }
+  .form-nota .acoes { margin: 0; }
+}

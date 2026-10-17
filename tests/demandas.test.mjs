@@ -180,7 +180,7 @@ test('sobrestar e retomar pelo status: histórico e prazo registrado preservado'
 });
 
 test('filtros padrão: nenhum filtro em uso, e cada campo fora do padrão conta', () => {
-  assert.deepEqual({ ...FILTROS_PADRAO }, { busca: '', tipo: '', status: 'abertas', prioridade: '' });
+  assert.deepEqual({ ...FILTROS_PADRAO }, { busca: '', tipo: '', status: 'abertas', prioridade: '', prazo: '' });
   assert.equal(filtrosEmUso(FILTROS_PADRAO), false);
   assert.equal(filtrosEmUso({}), false);
   assert.equal(filtrosEmUso({ busca: 'reunião' }), true);
@@ -188,6 +188,7 @@ test('filtros padrão: nenhum filtro em uso, e cada campo fora do padrão conta'
   assert.equal(filtrosEmUso({ status: 'concluida' }), true);
   assert.equal(filtrosEmUso({ status: 'aguardando' }), true);
   assert.equal(filtrosEmUso({ prioridade: 'Crítica' }), true);
+  assert.equal(filtrosEmUso({ prazo: 'vencidas' }), true);
   assert.equal(filtrosEmUso({ busca: 'a', tipo: 'outra', status: 'a_fazer', prioridade: 'Baixa' }), true);
 });
 

@@ -11,16 +11,32 @@ import { blocoAnotacoes } from './ui-anotacoes.js';
 import { abrirRetorno, blocoPontos, botaoSobrestamento, iniciarOperacoes, temPlanejados } from './ui-operacao.js';
 import { desenharAfastamentos, desenharAgenda, desenharBanner, iniciarAfastamentos } from './ui-afastamentos.js';
 import { desenharResumo, iniciarExportacao } from './ui-exportacao.js';
+import { desenharCalendario, iniciarCalendario } from './ui-calendario.js';
+import { abrirAba, iniciarAbas } from './ui-abas.js';
+import { desenharFoco } from './ui-foco.js';
+import { desenharPontos, iniciarPontos } from './ui-pontos.js';
+import { abrirPainel, desenharPainel, fecharPainel, iniciarPainel } from './ui-painel.js';
+import { cartao } from './ui-cartao.js';
+import { definirVisao, desenharQuadro, iniciarQuadro, visaoAtual } from './ui-quadro.js';
 
 const INDICADORES = [
-  ['abertas', 'Abertas'],
   ['vencidas', 'Vencidas'],
   ['proximos7', 'Próximos 7 dias'],
+  ['sobrestados', 'Sobrestados'],
+  ['concluidasSemana', 'Concluídas na semana'],
+];
+const COMPLEMENTARES = [
+  ['abertas', 'Abertas'],
   ['relatoriosPendentes', 'Relatórios pendentes'],
   ['autosALavrar', 'Autos a lavrar'],
-  ['concluidasSemana', 'Concluídas na semana'],
-  ['sobrestados', 'Sobrestados'],
 ];
+// Filtro que cada indicador aplica na fila.
+const FILTRO_DO_INDICADOR = {
+  vencidas: { status: 'abertas', prazo: 'vencidas' },
+  proximos7: { status: 'abertas', prazo: 'proximos7' },
+  sobrestados: { status: 'aguardando', prazo: '' },
+  concluidasSemana: { status: 'concluida', prazo: 'semana' },
+};
 const FAIXAS = ['Crítica', 'Alta', 'Média', 'Baixa'];
 const campoData = $('data-referencia');
 const filtroBusca = $('filtro-busca');
@@ -29,9 +45,27 @@ const filtroStatus = $('filtro-status');
 const filtroPrioridade = $('filtro-prioridade');
 // ---------- Indicadores e fila ----------
 
+// Os 4 indicadores em destaque são botões: cada um filtra a fila (e zera busca, tipo e prioridade, para a lista bater com o número).
 function desenharIndicadores(valores) {
+  const ativo = indicadorAtivo();
   $('indicadores').replaceChildren(
     ...INDICADORES.map(([chave, rotulo]) => {
+      const valor = valores[chave];
+      const botao = elemento('button', chave === 'vencidas' && valor > 0 ? 'indicador indicador-alerta' : 'indicador');
+      botao.type = 'button';
+      botao.dataset.foco = `indicador-${chave}`;
+      botao.setAttribute('aria-label', `${rotulo}: ${valor}`);
+      botao.setAttribute('aria-pressed', String(ativo === chave));
+      botao.append(elemento('span', 'indicador-valor', String(valor)), elemento('span', 'indicador-rotulo', rotulo));
+      botao.addEventListener('click', () => clicarIndicador(chave));
+      const li = elemento('li');
+      li.append(botao);
+      return li;
+    })
+  );
+  // Os demais indicadores ficam na aba Relatórios, só para leitura.
+  $('indicadores-relatorio').replaceChildren(
+    ...COMPLEMENTARES.map(([chave, rotulo]) => {
       const li = elemento('li', 'indicador');
       li.append(elemento('span', 'indicador-valor', String(valores[chave])), elemento('span', 'indicador-rotulo', rotulo));
       return li;
@@ -39,8 +73,11 @@ function desenharIndicadores(valores) {
   );
 }
 
-function classeFaixa(faixa) {
-  return `faixa-${faixa.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()}`;
+// Qual indicador está aplicado agora? Só conta quando os filtros são exatamente os dele.
+function indicadorAtivo() {
+  const f = filtrosAtuais();
+  if (f.busca.trim() !== '' || f.tipo !== '' || f.prioridade !== '') return null;
+  return INDICADORES.map(([chave]) => chave).find((chave) => FILTRO_DO_INDICADOR[chave].status === f.status && FILTRO_DO_INDICADOR[chave].prazo === f.prazo) ?? null;
 }
 
 function cartao(item, hoje) {
@@ -100,53 +137,43 @@ function cartao(item, hoje) {
   const anotacoes = blocoAnotacoes(d);
   if (anotacoes) li.append(anotacoes);
 
-  if (d.historico?.length) {
-    const detalhes = elemento('details', 'motivos');
-    const lista = elemento('ul');
-    lista.append(...d.historico.map((h) => elemento('li', '', `${formatarData(h.data)} — ${h.evento}`)));
-    detalhes.append(elemento('summary', '', `Histórico (${d.historico.length})`), lista);
-    li.append(detalhes);
-  }
+// Clicar no indicador aplica o filtro; clicar de novo volta ao padrão.
+function clicarIndicador(chave) {
+  aplicarFiltros(indicadorAtivo() === chave ? FILTROS_PADRAO : FILTRO_DO_INDICADOR[chave]);
+  definirVisao('lista'); // filtrar é comportamento de lista
+  estado.focoApos = `indicador-${chave}`;
+  atualizar();
+}
 
-  const acoes = elemento('div', 'acoes-cartao');
-  if (d.tipo !== 'operacao') {
-    const rotulo = elemento('label', 'rotulo-status', 'Status');
-    const select = elemento('select');
-    select.id = `status-${d.id}`;
-    rotulo.htmlFor = select.id;
-    select.dataset.foco = `status-${d.id}`;
-    opcoes(select, Object.entries(STATUS), d.status);
-    select.addEventListener('change', () => mudarStatus(d.id, select.value));
-    acoes.append(rotulo, select);
-  }
-  const editar = elemento('button', '', 'Editar');
-  editar.type = 'button';
-  editar.dataset.foco = `editar-${d.id}`;
-  editar.setAttribute('aria-label', `Editar ${d.titulo}`);
-  editar.addEventListener('click', () => abrirFormulario(d, editar));
-  acoes.append(editar);
-  if (temPlanejados(d)) {
-    const retorno = elemento('button', 'primario', 'Registrar retorno');
-    retorno.type = 'button';
-    retorno.dataset.foco = `retorno-${d.id}`;
-    retorno.setAttribute('aria-label', `Registrar retorno de ${d.titulo}`);
-    retorno.addEventListener('click', () => abrirRetorno(d, retorno));
-    acoes.append(retorno);
-  }
-  if (d.tipo === 'operacao' && !concluida) acoes.append(botaoSobrestamento(d));
-  li.append(acoes);
-  return li;
+// Leva ao cartão da demanda na fila: abre o Quadro, ajusta os filtros para que ele apareça, rola até ele, destaca e põe o foco nele.
+function irParaDemanda(id) {
+  const d = estado.dados.demandas.find((x) => x.id === id);
+  if (!d) return;
+  let status = FILTROS_PADRAO.status;
+  if (estaConcluida(d)) status = 'concluida';
+  else if (estaSobrestada(d)) status = 'aguardando';
+  aplicarFiltros({ status });
+  definirVisao('lista'); // o cartão é procurado na lista
+  abrirAba('quadro');
+  estado.focoApos = `cartao-${id}`;
+  atualizar();
+  const alvo = document.querySelector(`[data-foco="cartao-${id}"]`);
+  if (!alvo) return;
+  alvo.scrollIntoView({ block: 'center' });
+  alvo.classList.add('destaque');
+  setTimeout(() => alvo.classList.remove('destaque'), 2500);
 }
 
 function filtrosAtuais() {
-  return { busca: filtroBusca.value, tipo: filtroTipo.value, status: filtroStatus.value, prioridade: filtroPrioridade.value };
+  return { busca: filtroBusca.value, tipo: filtroTipo.value, status: filtroStatus.value, prioridade: filtroPrioridade.value, prazo: filtroPrazo.value };
 }
 
 function desenharFila(hoje) {
   const { itens, erros } = listarDemandas(estado.dados.demandas, filtrosAtuais(), hoje, { afastamentos: estado.dados.afastamentos });
   $('fila-vazia').hidden = itens.length > 0;
   $('contagem').textContent = `${itens.length} ${itens.length === 1 ? 'demanda' : 'demandas'}`;
-  $('fila').replaceChildren(...itens.map((item) => cartao(item, hoje)));
+  // Só a visão ativa tem cartões na página: os data-foco (abrir-…, sobrestar-…) não podem se repetir.
+  $('fila').replaceChildren(...(visaoAtual() === 'lista' ? itens.map((item) => cartao(item, hoje)) : []));
   $('erros-validacao').hidden = erros.length === 0;
   $('lista-erros').replaceChildren(...erros.map((x) => elemento('li', '', `${x.demanda.id || '(sem id)'} — ${x.demanda.titulo || ''}: ${x.erro}`)));
 }
@@ -155,11 +182,16 @@ function atualizar() {
   const hoje = hojeAtual();
   $('limpar-filtros').disabled = !filtrosEmUso(filtrosAtuais());
   desenharBanner(hoje);
+  desenharFoco(hoje);
   desenharIndicadores(calcularIndicadores(estado.dados.demandas, hoje));
   desenharResumo(hoje);
+  desenharCalendario(hoje);
+  desenharPontos();
   desenharAgenda(hoje);
   desenharFila(hoje);
+  desenharQuadro(hoje);
   desenharAfastamentos(hoje);
+  desenharPainel(hoje);
   restaurarFoco();
 }
 
@@ -169,21 +201,52 @@ function limparFiltros() {
   filtroTipo.value = FILTROS_PADRAO.tipo;
   filtroStatus.value = FILTROS_PADRAO.status;
   filtroPrioridade.value = FILTROS_PADRAO.prioridade;
+  filtroPrazo.value = FILTROS_PADRAO.prazo;
   filtroBusca.focus(); // antes de desabilitar o botão, para o foco não se perder
   atualizar();
 }
 
-function mudarStatus(id, novoStatus) {
+// Devolve true quando a mudança foi aceita (o quadro usa isso para anunciar a movimentação).
+function mudarStatus(id, novoStatus, focoApos = `status-${id}`) {
   const i = estado.dados.demandas.findIndex((d) => d.id === id);
   try {
     estado.dados.demandas[i] = alterarStatus(estado.dados.demandas[i], novoStatus, hojeAtual());
   } catch (e) {
     if (!(e instanceof ErroCadastro)) throw e;
     mostrarAviso(Object.values(e.erros)[0]);
-    return;
+    return false;
   }
   persistir();
-  estado.focoApos = `status-${id}`;
+  estado.focoApos = focoApos;
+  atualizar();
+  return true;
+}
+
+// Exclui sem pedir confirmação: por cerca de 8 s a mensagem oferece "Desfazer" (a demanda volta à mesma posição, com os pontos).
+// Só a última exclusão pode ser desfeita, e o prazo acaba ao recarregar a página.
+function excluirDemanda(d) {
+  const indice = estado.dados.demandas.findIndex((x) => x.id === d.id);
+  if (indice < 0) return;
+  fecharPainel(false);
+  estado.dados.demandas = removerDemanda(estado.dados.demandas, d.id);
+  persistir();
+  mostrarMensagem('Demanda excluída.', { acao: { rotulo: 'Desfazer', fazer: () => desfazerExclusao(d, indice) } });
+  estado.focoApos = 'desfazer';
+  atualizar();
+}
+
+function desfazerExclusao(d, indice) {
+  try {
+    estado.dados.demandas = restaurarDemanda(estado.dados.demandas, d, indice);
+  } catch (e) {
+    if (!(e instanceof ErroCadastro)) throw e;
+    mostrarAviso(Object.values(e.erros)[0]);
+    return;
+  }
+  mostrarAviso('');
+  persistir();
+  mostrarMensagem('Demanda restaurada.');
+  estado.focoApos = `abrir-${d.id}`;
   atualizar();
 }
 
@@ -199,7 +262,10 @@ function acessarStorage() {
 
 async function iniciar() {
   campoData.value = hojeLocal();
+  iniciarAbas(); // antes de carregar os dados: abrir direto em #relatorios não pisca o Quadro
   estado.atualizar = atualizar;
+  estado.irParaDemanda = irParaDemanda;
+  estado.abrirPainel = abrirPainel;
   try {
     const resposta = await fetch('data/seed.json');
     if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
@@ -217,6 +283,7 @@ async function iniciar() {
   opcoes(filtroTipo, [['', 'Todos'], ...Object.entries(TIPOS)], '');
   opcoes(filtroStatus, [['abertas', 'Abertas (ativas)'], ...Object.entries(STATUS)], 'abertas');
   opcoes(filtroPrioridade, [['', 'Todas'], ...FAIXAS.map((f) => [f, f])], '');
+  opcoes(filtroPrazo, Object.entries(FILTRO_PRAZO), '');
 
   $('usar-data-seed').textContent = `Usar data do exemplo (${formatarData(estado.seed.hoje_referencia)})`;
   $('usar-data-seed').addEventListener('click', () => {
@@ -224,13 +291,17 @@ async function iniciar() {
     atualizar();
   });
   campoData.addEventListener('input', atualizar);
-  for (const f of [filtroBusca, filtroTipo, filtroStatus, filtroPrioridade]) f.addEventListener('input', atualizar);
+  for (const f of [filtroBusca, filtroTipo, filtroStatus, filtroPrioridade, filtroPrazo]) f.addEventListener('input', atualizar);
   $('filtros').addEventListener('submit', (e) => e.preventDefault());
   $('limpar-filtros').addEventListener('click', limparFiltros);
 
   iniciarFormulario();
   iniciarOperacoes();
   iniciarAfastamentos();
+  iniciarCalendario();
+  iniciarPontos();
+  iniciarQuadro({ mudarStatus });
+  iniciarPainel({ editar: (d, botao) => abrirFormulario(d, botao), excluir: excluirDemanda, mudarStatus });
   iniciarExportacao();
   atualizar();
 }

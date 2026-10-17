@@ -21,7 +21,7 @@ Função pura `priorizar(demanda, hoje)` em `js/regras.js` (M2), retornando `{sc
 | Origem (qualquer tipo) | Chefia ou coordenação | +10 |
 | Operação | 10 ou mais relatórios pendentes | +15 |
 | Operação | 5 a 9 relatórios pendentes | +8 |
-| Afastamento | prazo dentro de férias ou licença-prêmio agendada (início e fim inclusos) | +20 |
+| Afastamento | prazo dentro de férias, licença-prêmio ou compensação agendada (início e fim inclusos) | +20 |
 
 ## Faixas
 
@@ -34,8 +34,23 @@ Crítica ≥ 70 · Alta 45–69 · Média 25–44 · Baixa < 25.
 - **Ajuste manual de prioridade:** o padrão é "Automática (calculada)". A pessoa pode escolher Baixa, Média, Alta ou Crítica, e então o motivo do ajuste (até 200 caracteres) é obrigatório. O ajuste não muda o score: o motor continua calculando score, faixa e motivos como sempre, e o formulário mostra essa prévia calculada. Na fila, a **faixa manual define o grupo**; dentro do grupo ordena-se pelo **score calculado**, depois pelo prazo e pela data de criação. O filtro "Prioridade" e a cor do cartão seguem a faixa efetiva. O cartão mostra "Alta (manual) · calculada: Média 35" e o motivo em "Por que esta prioridade?". Demanda concluída ou sobrestada continua fora da fila, com ou sem ajuste. Anotações não alteram a prioridade.
 - Desempate: faixa efetiva, depois maior score calculado, depois prazo mais próximo, depois data de criação.
 - Prazo ausente ou inválido gera erro de validação, sem cálculo.
-- Operação: prazo = retorno + `prazo_dias`; relatórios pendentes = pontos em `vistoriado` ou `relatorio_elaboracao`; status derivado das etapas.
+- Operação: prazo = retorno + `prazo_dias`; relatórios pendentes = relatórios com pontos em `vistoriado` ou `relatorio_elaboracao`, onde pontos somados no mesmo relatório (`relatorios[]` da operação) contam 1 e ponto solto conta 1 (sem grupos, é o número de pontos); status derivado das etapas.
 - Prazo de hoje (0 dias) entra na faixa de 0 a 2 dias.
+
+## Regras propostas para as melhorias (M9–M10, a validar)
+
+Nenhum peso da tabela de pontuação muda. As regras abaixo só agrupam ou retiram itens da fila; detalhes em `docs/MELHORIAS_KANBAN_GTD.md`.
+
+- **Caixa de entrada (M10):** item com status `entrada` está fora da fila, não pontua e não conta em nenhum indicador de prazo. O prazo não é validado enquanto estiver na entrada (como no sobrestamento). Ao processá-lo, passa a valer a validação normal (prazo ausente gera erro, como no T8).
+- **Classes de serviço (M9):** calculadas depois de `priorizar`, sem alterar o placar. Urgente = aberta e (vencida ou faixa Crítica); Data fixa = reunião ou palestra; Padrão = processo ou operação não urgente; Rotina = outra. Urgente prevalece sobre as demais.
+- **Cobrança do sobrestado (M10):** `cobrar_em` só destaca o item em "Foco de hoje"; ele continua sobrestado e fora do placar até mudar de status.
+- **Ordem dentro de cada coluna do quadro:** a mesma da fila (maior score, prazo mais próximo, criação).
+
+| Caso proposto | Entrada | Resultado esperado |
+|---|---|---|
+| T15 | Item em `entrada` só com título, sem tipo nem prazo | fora da fila, sem erro de validação |
+| T16 | Processo sobrestado (como T12) com `cobrar_em` = 2026-10-15 | fora da fila; listado em "Foco de hoje" como cobrança |
+| T17 | Reunião com prazo em 5 dias (como T6) | score 35, Média, classe Data fixa; fora de "Foco de hoje" |
 
 ## Casos de teste (hoje = 2026-10-15)
 
@@ -59,7 +74,7 @@ Crítica ≥ 70 · Alta 45–69 · Média 25–44 · Baixa < 25.
 
 ## Conferência do seed (hoje = 2026-10-15)
 
-Os números abaixo, os casos T1–T13 e os indicadores de `docs/CRITERIOS_ACEITE.md` usam a **data de referência fixa 2026-10-15** (`hoje_referencia` no seed). O M1 deve aceitar uma **data de referência configurável**, com padrão igual à data de hoje; `priorizar(demanda, hoje)` já recebe a data como argumento e os testes sempre passam 2026-10-15.
+Os números abaixo, os casos T1–T14 e os indicadores de `docs/CRITERIOS_ACEITE.md` usam a **data de referência fixa 2026-10-15** (`hoje_referencia` no seed). O M1 deve aceitar uma **data de referência configurável**, com padrão igual à data de hoje; `priorizar(demanda, hoje)` já recebe a data como argumento e os testes sempre passam 2026-10-15.
 
 | ID | Cálculo | Score | Faixa |
 |---|---|---|---|

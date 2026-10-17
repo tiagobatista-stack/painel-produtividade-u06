@@ -9,7 +9,7 @@ Data de referência dos testes: 2026-10-15. Cada critério gera uma evidência l
 | RF03 | Casos T1–T14 passam | `node --test` | M2 |
 | RF04 | Fila ordenada por score, prazo e criação; busca e filtros reduzem a lista | Teste e2e (filtrar por tipo) | M1/M3 |
 | RF05 | Mudança de status registra evento no histórico | Print do histórico | M3 |
-| RF06 | Seed exibe: 10 abertas (11 demandas em aberto menos 1 sobrestada), 2 vencidas (DEM-0002 e DEM-0003), 5 nos próximos 7 dias, 9 relatórios pendentes (6 + 3), 2 autos a lavrar, 2 concluídas na semana e 1 sobrestado (DEM-0006) | Print do painel | M1 |
+| RF06 | Seed exibe: 10 abertas (11 demandas em aberto menos 1 sobrestada), 2 vencidas (DEM-0002 e DEM-0003), 5 nos próximos 7 dias, 9 relatórios pendentes (6 + 3), 2 autos a lavrar, 2 concluídas na semana e 1 sobrestado (DEM-0006); desde o M8, 4 em destaque e 3 na aba Relatórios | Print do painel | M1 |
 | RF07 | Colar as linhas da planilha de exemplo gera a operação com prazo = retorno + N | Teste e2e | M4 |
 | RF08 | "Registrar retorno" marca todos os pontos como vistoriados; etapas avançam até o auto | Teste e2e (lavrar auto) | M4 |
 | RF09 | Prazo dentro das férias soma +20 e aparece aviso | T4 + print | M4 |

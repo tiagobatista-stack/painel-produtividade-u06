@@ -31,12 +31,43 @@ export async function usarDataDoExemplo(page) {
   // é ligado; clicar antes disso não faz nada e deixaria a tela com a data de hoje.
   await expect(botao).toHaveText(/\(15\/10\/2026\)/);
   await botao.click();
-  await expect(page.locator('#indicadores .indicador-valor')).toHaveCount(7);
+  await expect(page.locator('#indicadores .indicador-valor')).toHaveCount(4);
 }
 
+// Os 4 indicadores em destaque, na ordem da tela: vencidas, próximos 7 dias, sobrestados, concluídas na semana.
 export const indicadores = (page) => page.locator('#indicadores .indicador-valor').allTextContents();
+// Os da aba Relatórios: abertas, relatórios pendentes, autos a lavrar.
+export const complementares = (page) => page.locator('#indicadores-relatorio .indicador-valor').allTextContents();
 export const resumo = (page) => page.locator('#resumo-semana .indicador-valor').allTextContents();
 export const cartao = (page, trecho) => page.locator('#fila > li', { hasText: trecho });
+export const painel = (page) => page.locator('#painel-demanda');
+
+// Vai para uma aba pelo link (o endereço muda para #quadro, #agenda, #afastamentos ou #relatorios).
+export async function irParaAba(page, nome) {
+  await page.getByRole('navigation', { name: 'Seções do painel' }).getByRole('link', { name: nome, exact: true }).click();
+  await expect(page.getByRole('navigation', { name: 'Seções do painel' }).getByRole('link', { name: nome, exact: true })).toHaveAttribute('aria-current', 'page');
+}
+
+// Abre o painel lateral da demanda cujo card contém o trecho e devolve o painel.
+export async function abrirPainel(page, trecho) {
+  await cartao(page, trecho).getByRole('button').click();
+  await expect(painel(page)).toBeVisible();
+  return painel(page);
+}
+
+// Fecha o painel lateral com Esc.
+export async function fecharPainel(page) {
+  await page.keyboard.press('Escape');
+  await expect(painel(page)).toBeHidden();
+}
+
+// Abre o menu "Exportar" da aba Relatórios.
+export async function abrirMenuExportar(page) {
+  await irParaAba(page, 'Relatórios');
+  await page.getByText('Exportar', { exact: true }).click();
+  await expect(page.getByRole('button', { name: 'Exportar demandas (CSV)' })).toBeVisible();
+}
+
 export const filtros = (page) => page.getByRole('search', { name: 'Buscar e filtrar demandas' });
 
 // Cadastra uma demanda do tipo processo pelo formulário.

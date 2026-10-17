@@ -156,6 +156,14 @@ test('T13 ao retomar, o prazo registrado volta a valer, sem recálculo', () => {
   assert.equal(r(retomada).score, 90); // vencido 50 + processo 15 + MP 25
 });
 
+test('T14 prazo dentro de compensação soma +20 como férias e licença-prêmio → 45 Alta', () => {
+  const afastamentos = [{ tipo: 'compensacao', inicio: '2026-10-26', fim: '2026-10-28', situacao: 'aprovado' }];
+  const x = r(simples('processo', 'denuncia', 12), { afastamentos }); // prazo 2026-10-27
+  assert.equal(x.score, 45); // processo 15 + denúncia 10 + afastamento 20
+  assert.equal(x.faixa, 'Alta');
+  assert.ok(x.motivos.includes('Prazo dentro de férias, licença-prêmio ou compensação (+20)'));
+});
+
 test('sobrestada fica fora de priorizarFila e não é erro', () => {
   const sobrestada = simples('processo', 'mp', 0, { id: 'SOB', status: 'aguardando', prazo: '' });
   const normal = simples('reuniao', 'propria', 3, { id: 'NOR' });

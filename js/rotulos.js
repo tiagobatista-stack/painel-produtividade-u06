@@ -15,7 +15,27 @@ export const ETAPAS_PONTO = {
   encerrado_nao_constatado: 'Encerrado: não constatado',
   encerrado_nao_acessado: 'Encerrado: não acessado',
 };
-export const TIPOS_AFASTAMENTO = { ferias: 'Férias', licenca_premio: 'Licença-prêmio' };
+// Opções do filtro "Prazo" da fila (cada uma é um indicador da tela).
+export const FILTRO_PRAZO = { '': 'Todos', vencidas: 'Vencidas', proximos7: 'Próximos 7 dias', semana: 'Concluídas na semana' };
+// Tipos de auto lavrado num ponto (lista curta e genérica). `tipo: null` só existe em ponto antigo, anterior ao registro de autos.
+export const TIPOS_AUTO = {
+  auto_infracao: 'Auto de infração', termo_embargo: 'Termo de embargo', termo_apreensao: 'Termo de apreensão', termo_interdicao: 'Termo de interdição', outro: 'Outro',
+};
+export const ROTULO_AUTO_SEM_TIPO = 'Auto (tipo não informado)';
+// Situação de um ponto quanto ao relatório e aos autos (derivada da etapa).
+export const SITUACOES_PONTO = {
+  planejado: 'Planejado',
+  aguardando_relatorio: 'Aguardando relatório',
+  a_lavrar: 'Relatório concluído, auto a lavrar',
+  com_auto: 'Com auto lavrado',
+  encerrado_sem_auto: 'Encerrado sem auto',
+};
+export const TIPOS_AFASTAMENTO = { ferias: 'Férias', licenca_premio: 'Licença-prêmio', compensacao: 'Compensação' };
+// Tipos de evento da agenda e do calendário.
+export const ROTULOS_EVENTO = {
+  reuniao: 'Reunião', palestra: 'Palestra', saida_operacao: 'Saída de operação', retorno_operacao: 'Retorno de operação', prazo_relatorio: 'Prazo de relatórios',
+  prazo_processo: 'Prazo de processo', prazo_demanda: 'Prazo', afastamento: 'Afastamento',
+};
 export const SITUACOES_AFASTAMENTO = { planejado: 'Planejado', solicitado: 'Solicitado', aprovado: 'Aprovado' };
 
 // Etapas por tipo (só o processo usa etapa). A chave é o valor gravado; o rótulo é o que a tela mostra.

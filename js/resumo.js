@@ -1,6 +1,6 @@
 // Resumo semanal: o que foi concluído na semana (segunda a domingo) e a situação atual. Função pura.
 // Usado pela tela e pela exportação, para que os números sejam sempre os mesmos.
-import { calcularIndicadores, estaConcluida, inicioDaSemana, somarDias } from './indicadores.js';
+import { autosDoPonto, calcularIndicadores, chaveRelatorioDoPonto, estaConcluida, inicioDaSemana, somarDias } from './indicadores.js';
 import { TIPOS } from './rotulos.js';
 
 const ENCERRADOS_SEM_AUTO = ['encerrado_nao_constatado', 'encerrado_nao_acessado'];
@@ -13,16 +13,26 @@ export function resumoSemanal(demandas, hoje) {
 
   const concluidas = demandas.filter((d) => estaConcluida(d) && naSemana(d.concluida_em));
   const porTipo = Object.fromEntries(Object.keys(TIPOS).map((t) => [t, concluidas.filter((d) => d.tipo === t).length]));
-  const pontos = demandas.filter((d) => d.tipo === 'operacao').flatMap((d) => d.pontos);
+  const operacoes = demandas.filter((d) => d.tipo === 'operacao');
+  const pontos = operacoes.flatMap((d) => d.pontos);
+  // Relatório = grupo de pontos somados (ou ponto solto): conta uma vez, mesmo com vários pontos.
+  const relatorios = operacoes.flatMap((d) => {
+    const porChave = new Map();
+    for (const p of d.pontos.filter((x) => naSemana(x.data_relatorio))) {
+      const chave = chaveRelatorioDoPonto(d, p);
+      porChave.set(chave, [...(porChave.get(chave) ?? []), p]);
+    }
+    return [...porChave.values()];
+  });
   const { concluidasSemana, ...situacao } = calcularIndicadores(demandas, hoje);
 
   return {
     inicio,
     fim,
     concluidas: { total: concluidas.length, porTipo },
-    relatoriosConcluidos: pontos.filter((p) => naSemana(p.data_relatorio)).length,
-    autosLavrados: pontos.filter((p) => naSemana(p.data_auto)).length,
-    relatoriosSemAuto: pontos.filter((p) => naSemana(p.data_relatorio) && ENCERRADOS_SEM_AUTO.includes(p.etapa)).length,
+    relatoriosConcluidos: relatorios.length,
+    autosLavrados: pontos.flatMap(autosDoPonto).filter((a) => naSemana(a.data)).length,
+    relatoriosSemAuto: relatorios.filter((pts) => pts.every((p) => ENCERRADOS_SEM_AUTO.includes(p.etapa))).length,
     situacao,
   };
 }

@@ -15,6 +15,7 @@ const listar = (pasta) =>
   readdirSync(pasta, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? listar(join(pasta, e.name)) : [join(pasta, e.name)]));
 const arquivos = (pasta) => listar(pasta).map((f) => relative(pasta, f).split(sep).join('/')).sort();
 const construir = (destino) => execFileSync(process.execPath, [BUILD, destino], { encoding: 'utf8' });
+const PAGINAS = ['index.html', 'kanban.html'];
 
 before(() => {
   base = mkdtempSync(join(tmpdir(), 'painel-build-'));
@@ -25,13 +26,15 @@ after(() => rmSync(base, { recursive: true, force: true }));
 
 test('o build copia somente o que o navegador precisa', () => {
   const lista = arquivos(saida);
-  assert.ok(lista.includes('index.html'));
+  for (const pagina of PAGINAS) assert.ok(lista.includes(pagina), pagina);
   assert.ok(lista.includes('css/styles.css'));
+  assert.ok(lista.includes('css/kanban.css'));
   assert.ok(lista.includes('data/seed.json'));
+  assert.ok(lista.includes('data/kanban-exemplo.json'));
   assert.ok(lista.includes('data/planilha-exemplo.tsv'));
   const js = readdirSync(join(RAIZ, 'js')).filter((f) => f.endsWith('.js')).map((f) => `js/${f}`).sort();
   assert.deepEqual(lista.filter((f) => f.startsWith('js/')), js);
-  assert.deepEqual(lista.filter((f) => !/^(index\.html|css\/|js\/|data\/)/.test(f)), []);
+  assert.deepEqual(lista.filter((f) => !/^(index\.html|kanban\.html|css\/|js\/|data\/)/.test(f)), []);
 });
 
 test('o build não leva testes, ferramentas, documentos, scripts, legado, dependências nem arquivos ocultos', () => {
@@ -43,9 +46,12 @@ test('o build não leva testes, ferramentas, documentos, scripts, legado, depend
 });
 
 test('todo import dos módulos e todo recurso do HTML existe no resultado', () => {
-  const html = readFileSync(join(saida, 'index.html'), 'utf8');
-  const recursos = [...html.matchAll(/(?:src|href)="([^"]+)"/g)].map((m) => m[1]).filter((u) => !u.startsWith('data:') && !u.startsWith('#'));
-  assert.ok(recursos.includes('css/styles.css') && recursos.includes('js/app.js'));
+  // Recursos de cada página (os links entre as páginas contam como recursos; os de âncora e data: não).
+  const recursosDe = (pagina) => [...readFileSync(join(saida, pagina), 'utf8').matchAll(/(?:src|href)="([^"]+)"/g)].map((m) => m[1]).filter((u) => !u.startsWith('data:') && !u.startsWith('#'));
+  const recursos = PAGINAS.flatMap(recursosDe);
+  assert.ok(recursosDe('index.html').includes('css/styles.css') && recursosDe('index.html').includes('js/app.js'));
+  assert.ok(recursosDe('kanban.html').includes('css/kanban.css') && recursosDe('kanban.html').includes('js/kanban-app.js'));
+  assert.ok(recursosDe('index.html').includes('kanban.html') && recursosDe('kanban.html').includes('index.html'), 'as duas páginas devem ter link uma para a outra');
   const visitados = new Set();
   const visitar = (arquivo) => {
     if (visitados.has(arquivo)) return;
@@ -61,20 +67,25 @@ test('todo import dos módulos e todo recurso do HTML existe no resultado', () =
     for (const [, dado] of fonte.matchAll(/fetch\('([^']+)'\)/g)) visitar(join(saida, dado));
   };
   for (const r of recursos) visitar(join(saida, r));
-  // Tudo o que o HTML alcança está no build, e tudo o que está no build é alcançado (nada faltando, nada sobrando).
+  // Tudo o que as páginas alcançam está no build, e tudo o que está no build é alcançado (nada faltando, nada sobrando).
+  // As duas páginas se alcançam pelo link do topo, então entram na lista de alcançados.
   const alcancados = [...visitados].map((f) => relative(saida, f).split(sep).join('/')).sort();
-  assert.deepEqual(alcancados, arquivos(saida).filter((f) => f !== 'index.html'));
+  assert.deepEqual(alcancados, arquivos(saida));
 });
 
 test('o código do navegador não depende de recursos externos nem de manipuladores embutidos', () => {
-  const html = readFileSync(join(saida, 'index.html'), 'utf8');
-  assert.equal(/(?:src|href)="https?:/.test(html), false);
-  assert.equal(/\son[a-z]+="/.test(html), false); // onclick=, onsubmit=… violam a política de conteúdo
-  assert.equal(/\sstyle="/.test(html), false);
-  assert.equal(/<script(?![^>]*\ssrc=)/.test(html), false); // sem script embutido
+  for (const pagina of PAGINAS) {
+    const html = readFileSync(join(saida, pagina), 'utf8');
+    assert.equal(/(?:src|href)="https?:/.test(html), false, pagina);
+    assert.equal(/\son[a-z]+="/.test(html), false, pagina); // onclick=, onsubmit=… violam a política de conteúdo
+    assert.equal(/\sstyle="/.test(html), false, pagina);
+    assert.equal(/<script(?![^>]*\ssrc=)/.test(html), false, pagina); // sem script embutido
+  }
   for (const f of listar(join(saida, 'js'))) {
     const fonte = readFileSync(f, 'utf8');
-    assert.equal(/https?:\/\//.test(fonte), false, `URL externa em ${relative(saida, f)}`);
+    // O endereço do espaço de nomes do SVG é só um identificador (document.createElementNS), não uma requisição.
+    const semNamespaceSvg = fonte.replaceAll('http://www.w3.org/2000/svg', '');
+    assert.equal(/https?:\/\//.test(semNamespaceSvg), false, `URL externa em ${relative(saida, f)}`);
     assert.equal(/\beval\(|new Function|\.innerHTML\s*=/.test(fonte), false, `construção insegura em ${relative(saida, f)}`);
   }
 });

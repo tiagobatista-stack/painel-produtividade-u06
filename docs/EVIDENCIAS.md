@@ -16,7 +16,7 @@ O script (`scripts/coletar-evidencias.mjs`) roda os comandos de verdade e grava 
 |---|---|---|---|---|
 | 1 | URL de produção, aberta em janela anônima | Abrir https://painel-produtividade-u06.vercel.app/ numa janela anônima e tirar print | print do usuário | **Usuário** |
 | 2 | Link do repositório e hash do commit publicado | `01-git.txt` (commit e histórico); repositório https://github.com/tiagobatista-stack/painel-produtividade-u06 | `01-git.txt` | Script |
-| 3 | Saída de `node --test` com T1–T13 aprovados | `npm run quality` (o script guarda a saída inteira) | `02-quality.txt` | Script |
+| 3 | Saída de `node --test` com T1–T14 aprovados | `npm run quality` (o script guarda a saída inteira) | `02-quality.txt` | Script |
 | 4 | Relatório Playwright, local e contra a URL real | `npx playwright test` e `SITE_URL=… npx playwright test` | `04-e2e-local.txt`, `07-e2e-producao.txt`, `relatorio-playwright-*/index.html` | Script |
 | 5 | Print dos checks do GitHub Actions no PR | Página do PR → seção *Checks* (jobs `regras` e `navegador`) | print do usuário | **Usuário** |
 | 6 | URL de Preview com a melhoria e confirmação da nova produção após o merge | Comentário da Vercel no PR (botão *Visit Preview*) + o que o script confere na produção | print do Preview; `06-producao.txt` | **Usuário** (Preview) e script (produção) |
@@ -31,7 +31,7 @@ O script (`scripts/coletar-evidencias.mjs`) roda os comandos de verdade e grava 
 
 ## O que este checklist não prova
 
-- A janela anônima, os checks do Actions e o Preview dependem de você (o repositório é privado e não há `gh` aqui).
+- A janela anônima, os checks do Actions e o Preview dependem de você (são capturas do navegador logado). O repositório é **público**: por isso só contém dados fictícios, e as evidências ficam em `evidencias-privadas/`, fora do Git.
 - Os testes de interface rodam no Chromium do Playwright, não no Edge nem no Safari.
 - O CSV foi conferido pelos testes e pela leitura dos arquivos, não aberto no Excel.
 - O cliente MCP real foi exercitado por uma chamada temporária e headless; o registro permanente no Claude Code depende da sua autorização.

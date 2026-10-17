@@ -81,7 +81,7 @@ export function priorizar(demanda, hoje, { afastamentos = [] } = {}) {
   }
 
   if (afastamentos.some((a) => dataValida(a.inicio) && dataValida(a.fim) && prazo >= a.inicio && prazo <= a.fim)) {
-    somar(REGRAS.afastamento, 'Prazo dentro de férias ou licença-prêmio');
+    somar(REGRAS.afastamento, 'Prazo dentro de férias, licença-prêmio ou compensação');
   }
 
   return { score, faixa: faixaDoScore(score), motivos };
