@@ -46,9 +46,9 @@ painel-produtividade-u06/
 Proposta em `docs/MELHORIAS_KANBAN_GTD.md`. A estrutura se mantém: o motor continua único e a interface ganha módulos de apresentação.
 
 ```
-js/foco.js           # (M8, entregue) puro: "Foco de hoje" (vencidas, vencem hoje, maior placar; até 3), a partir de priorizarFila
+js/foco.js           # (M8) REMOVIDO na refatoração visual: o bloco "Foco de hoje" saiu; o topo da fila cumpre o papel
 js/ui-abas.js        # (M8, entregue) abas pelo endereço (#quadro, #agenda, #afastamentos, #relatorios)
-js/ui-foco.js        # (M8, entregue) faixa "Foco de hoje"
+js/ui-foco.js        # (M8) REMOVIDO junto com js/foco.js
 js/ui-painel.js      # (M8, entregue) painel lateral da demanda (motivos, pontos, histórico, status, editar, excluir)
 js/quadro.js         # (M9, entregue) puro: agrupa por coluna e classe de serviço, conta o limite de itens em andamento, calcula idade e tempo até concluir
 js/ui-quadro.js      # (M9, entregue) quadro, arrastar nativo e botões de mover

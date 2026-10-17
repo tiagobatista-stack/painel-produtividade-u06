@@ -1,34 +1,25 @@
-import { test, expect, abrir, filtros, indicadores, irParaAba, painel } from './apoio.mjs';
+import { test, expect, abrir, definirDataDeReferencia, filtros, indicadores, irParaAba, painel } from './apoio.mjs';
 
 const DEM_0003 = 'Manifestação em procedimento do Ministério Público (fictício)';
 const DEM_0002 = 'Relatórios de vistoria — operação de setembro (Sul)';
 const DEM_0001 = 'Relatórios de vistoria — operação de outubro (Norte)';
-const DEM_0005 = 'Resposta à chefia sobre processo de licenciamento (fictício)';
 
-const titulosDoFoco = (page) => page.locator('#foco-lista .foco-titulo').allTextContents();
 const caixa = (page, rotulo) => page.locator('#indicadores').getByRole('button', { name: new RegExp(`^${rotulo}:`) });
 const titulos = (page) => page.locator('#fila .demanda-titulo').allTextContents();
 
-test.describe('Foco de hoje (RF15)', () => {
-  test('mostra no máximo 3 itens: vencidas, depois as de maior placar (seed em 15/10/2026)', async ({ page }) => {
+test.describe('Sem o bloco "Foco de hoje": o topo da fila cumpre esse papel', () => {
+  test('o bloco não existe mais, e os três primeiros da fila são os de maior prioridade (seed em 15/10/2026)', async ({ page }) => {
     await abrir(page);
-    await expect(page.locator('#foco-lista > li')).toHaveCount(3);
-    expect(await titulosDoFoco(page)).toEqual([DEM_0003, DEM_0002, DEM_0001]); // 90, 80 e 68 pontos
-    await expect(page.locator('#foco-lista .foco-item').nth(0)).toContainText('vencida há 2 dias');
-    await expect(page.locator('#foco-lista .foco-item').nth(2)).toContainText('em 2 dias');
+    await expect(page.locator('#foco, #foco-lista')).toHaveCount(0);
+    await expect(page.getByRole('heading', { name: 'Foco de hoje' })).toHaveCount(0);
+    expect((await titulos(page)).slice(0, 3)).toEqual([DEM_0003, DEM_0002, DEM_0001]); // 90, 80 e 68 pontos
+    await expect(page.locator('#fila .demanda').nth(0)).toContainText('vencida há 2 dias');
+    await expect(page.locator('#fila .demanda').nth(2)).toContainText('em 2 dias');
   });
 
-  test('a que vence hoje passa na frente de uma de placar maior (16/10/2026)', async ({ page }) => {
+  test('o primeiro da fila abre o painel da demanda; Esc devolve o foco ao item', async ({ page }) => {
     await abrir(page);
-    await page.getByLabel('Data de referência').fill('2026-10-16');
-    expect(await titulosDoFoco(page)).toEqual([DEM_0003, DEM_0002, DEM_0005]); // DEM-0005 vence hoje (55) e DEM-0001 tem 68
-  });
-
-  test('aparece em todas as abas e abre o painel da demanda; Esc devolve o foco ao item', async ({ page }) => {
-    await abrir(page);
-    await irParaAba(page, 'Relatórios');
-    await expect(page.locator('#foco')).toBeVisible();
-    const primeiro = page.locator('#foco-lista .foco-botao').first();
+    const primeiro = page.locator('#fila .demanda-abrir').first();
     await primeiro.click();
     await expect(painel(page)).toBeVisible();
     await expect(painel(page).getByRole('heading', { name: DEM_0003 })).toBeVisible();
@@ -56,10 +47,10 @@ test.describe('Indicadores em destaque (RF15)', () => {
     await expect(vencidas).toHaveClass(/indicador-alerta/);
     expect(await cor()).toBe('rgb(185, 28, 28)');
 
-    await page.getByLabel('Data de referência').fill('2026-10-01'); // nada vence antes de 06/10
+    await definirDataDeReferencia(page, '2026-10-01'); // nada vence antes de 06/10
     await expect(vencidas.locator('.indicador-valor')).toHaveText('0');
     await expect(vencidas).not.toHaveClass(/indicador-alerta/);
-    expect(await cor()).toBe('rgb(30, 42, 94)');
+    expect(await cor()).toBe('rgb(31, 36, 51)'); // o texto neutro da paleta (não o vermelho)
     await expect(caixa(page, 'Sobrestados')).not.toHaveClass(/indicador-alerta/); // só "Vencidas" tem alerta
   });
 

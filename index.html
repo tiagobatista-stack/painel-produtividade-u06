@@ -17,36 +17,25 @@
       </div>
       <button type="button" id="nova-demanda" class="primario">Nova demanda</button>
     </div>
-    <div class="referencia">
-      <label for="data-referencia">Data de referência</label>
-      <input type="date" id="data-referencia">
-      <button type="button" id="usar-data-seed">Usar data do exemplo</button>
-    </div>
   </header>
 
   <main>
     <p id="erro" class="erro" role="alert" hidden></p>
     <p id="mensagem" class="sucesso" role="status" hidden></p>
 
-    <section id="foco" class="foco" aria-labelledby="titulo-foco">
-      <h2 id="titulo-foco">Foco de hoje</h2>
-      <p id="foco-vazio" class="nota" hidden>Nenhuma demanda ativa na fila.</p>
-      <ol id="foco-lista" class="foco-lista"></ol>
-    </section>
-
     <nav class="abas" aria-label="Seções do painel">
-      <a href="#quadro" data-aba="quadro">Quadro</a>
+      <a href="#quadro" data-aba="quadro">Demandas</a>
       <a href="#pontos" data-aba="pontos">Pontos</a>
       <a href="#agenda" data-aba="agenda">Agenda</a>
       <a href="#afastamentos" data-aba="afastamentos">Afastamentos</a>
       <a href="#relatorios" data-aba="relatorios">Relatórios</a>
     </nav>
 
-    <section id="aba-quadro" class="aba" data-aba-painel="quadro" aria-label="Quadro">
-      <section id="aviso-afastamento" class="aviso-caixa" aria-label="Afastamento próximo" hidden></section>
+    <section id="aba-quadro" class="aba" data-aba-painel="quadro" aria-label="Demandas">
+      <section id="aviso-afastamento" class="aviso-discreto" aria-label="Afastamento próximo" hidden></section>
 
       <section aria-labelledby="titulo-indicadores">
-        <h2 id="titulo-indicadores">Indicadores</h2>
+        <h2 id="titulo-indicadores" tabindex="-1">Indicadores</h2>
         <ul id="indicadores" class="indicadores"></ul>
       </section>
 
@@ -240,6 +229,15 @@
       </section>
     </section>
   </main>
+
+  <footer class="rodape-pagina">
+    <p class="referencia-linha">Referência: <span id="referencia-texto"></span> · <button type="button" id="alterar-referencia" class="link" aria-expanded="false" aria-controls="referencia-controles">alterar</button></p>
+    <div id="referencia-controles" class="referencia" hidden>
+      <label for="data-referencia">Data de referência</label>
+      <input type="date" id="data-referencia">
+      <button type="button" id="usar-data-seed">Usar data do exemplo</button>
+    </div>
+  </footer>
 
   <dialog id="dialogo" class="dialogo-demanda" aria-labelledby="dialogo-titulo">
     <form id="formulario" novalidate>

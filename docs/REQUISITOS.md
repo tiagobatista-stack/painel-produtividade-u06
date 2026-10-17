@@ -22,7 +22,7 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 | RF12 | Botão "Limpar filtros" (melhoria entregue por branch e PR) | Evolução |
 | RF13 | Persistir no navegador e carregar o exemplo fictício na primeira abertura | M3 |
 | RF14 | Sobrestar demanda aguardando resposta do interessado, ou operação aguardando a identificação do autuado: status "Aguardando" (na operação, pela ação "Sobrestar operação") suspende o prazo, tira a demanda da fila ativa e dos indicadores de prazo, e a lista no filtro e no indicador "Sobrestados" | M4 |
-| RF15 | Organizar a página em abas com o estado no endereço (`#quadro`, `#agenda`, `#afastamentos`, `#relatorios`), topo fixo com a data de referência e "Nova demanda", e faixa "Foco de hoje" de até 3 itens (vencidas, as que vencem hoje, maior placar); 4 indicadores em destaque (Vencidas, Próximos 7 dias, Sobrestados, Concluídas na semana) que filtram a fila, os demais na aba Relatórios; exportações no menu "Exportar" da aba Relatórios. Altera RF04, RF06, RF10 e RF11 | M8 |
+| RF15 | Organizar a página em abas com o estado no endereço (`#quadro`, `#agenda`, `#afastamentos`, `#relatorios`; a aba do `#quadro` se chama **"Demandas"**), topo fixo só com o título e "Nova demanda", 4 indicadores em destaque (Vencidas, Próximos 7 dias, Sobrestados, Concluídas na semana) que filtram a fila, os demais na aba Relatórios; exportações no menu "Exportar" da aba Relatórios. **O bloco "Foco de hoje" foi removido** na refatoração visual (o topo da fila, já ordenado pelo motor, cumpre esse papel) e a data de referência foi para o rodapé (RNF16). Altera RF04, RF06, RF10 e RF11 | M8 |
 | RF16 | Visão em quadro com colunas por status (A fazer, Em andamento, Sobrestado, Concluída na semana), ordenadas pelo motor, e alternância Lista/Quadro salva no navegador. Altera RF04. | M9 |
 | RF17 | Limite configurável de itens em andamento (padrão 3), com aviso visual ao ultrapassar, sem bloquear. Altera RF05. | M9 |
 | RF18 | Mover card entre colunas arrastando ou por botões (Iniciar, Aguardar, Retomar, Concluir), com teclado; operação só por "Sobrestar/Retomar". Altera RF05. | M9 |
@@ -46,7 +46,7 @@ Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao
 
 ## Evolução proposta: Kanban e GTD (M9–M10)
 
-O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a tabela principal. Os demais ainda não foram implementados. Detalhes, diagnóstico e decisões pendentes em `docs/MELHORIAS_KANBAN_GTD.md`. A coluna "Altera" indica quais requisitos já existentes cada novo requisito modifica.
+O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a tabela principal. **Nota:** onde os itens abaixo falam em "Foco de hoje", o bloco foi removido na refatoração visual (RNF16); vale o topo da fila. Os demais ainda não foram implementados. Detalhes, diagnóstico e decisões pendentes em `docs/MELHORIAS_KANBAN_GTD.md`. A coluna "Altera" indica quais requisitos já existentes cada novo requisito modifica.
 
 | ID | Requisito | Altera | Marco |
 |---|---|---|---|
@@ -107,6 +107,7 @@ O fluxo da demanda que exige vistoria é: **análise → decisão de vistoria �
 | RNF13 | Mapa e ação de campo funcionam sem rede e sem camadas externas; se a chave ou o servidor falhar, o mapa avisa e cai em "Sem mapa-base" |
 | RNF14 | Testes e CI não dependem de rede: os e2e bloqueiam os servidores de mapa |
 | RNF15 | Camadas externas só carregam depois de o usuário escolhê-las; o pedido de blocos revela ao servidor a região vista, nunca as coordenadas das fichas |
+| RNF16 | **Interface calma** (refatoração visual, sem mudar regras, dados nem ids): uma só cor de destaque (azul-marinho) mais neutros; vermelho só no texto "vencida" e nos erros, sem fundo rosa; selo de prioridade pequeno (Crítica e Alta com cor, Média e Baixa neutras); roxo, verde-água e bege só para estado, em tom suave; fila em **uma coluna**, em linhas compactas (selo, título, "tipo · origem" e prazo à direita); indicadores e filtros sem caixa (borda só nos cartões da fila e nos campos); escala de **4 tamanhos de fonte: 12, 14, 16 e 20 px**, com rótulos de tipo em 12 px sem caixa alta forçada; **data de referência no rodapé** ("Referência: dd/mm/aaaa · alterar"); aviso de férias numa linha discreta com botão fechar, lembrado no navegador pela identidade do afastamento |
 
 ## Modelo de dados (resumo)
 

@@ -80,7 +80,7 @@ test.describe('resumo da semana e exportações', () => {
     expect(leste[0].startsWith('1;Equipe Fictícia Leste;-20,5137;-15,5937;Município Fictício A;09/11/2026;13/11/2026;')).toBe(true);
 
     const csv = [linhas(conteudo)[0], ...leste].join('\r\n');
-    await irParaAba(page, 'Quadro');
+    await irParaAba(page, 'Demandas');
     await page.getByRole('button', { name: 'Importar operação' }).click();
     const dialogo = page.getByRole('dialog', { name: 'Importar operação' });
     await dialogo.getByLabel('Linhas da planilha').fill(`﻿${csv}`);

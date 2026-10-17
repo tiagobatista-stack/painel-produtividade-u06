@@ -1,12 +1,25 @@
 :root {
+  /* Uma cor de destaque (azul-marinho) e neutros. Vermelho só no texto "vencida" e nos erros; roxo, verde-água e bege só para estado, em tom suave. */
   --azul: #1e2a5e;
-  --azul-claro: #eef2ff;
-  --fundo: #f0f2f7;
-  --borda: #d9deee;
-  --texto: #1e2a5e;
-  --suave: #4a5578;
+  --azul-claro: #f0f2f9;
+  --fundo: #f6f7f9;
+  --borda: #dfe2ea;
+  --texto: #1f2433;
+  --suave: #5b6275;
+  --selo-neutro: #eceef3;
   --alerta: #b91c1c;
   --alerta-fundo: #fef2f2;
+  --estado-roxo: #5b3f94;
+  --estado-roxo-fundo: #f1edf8;
+  --estado-agua: #1c6b5e;
+  --estado-agua-fundo: #e6f3f0;
+  --estado-bege: #7a5e24;
+  --estado-bege-fundo: #f5efe1;
+  /* Escala de 4 tamanhos. */
+  --t12: 12px;
+  --t14: 14px;
+  --t16: 16px;
+  --t20: 20px;
 }
 
 * { box-sizing: border-box; }
@@ -14,64 +27,44 @@
 body {
   margin: 0;
   font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: var(--t14);
   background: var(--fundo);
   color: var(--texto);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
-/* Topo fixo: o scroll-padding evita que o foco e as âncoras fiquem escondidos sob ele. */
-html { scroll-padding-top: 9.5rem; }
-.topo { position: sticky; top: 0; z-index: 20; background: var(--azul); color: #fff; padding: 6px 12px; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25); }
-/* Topo compacto: ocupa pouco espaço mesmo a 360 px, porque fica fixo em cima do conteúdo. */
+/* Topo fixo e compacto: título e "Nova demanda". O scroll-padding evita que o foco e as âncoras fiquem escondidos sob ele. */
+html { scroll-padding-top: 4.5rem; }
+.topo { position: sticky; top: 0; z-index: 20; background: var(--azul); color: #fff; padding: 8px 12px; }
 .topo-linha { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .topo-titulo { min-width: 0; }
-.topo h1 { margin: 0; font-size: 1.05rem; }
-.aviso { margin: 0; font-size: 0.74rem; opacity: 0.9; }
-.topo button.primario { background: #fff; color: var(--azul); border-color: #fff; }
+.topo h1 { margin: 0; font-size: var(--t16); font-weight: 600; }
+.aviso { margin: 0; font-size: var(--t12); opacity: 0.85; }
+.topo button.primario { background: #fff; color: var(--azul); border-color: #fff; min-height: 32px; padding: 3px 10px; }
 .topo button.primario:hover { background: var(--azul-claro); }
 .topo :focus-visible { outline-color: #fde68a; }
 
 main { max-width: 1100px; margin: 0 auto; padding: 12px; }
-h2 { font-size: 1.05rem; margin: 18px 0 8px; }
+h2 { font-size: var(--t16); font-weight: 600; margin: 20px 0 8px; }
 
-.topo .referencia input, .topo .referencia button, .topo button.primario { min-height: 32px; padding: 3px 8px; font-size: 0.85rem; }
-.referencia { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; font-size: 0.85rem; }
+/* Rodapé: referência de datas ("Referência: dd/mm/aaaa · alterar"); os controles só aparecem ao pedir. */
+.rodape-pagina { max-width: 1100px; margin: 24px auto 20px; padding: 12px; border-top: 1px solid var(--borda); font-size: var(--t12); color: var(--suave); }
+.rodape-pagina p { margin: 0; }
+.referencia-linha button.link { display: inline-flex; align-items: center; vertical-align: middle; font-size: var(--t12); }
+.referencia { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; margin-top: 8px; }
+.referencia[hidden] { display: none; }
 .referencia label { font-weight: 600; }
+.referencia input, .referencia button { min-height: 32px; padding: 3px 8px; font-size: var(--t14); }
 
-/* ---- M8: abas, foco de hoje ---- */
-.abas { display: flex; gap: 2px; overflow-x: auto; margin: 12px 0 8px; border-bottom: 2px solid var(--borda); }
+/* ---- Abas: só um sublinhado na aba atual ---- */
+.abas { display: flex; gap: 4px; overflow-x: auto; margin: 14px 0 10px; border-bottom: 1px solid var(--borda); }
 .abas a {
-  flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 40px; padding: 6px 8px; font-size: 0.85rem;
-  color: var(--texto); font-weight: 600; text-decoration: none; border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0;
+  flex: 0 0 auto; display: inline-flex; align-items: center; min-height: 40px; padding: 6px 12px; font-size: var(--t14);
+  color: var(--suave); font-weight: 500; text-decoration: none; border-bottom: 2px solid transparent; margin-bottom: -1px;
 }
-.abas a:hover { background: var(--azul-claro); }
-.abas a[aria-current="page"] { background: #fff; border-color: var(--borda); box-shadow: inset 0 -3px 0 var(--azul); }
+.abas a:hover { color: var(--azul); }
+.abas a[aria-current="page"] { color: var(--azul); font-weight: 600; border-bottom-color: var(--azul); }
 .aba[hidden] { display: none; }
-
-.foco { margin-top: 10px; padding: 0 12px 10px; background: #fff; border: 1px solid var(--borda); border-radius: 10px; }
-.foco h2 { margin: 8px 0 6px; }
-.foco-lista { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
-button.foco-botao {
-  width: 100%; min-height: 44px; display: flex; flex-direction: column; gap: 2px; text-align: left;
-  background: #fff; border-color: var(--borda); border-left: 6px solid #475569;
-}
-button.foco-botao:hover { background: var(--azul-claro); }
-.foco-item.faixa-critica .foco-botao { border-left-color: var(--alerta); }
-.foco-item.faixa-alta .foco-botao { border-left-color: #c2410c; }
-.foco-item.faixa-media .foco-botao { border-left-color: #a16207; }
-.foco-item.faixa-baixa .foco-botao { border-left-color: #475569; }
-.foco-topo { display: flex; justify-content: space-between; gap: 8px; font-size: 0.78rem; color: var(--suave); }
-.foco-titulo { font-weight: 600; overflow-wrap: anywhere; }
-.foco-prazo { font-size: 0.85rem; color: var(--suave); }
-.foco-item.vencida .foco-prazo { color: var(--alerta); font-weight: 700; }
-@media (min-width: 600px) {
-  .abas a { padding: 6px 14px; font-size: 1rem; }
-  .abas { gap: 4px; }
-  .topo .referencia input, .topo .referencia button, .topo button.primario { padding: 6px 10px; font-size: 1rem; }
-}
-@media (min-width: 1000px) {
-  .foco-lista { grid-template-columns: repeat(3, 1fr); }
-}
 
 input, button {
   font: inherit; color: var(--texto);
@@ -85,53 +78,47 @@ button:hover { background: #e0e7ff; }
 
 ul { list-style: none; margin: 0; padding: 0; }
 
-.indicadores { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.indicador {
-  background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 10px;
-  display: flex; flex-direction: column;
-}
-.indicador-valor { font-size: 1.7rem; font-weight: 700; }
-.indicador-rotulo { font-size: 0.8rem; color: var(--suave); }
+/* Indicadores sem caixa: separados por espaço. O número é o destaque; clicar em um filtra a fila (o selecionado ganha um sublinhado). */
+.indicadores { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 24px; }
+.indicador { background: none; border: 0; padding: 4px 0; display: flex; flex-direction: column; }
+.indicador-valor { font-size: var(--t20); font-weight: 600; }
+.indicador-rotulo { font-size: var(--t12); color: var(--suave); }
 #indicadores > li { display: flex; }
-button.indicador { width: 100%; text-align: left; align-items: flex-start; color: var(--texto); }
-button.indicador:hover { background: var(--azul-claro); border-color: var(--azul); }
-button.indicador[aria-pressed="true"] { background: var(--azul-claro); border-color: var(--azul); box-shadow: inset 0 -4px 0 var(--azul); }
-/* "Vencidas" só fica vermelho quando há demanda vencida. */
-button.indicador.indicador-alerta { border-color: var(--alerta); background: var(--alerta-fundo); }
+button.indicador { width: 100%; text-align: left; align-items: flex-start; color: var(--texto); border-radius: 0; border-bottom: 2px solid transparent; }
+button.indicador:hover { background: none; border-bottom-color: var(--borda); }
+button.indicador[aria-pressed="true"] { background: none; border-bottom-color: var(--azul); }
+/* "Vencidas" fica vermelho (só o texto) quando há demanda vencida. */
 button.indicador.indicador-alerta .indicador-valor, button.indicador.indicador-alerta .indicador-rotulo { color: var(--alerta); }
-button.indicador.indicador-alerta[aria-pressed="true"] { box-shadow: inset 0 -4px 0 var(--alerta); }
+button.indicador.indicador-alerta[aria-pressed="true"] { border-bottom-color: var(--alerta); }
 .indicadores.complementares { grid-template-columns: repeat(3, 1fr); }
 .demanda.destaque { box-shadow: 0 0 0 3px #2563eb; }
 
-.fila { display: grid; gap: 8px; }
-.demanda {
-  background: #fff; border: 1px solid var(--borda); border-left: 5px solid var(--azul);
-  border-radius: 10px; padding: 0; /* o espaçamento fica no botão que abre o painel */
-}
-.demanda.faixa-critica { border-left-color: var(--alerta); }
-.demanda.faixa-alta { border-left-color: #c2410c; }
-.demanda.faixa-media { border-left-color: #a16207; }
-.demanda.faixa-baixa { border-left-color: #475569; }
-.demanda.sobrestada { border-left-color: #7c3aed; background: #faf8ff; }
-.demanda.vencida { border-left-color: var(--alerta); background: var(--alerta-fundo); }
-.demanda-topo { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8rem; }
-.etiqueta { font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
-.status { color: var(--suave); }
-.demanda-titulo { margin: 4px 0; font-size: 1rem; overflow-wrap: anywhere; }
-.nota { margin: 0 0 8px; font-size: 0.85rem; color: var(--suave); }
-.prioridade { margin: 2px 0; font-size: 0.9rem; font-weight: 700; }
-.motivos { margin-top: 6px; font-size: 0.85rem; }
+/* Fila em uma coluna, em linhas compactas: selo de prioridade, título (com "tipo · origem" embaixo) e o prazo à direita. */
+.fila { display: grid; gap: 6px; }
+.demanda { background: #fff; border: 1px solid var(--borda); border-radius: 8px; padding: 0; /* o espaçamento fica no botão que abre o painel */ }
+.demanda-sub { display: flex; flex-wrap: wrap; gap: 0 4px; font-size: var(--t12); color: var(--suave); }
+.etiqueta { font-weight: 500; }
+.demanda-origem:not(:empty)::before { content: "· "; }
+/* Selo de prioridade: Crítica e Alta com cor, Média e Baixa neutras. Fora da fila, o selo mostra o estado, em tom suave. */
+.status { display: inline-block; justify-self: start; padding: 1px 8px; border-radius: 999px; font-size: var(--t12); font-weight: 600; white-space: nowrap; background: var(--selo-neutro); color: var(--suave); }
+.demanda.faixa-critica .status { background: var(--azul); color: #fff; }
+.demanda.faixa-alta .status { background: #dfe4f6; color: var(--azul); }
+.demanda.sobrestada .status { background: var(--estado-roxo-fundo); color: var(--estado-roxo); }
+.demanda.concluida .status { background: var(--estado-agua-fundo); color: var(--estado-agua); }
+.demanda-titulo { margin: 0; font-size: var(--t14); font-weight: 600; overflow-wrap: anywhere; }
+.nota { margin: 0 0 8px; font-size: var(--t12); color: var(--suave); }
+.prioridade { margin: 2px 0; font-size: var(--t14); font-weight: 600; }
+.motivos { margin-top: 6px; font-size: var(--t14); }
 .motivos summary { cursor: pointer; color: var(--suave); }
 .motivos ul { margin: 4px 0 0 16px; list-style: disc; }
-.demanda-detalhe, .demanda-prazo { margin: 2px 0; font-size: 0.88rem; color: var(--suave); }
-.demanda.vencida .demanda-prazo { color: var(--alerta); font-weight: 700; }
+.demanda-detalhe, .demanda-prazo { margin: 2px 0; font-size: var(--t12); color: var(--suave); }
+.demanda.sobrestada .demanda-prazo { color: var(--estado-roxo); }
+/* Vencida: só o texto do prazo fica vermelho (nada de fundo rosa no cartão). */
+.demanda.vencida .demanda-prazo { color: var(--alerta); font-weight: 600; }
 
 @media (min-width: 600px) {
   .indicadores { grid-template-columns: repeat(4, 1fr); }
   .indicadores.complementares { grid-template-columns: repeat(3, 1fr); }
-}
-@media (min-width: 1000px) {
-  .fila { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ---- M3: filtros, formulário e ações ---- */
@@ -140,16 +127,14 @@ button.indicador.indicador-alerta[aria-pressed="true"] { box-shadow: inset 0 -4p
 button.primario { background: var(--azul); color: #fff; font-weight: 600; }
 button.primario:hover { background: #2a3a7e; }
 
-.filtros {
-  display: grid; grid-template-columns: 1fr; gap: 8px;
-  background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 10px 12px;
-}
+/* Filtros sem caixa: só os campos têm borda. */
+.filtros { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 4px 0; }
 .campo { display: flex; flex-direction: column; gap: 3px; }
 .campo[hidden] { display: none; }
-.campo label { font-size: 0.85rem; font-weight: 600; }
+.campo label { font-size: var(--t12); font-weight: 600; }
 .campo input, .campo select { width: 100%; }
 select { font: inherit; color: var(--texto); border: 1px solid var(--azul); border-radius: 8px; padding: 6px 8px; background: #fff; }
-.erro-campo { color: var(--alerta); font-size: 0.82rem; min-height: 0; }
+.erro-campo { color: var(--alerta); font-size: var(--t12); min-height: 0; }
 [aria-invalid="true"] { border-color: var(--alerta); border-width: 2px; }
 
 dialog {
@@ -163,7 +148,7 @@ dialog form { display: grid; gap: 10px; }
 .erro ul { margin: 4px 0 0 16px; list-style: disc; }
 
 .acoes-cartao { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 8px; }
-.rotulo-status { font-size: 0.85rem; font-weight: 600; }
+.rotulo-status { font-size: var(--t12); font-weight: 600; }
 button.perigo { border-color: var(--alerta); color: var(--alerta); background: #fff; }
 button.perigo:hover { background: var(--alerta-fundo); }
 .demanda.concluida { opacity: 0.9; border-left-color: #15803d; }
@@ -185,23 +170,30 @@ button.perigo:hover { background: var(--alerta-fundo); }
 #mensagem { position: fixed; bottom: 12px; left: 12px; right: 12px; z-index: 30; max-width: 640px; margin: 0 auto; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25); }
 #mensagem button { margin-left: 6px; }
 .sucesso { background: #f0fdf4; border: 1px solid #15803d; color: #14532d; padding: 10px 12px; border-radius: 8px; }
+/* Aviso de afastamento próximo: uma linha discreta acima dos indicadores, com botão fechar. */
+.aviso-discreto { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 8px 0 0; font-size: var(--t12); color: var(--estado-bege); }
+.aviso-discreto[hidden] { display: none; }
+.aviso-discreto p { margin: 0; }
+.aviso-discreto p::before { content: "● "; color: #b89445; }
+button.aviso-fechar { flex: none; min-height: 32px; min-width: 32px; padding: 0 8px; border: 0; background: none; font-size: var(--t16); line-height: 1; color: var(--suave); }
+button.aviso-fechar:hover { background: var(--azul-claro); }
 .aviso-caixa { background: #fffbeb; border: 1px solid #b45309; color: #78350f; padding: 8px 12px; border-radius: 8px; margin-top: 8px; }
 .aviso-caixa p { margin: 4px 0; }
-.aviso-item { margin: 4px 0; font-size: 0.88rem; color: #78350f; background: #fffbeb; border-left: 3px solid #b45309; padding: 4px 8px; }
+.aviso-item { margin: 4px 0; font-size: var(--t14); color: #78350f; background: #fffbeb; border-left: 3px solid #b45309; padding: 4px 8px; }
 
 .agenda { display: grid; gap: 8px; }
 .agenda-dia { background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 8px 12px; }
-.agenda-dia h3 { margin: 0 0 4px; font-size: 0.95rem; text-transform: capitalize; }
+.agenda-dia h3 { margin: 0 0 4px; font-size: var(--t14); text-transform: capitalize; }
 .agenda-lista { display: grid; gap: 4px; }
-.evento { display: grid; grid-template-columns: 4.5rem 1fr; gap: 2px 8px; font-size: 0.9rem; }
+.evento { display: grid; grid-template-columns: 4.5rem 1fr; gap: 2px 8px; font-size: var(--t14); }
 .evento-hora { font-weight: 700; }
-.evento-tipo { grid-column: 2; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--suave); }
+.evento-tipo { grid-column: 2; font-size: var(--t12); color: var(--suave); }
 .evento-titulo { grid-column: 2; overflow-wrap: anywhere; }
 
 .afastamento { background: #fff; border: 1px solid var(--borda); border-left: 5px solid #0f766e; border-radius: 10px; padding: 10px 12px; }
 .afastamento-titulo { margin: 0 0 4px; font-weight: 700; }
 
-.pontos { margin-top: 6px; font-size: 0.88rem; }
+.pontos { margin-top: 6px; font-size: var(--t14); }
 .pontos summary { cursor: pointer; color: var(--suave); }
 .lista-pontos { display: grid; gap: 6px; margin-top: 6px; }
 .ponto { display: grid; grid-template-columns: 1fr; gap: 4px; padding: 6px 8px; border: 1px solid var(--borda); border-radius: 8px; }
@@ -210,7 +202,7 @@ button.perigo:hover { background: var(--alerta-fundo); }
 textarea { font: inherit; color: var(--texto); border: 1px solid var(--azul); border-radius: 8px; padding: 6px 10px; width: 100%; resize: vertical; }
 .acoes-esquerda { justify-content: flex-start; }
 .previa-ok { background: #f0fdf4; border: 1px solid #15803d; border-radius: 8px; padding: 8px 12px; }
-.previa-ok p { margin: 2px 0; font-size: 0.9rem; }
+.previa-ok p { margin: 2px 0; font-size: var(--t14); }
 #imp-previa .erro { margin: 0; }
 button:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
 
@@ -222,7 +214,7 @@ button:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
 
 /* ---- M5: resumo da semana e exportações ---- */
 .resumo { grid-template-columns: repeat(2, 1fr); }
-.aviso-dados { margin: 8px 0; font-size: 0.85rem; color: #78350f; background: #fffbeb; border-left: 3px solid #b45309; padding: 6px 10px; }
+.aviso-dados { margin: 8px 0; font-size: var(--t12); color: #78350f; background: #fffbeb; border-left: 3px solid #b45309; padding: 6px 10px; }
 .botoes-exportar { display: flex; flex-wrap: wrap; gap: 8px; }
 .menu-exportar summary {
   display: inline-block; cursor: pointer; font-weight: 600; min-height: 36px; padding: 6px 14px;
@@ -246,24 +238,24 @@ button:disabled, select:disabled { opacity: 0.55; cursor: not-allowed; }
 .dialogo-demanda form { display: flex; flex-direction: column; min-height: 0; flex: 1; gap: 0; }
 .dlg-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--borda); background: #fff; }
 .dlg-cabecalho h2 { margin: 0; }
-button.fechar { font-size: 1.4rem; line-height: 1; padding: 2px 10px; }
+button.fechar { font-size: var(--t20); line-height: 1; padding: 2px 10px; }
 .dlg-corpo { flex: 1; min-height: 0; overflow-y: auto; padding: 12px 16px; display: grid; gap: 10px; align-content: start; }
 .dlg-corpo > .nota { margin: 0; }
 .dlg-rodape { border-top: 1px solid var(--borda); background: var(--azul-claro); padding: 10px 16px; display: grid; gap: 8px; }
 .dlg-rodape .acoes { justify-content: space-between; margin: 0; }
-.previa { font-size: 0.88rem; max-height: 22vh; overflow-y: auto; }
+.previa { font-size: var(--t14); max-height: 22vh; overflow-y: auto; }
 .previa strong { display: block; }
 .previa span { color: var(--suave); overflow-wrap: anywhere; }
 .grade-campos { display: grid; grid-template-columns: 1fr; gap: 10px 12px; }
 .grade-campos .campo { min-width: 0; }
 /* Asterisco dos obrigatórios por CSS: não entra no nome acessível do campo (que já tem aria-required). */
 label.obrig::after { content: " *" / ""; color: var(--alerta); }
-.dica { font-size: max(0.78rem, 12px); color: var(--suave); } /* nunca abaixo de 12 px, mesmo com a fonte do navegador reduzida */
+.dica { font-size: var(--t12); color: var(--suave); } /* nunca abaixo de 12 px, mesmo com a fonte do navegador reduzida */
 .dialogo-demanda textarea { min-height: 4.5rem; }
 
 .anotacao-nova { display: flex; gap: 8px; }
 .anotacao-nova input { flex: 1; min-width: 0; }
-.campo .mostrar-concluidas { flex-direction: row; align-items: center; gap: 6px; font-weight: 400; font-size: 0.85rem; }
+.campo .mostrar-concluidas { flex-direction: row; align-items: center; gap: 6px; font-weight: 400; font-size: var(--t12); }
 .campo .mostrar-concluidas input { width: auto; }
 .lista-anotacoes { display: grid; gap: 4px; }
 .anotacao, .anotacao-cartao { display: flex; align-items: center; gap: 8px; min-width: 0; }
@@ -273,11 +265,11 @@ label.obrig::after { content: " *" / ""; color: var(--alerta); }
 .anotacao input.anotacao-edicao { flex: 1; min-width: 0; }
 .anotacao.feita .anotacao-texto, .anotacao-cartao.feita span { text-decoration: line-through; color: var(--suave); }
 .anotacao .remover { padding: 0 8px; line-height: 1.3; }
-.desfazer { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; font-size: 0.85rem; }
+.desfazer { display: flex; align-items: center; gap: 8px; margin: 4px 0 0; font-size: var(--t12); }
 .desfazer[hidden] { display: none; }
 .anotacoes-cartao ul { list-style: none; margin: 4px 0 0; }
 .anotacao-cartao { font-weight: 400; }
-.demanda-descricao { margin: 2px 0; font-size: 0.88rem; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.demanda-descricao { margin: 2px 0; font-size: var(--t14); overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
 @media (min-width: 600px) {
   .grade-campos { grid-template-columns: 1fr 1fr; }
@@ -286,7 +278,7 @@ label.obrig::after { content: " *" / ""; color: var(--alerta); }
 
 /* ---- Calendário mensal ---- */
 .calendario-mes { margin: 0 0 6px; font-weight: 700; }
-.legenda { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 8px; font-size: 0.82rem; color: var(--suave); }
+.legenda { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 8px; font-size: var(--t12); color: var(--suave); }
 .legenda li { display: flex; align-items: center; gap: 4px; }
 .marca { display: inline-block; width: 14px; height: 12px; border-radius: 3px; border: 1px solid; border-left-width: 4px; }
 .marca-ferias, .faixa-ferias { background: #ccfbf1; border-color: #0f766e; color: #134e4a; }
@@ -298,7 +290,7 @@ label.obrig::after { content: " *" / ""; color: var(--alerta); }
 
 .calendario-rolagem { overflow-x: auto; }
 .calendario { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 2px; }
-.calendario th { font-size: 0.78rem; font-weight: 600; color: var(--suave); padding: 2px 0; }
+.calendario th { font-size: var(--t12); font-weight: 600; color: var(--suave); padding: 2px 0; }
 .calendario abbr { text-decoration: none; }
 .calendario td { vertical-align: top; padding: 0; }
 button.dia {
@@ -310,7 +302,7 @@ button.dia[aria-pressed="true"] { background: var(--azul-claro); border-color: v
 .fora-do-mes button.dia { background: #f6f7fb; color: var(--suave); }
 .hoje button.dia { border: 2px solid var(--azul); }
 .hoje .dia-numero { background: var(--azul); color: #fff; border-radius: 999px; padding: 0 6px; align-self: flex-start; }
-.dia-numero { font-weight: 700; font-size: 0.85rem; }
+.dia-numero { font-weight: 700; font-size: var(--t12); }
 .periodo-aberta { background: #e0f2fe; border-color: #0369a1; color: #0c4a6e; }
 .periodo-sobrestada { background: #f3e8ff; border-color: #7c3aed; color: #581c87; }
 .periodo-concluida { background: #f1f5f9; border-color: #94a3b8; color: #475569; }
@@ -319,10 +311,10 @@ button.dia[aria-pressed="true"] { background: var(--azul-claro); border-color: v
   display: block; font-size: 0; height: 6px; border-radius: 3px; border-left: 3px solid;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.chip-mais { font-size: 0.7rem; color: var(--suave); }
+.chip-mais { font-size: var(--t12); color: var(--suave); }
 
 .calendario-detalhe { margin-top: 8px; background: #fff; border: 1px solid var(--borda); border-radius: 10px; padding: 8px 12px; }
-.calendario-detalhe h3 { margin: 0 0 6px; font-size: 0.95rem; }
+.calendario-detalhe h3 { margin: 0 0 6px; font-size: var(--t14); }
 .calendario-detalhe[hidden] { display: none; }
 button.link { padding: 0; border: 0; background: none; text-align: left; text-decoration: underline; color: var(--azul); min-height: 32px; }
 button.link:hover { background: none; color: #2563eb; }
@@ -331,17 +323,24 @@ button.link:hover { background: none; color: #2563eb; }
 @media (min-width: 600px) {
   .calendario { border-spacing: 4px; }
   button.dia { min-height: 96px; padding: 4px 6px; }
-  .faixa, .chip, .periodo { font-size: 0.72rem; height: auto; padding: 1px 4px; }
+  .faixa, .chip, .periodo { font-size: var(--t12); height: auto; padding: 1px 4px; }
 }
 
 /* ---- M8: card compacto e painel lateral ---- */
 button.demanda-abrir {
-  width: 100%; min-height: 44px; display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; text-align: left;
-  color: inherit; background: transparent; border: 0; border-radius: 0 10px 10px 0;
+  width: 100%; min-height: 44px; display: grid; align-items: center; gap: 2px 12px; padding: 8px 12px; text-align: left;
+  grid-template-columns: auto 1fr; grid-template-areas: "selo prazo" "corpo corpo";
+  color: inherit; background: transparent; border: 0; border-radius: 8px;
 }
-button.demanda-abrir:hover { background: rgba(30, 42, 94, 0.06); }
-button.demanda-abrir .demanda-titulo { margin: 0; font-size: 1rem; font-weight: 600; }
-button.demanda-abrir .demanda-prazo { margin: 0; }
+button.demanda-abrir:hover { background: var(--azul-claro); }
+button.demanda-abrir .status { grid-area: selo; }
+button.demanda-abrir .demanda-corpo { grid-area: corpo; display: grid; gap: 1px; min-width: 0; }
+button.demanda-abrir .demanda-titulo { margin: 0; }
+button.demanda-abrir .demanda-prazo { grid-area: prazo; margin: 0; text-align: right; }
+@media (min-width: 600px) {
+  /* Na lista, a linha cabe numa só altura: selo, título e prazo lado a lado. No quadro (colunas estreitas) continua empilhada. */
+  #fila button.demanda-abrir { grid-template-columns: 4.5rem 1fr auto; grid-template-areas: "selo corpo prazo"; }
+}
 
 dialog.painel-lateral {
   position: fixed; inset: 0 0 0 auto; margin: 0; padding: 0;
@@ -353,11 +352,13 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
   position: sticky; top: 0; z-index: 1; display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
   padding: 12px 16px 8px; background: #fff; border-bottom: 1px solid var(--borda);
 }
-.painel-topo h2 { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+.painel-topo h2 { margin: 0; font-size: var(--t16); overflow-wrap: anywhere; }
 .painel-corpo { display: grid; gap: 10px; padding: 10px 16px 16px; }
 .painel-corpo p { margin: 0; }
-.painel-motivos h3 { margin: 0 0 4px; font-size: 0.95rem; }
-.painel-motivos ul { margin: 0 0 0 16px; list-style: disc; font-size: 0.88rem; }
+/* No painel lateral as linhas de detalhe são o conteúdo: 14 px (na fila, o prazo e o "tipo · origem" ficam em 12 px). */
+.painel-corpo .demanda-detalhe, .painel-corpo .demanda-prazo { font-size: var(--t14); }
+.painel-motivos h3 { margin: 0 0 4px; font-size: var(--t14); }
+.painel-motivos ul { margin: 0 0 0 16px; list-style: disc; font-size: var(--t14); }
 
 /* ---- M9: quadro (Kanban) ---- */
 .visoes { display: inline-flex; }
@@ -372,16 +373,16 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 }
 .quadro-cab, .quadro-celula { scroll-snap-align: start; min-width: 0; }
 .quadro-cab { padding: 8px 10px; background: #fff; border: 1px solid var(--borda); border-radius: 8px; border-top: 4px solid var(--azul); }
-.quadro-cab h3 { display: inline; margin: 0; font-size: 0.95rem; }
+.quadro-cab h3 { display: inline; margin: 0; font-size: var(--t14); }
 .quadro-contagem { margin-left: 6px; font-weight: 700; }
-.quadro-limite { display: block; margin-top: 4px; font-size: 0.82rem; color: var(--suave); }
+.quadro-limite { display: block; margin-top: 4px; font-size: var(--t12); color: var(--suave); }
 .quadro-limite input { width: 4.5em; padding: 2px 6px; }
-.quadro-cab.acima-do-limite { background: var(--alerta-fundo); border-color: var(--alerta); border-top-color: var(--alerta); }
+.quadro-cab.acima-do-limite { border-top-color: var(--alerta); }
 .quadro-cab.acima-do-limite .quadro-contagem { color: var(--alerta); }
-.quadro-aviso { margin: 4px 0 0; font-size: 0.82rem; font-weight: 700; color: var(--alerta); }
+.quadro-aviso { margin: 4px 0 0; font-size: var(--t12); font-weight: 700; color: var(--alerta); }
 .quadro-faixa {
-  grid-column: 1 / -1; position: sticky; left: 0; margin: 10px 0 0; padding-bottom: 2px; font-size: 0.85rem;
-  text-transform: uppercase; letter-spacing: 0.04em; color: var(--suave); border-bottom: 1px solid var(--borda);
+  grid-column: 1 / -1; position: sticky; left: 0; margin: 10px 0 0; padding-bottom: 2px; font-size: var(--t12);
+  color: var(--suave); border-bottom: 1px solid var(--borda);
 }
 .quadro-celula {
   display: grid; gap: 8px; align-content: start; min-height: 52px; padding: 6px; margin: 0;
@@ -391,8 +392,8 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 .quadro-cartao[draggable="true"] { cursor: grab; }
 .quadro-cartao.arrastando { opacity: 0.45; }
 .quadro-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 0 12px 10px; }
-.quadro-acoes button { min-height: 40px; padding: 4px 10px; font-size: 0.85rem; }
-.quadro-idade { margin-right: auto; font-size: 0.8rem; color: var(--suave); }
+.quadro-acoes button { min-height: 40px; padding: 4px 10px; font-size: var(--t12); }
+.quadro-idade { margin-right: auto; font-size: var(--t12); color: var(--suave); }
 .so-leitor { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 
 @media (min-width: 600px) {
@@ -404,23 +405,24 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 .painel-anotacoes { display: grid; gap: 4px; }
 /* Caixa de anotação do ponto da operação (rótulo e área de texto em coluna). Tem classe própria: `.anotacao` é a linha da lista do formulário. */
 .anotacao-caixa { display: grid; gap: 4px; }
-.rotulo-anotacao { font-weight: 600; font-size: 0.95rem; }
+.rotulo-anotacao { font-weight: 600; font-size: var(--t14); }
 .anotacao-caixa textarea { width: 100%; resize: vertical; font: inherit; color: var(--texto); border: 1px solid var(--azul); border-radius: 8px; padding: 6px 8px; background: #fff; }
 .anotacao-estado { margin: 0; }
 .anotacao-caixa button { justify-self: start; }
-.demanda-obs { font-size: 0.78rem; font-weight: 600; color: #854d0e; }
-.selo-relatorio { margin-left: 6px; padding: 0 6px; font-size: 0.78rem; font-weight: 700; color: var(--azul); border: 1px solid var(--azul); border-radius: 999px; }
-.ponto-dica, .ponto-marcar { font-size: 0.82rem; }
+.demanda-obs { font-size: var(--t12); font-weight: 500; color: var(--estado-bege); }
+.demanda-sub .demanda-obs::before { content: "· "; }
+.selo-relatorio { margin-left: 6px; padding: 0 6px; font-size: var(--t12); font-weight: 700; color: var(--azul); border: 1px solid var(--azul); border-radius: 999px; }
+.ponto-dica, .ponto-marcar { font-size: var(--t12); }
 .ponto-marcar { display: flex; align-items: center; gap: 6px; }
 .ponto-marcar input { width: 1.1rem; height: 1.1rem; }
 .ponto-autos { display: grid; gap: 4px; }
 .autos { margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; }
-.auto { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 0.9rem; }
-.ponto-autos button, .auto button { min-height: 36px; padding: 2px 8px; font-size: 0.85rem; justify-self: start; }
-.ponto-obs { font-size: 0.9rem; }
+.auto { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: var(--t14); }
+.ponto-autos button, .auto button { min-height: 36px; padding: 2px 8px; font-size: var(--t12); justify-self: start; }
+.ponto-obs { font-size: var(--t14); }
 .ponto-obs summary { cursor: pointer; color: var(--suave); }
 .relatorios-bloco { display: grid; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid var(--borda); }
-.relatorios-bloco h4 { margin: 0; font-size: 0.95rem; }
+.relatorios-bloco h4 { margin: 0; font-size: var(--t14); }
 .relatorios-bloco > button { justify-self: start; }
 .relatorio-grupo { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 6px 8px; border: 1px solid var(--borda); border-radius: 8px; }
 
@@ -428,11 +430,11 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 .ponto-card { display: grid; gap: 4px; padding: 10px 12px; background: #fff; border: 1px solid var(--borda); border-left: 5px solid #475569; border-radius: 10px; }
 .ponto-card-topo { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; }
 .ponto-card-topo strong { overflow-wrap: anywhere; }
-.ponto-card-operacao { margin: 0; font-size: 0.82rem; color: var(--suave); }
-.ponto-card-linha { margin: 0; font-size: 0.9rem; overflow-wrap: anywhere; }
-.ponto-card-obs { margin: 0; padding: 4px 8px; font-size: 0.85rem; background: #fffbeb; border-left: 3px solid #b45309; color: #78350f; white-space: pre-line; overflow-wrap: anywhere; }
+.ponto-card-operacao { margin: 0; font-size: var(--t12); color: var(--suave); }
+.ponto-card-linha { margin: 0; font-size: var(--t14); overflow-wrap: anywhere; }
+.ponto-card-obs { margin: 0; padding: 4px 8px; font-size: var(--t12); background: #fffbeb; border-left: 3px solid #b45309; color: #78350f; white-space: pre-line; overflow-wrap: anywhere; }
 .ponto-card > button { justify-self: start; min-height: 40px; }
-.selo-situacao { padding: 0 8px; font-size: 0.78rem; font-weight: 700; border: 1px solid currentColor; border-radius: 999px; }
+.selo-situacao { padding: 0 8px; font-size: var(--t12); font-weight: 700; border: 1px solid currentColor; border-radius: 999px; }
 .selo-situacao-planejado { color: #475569; }
 .selo-situacao-aguardando_relatorio { color: var(--alerta); }
 .selo-situacao-a_lavrar { color: #9a3412; }
@@ -452,7 +454,7 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 @media (max-width: 420px) {
   /* Cinco abas: com fonte mais larga (Linux, por exemplo) elas quebram em duas linhas em vez de rolar dentro da barra. */
   .abas { flex-wrap: wrap; overflow-x: visible; }
-  .abas a { padding: 6px 5px; font-size: 0.8rem; }
+  .abas a { padding: 6px 5px; font-size: var(--t12); }
 }
 
 /* ---- Mapa dos pontos (SVG local) ---- */
@@ -474,11 +476,11 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 .forma-a_lavrar { fill: #f97316; }
 .forma-com_auto { fill: #16a34a; }
 .forma-encerrado_sem_auto { fill: #8b5cf6; }
-.mapa-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0; padding: 0; list-style: none; font-size: 0.85rem; }
+.mapa-legenda { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0; padding: 0; list-style: none; font-size: var(--t12); }
 .legenda-item { display: flex; align-items: center; gap: 6px; }
 .legenda-icone { width: 22px; height: 22px; }
-.mapa-sem-coordenada { display: grid; gap: 4px; margin: 4px 0 0; padding-left: 18px; font-size: 0.9rem; }
-.mapa h3 { margin: 12px 0 0; font-size: 0.95rem; }
+.mapa-sem-coordenada { display: grid; gap: 4px; margin: 4px 0 0; padding-left: 18px; font-size: var(--t14); }
+.mapa h3 { margin: 12px 0 0; font-size: var(--t14); }
 #pontos-lista[hidden], #pontos-mapa[hidden] { display: none; }
 
 /* Mapa com camadas (Leaflet local): seletor de camada, mapa, coordenada sob o cursor, marcadores e popup. */
@@ -499,8 +501,8 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 .demanda-faixa-sem { fill: #e2e8f0; }
 .marcador-letra { font: 700 13px "Segoe UI", Roboto, Arial, sans-serif; fill: #0f172a; pointer-events: none; }
 .demanda-faixa-critica + .marcador-letra, .demanda-faixa-alta + .marcador-letra { fill: #fff; }
-.popup-mapa { display: grid; gap: 4px; font-size: 0.9rem; color: var(--texto); }
-.popup-titulo { font-size: 0.95rem; }
+.popup-mapa { display: grid; gap: 4px; font-size: var(--t14); color: var(--texto); }
+.popup-titulo { font-size: var(--t14); }
 .popup-sub, .popup-linha { margin: 0; }
 .popup-rotulo { font-weight: 600; }
 .popup-abrir { margin-top: 4px; }
@@ -509,6 +511,20 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 .linha-localizar { display: flex; gap: 8px; }
 .linha-localizar input { flex: 1; min-width: 0; }
 /* Linha de aviso sob o campo (valor convertido, hemisfério assumido, fora de MT, fora da lista de municípios). */
-.aviso-campo { font-size: max(0.82rem, 12px); color: #92400e; overflow-wrap: anywhere; }
+.aviso-campo { font-size: var(--t12); color: #92400e; overflow-wrap: anywhere; }
 .aviso-campo:empty { display: none; }
 .campo .mostrar-concluidas[hidden] { display: none; }
+
+/* Estado das colunas do quadro, em tom suave (roxo = sobrestado, verde-água = concluída, bege = em andamento). */
+.quadro-cab[data-coluna="aguardando"] { border-top-color: var(--estado-roxo); }
+.quadro-cab[data-coluna="concluida"] { border-top-color: var(--estado-agua); }
+.quadro-cab[data-coluna="em_andamento"] { border-top-color: var(--estado-bege); }
+/* Em tela de celular, campos de texto em 16 px: abaixo disso alguns navegadores ampliam a página ao focar. */
+@media (max-width: 600px) {
+  input, select, textarea { font-size: var(--t16); }
+}
+/* Celular: os filtros em duas colunas (a busca e o botão ocupam a linha toda), para a fila aparecer mais cedo. */
+@media (max-width: 599px) {
+  .filtros { grid-template-columns: 1fr 1fr; }
+  .filtros .campo:first-child, .filtros .campo-acao { grid-column: 1 / -1; }
+}

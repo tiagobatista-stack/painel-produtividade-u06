@@ -27,13 +27,34 @@ export async function abrir(page) {
   await usarDataDoExemplo(page);
 }
 
+// A data de referência fica no rodapé ("Referência: dd/mm/aaaa · alterar"); os controles só aparecem depois de "alterar".
+export async function abrirControlesDeReferencia(page) {
+  const alterar = page.getByRole('button', { name: 'alterar', exact: true });
+  if ((await alterar.getAttribute('aria-expanded')) !== 'true') await alterar.click();
+  await expect(page.locator('#referencia-controles')).toBeVisible();
+}
+
+// Fecha os controles de novo, para os testes seguirem com a tela no estado de abertura (controles escondidos atrás de "alterar").
+export async function fecharControlesDeReferencia(page) {
+  const alterar = page.getByRole('button', { name: 'alterar', exact: true });
+  if ((await alterar.getAttribute('aria-expanded')) === 'true') await alterar.click();
+  await expect(page.locator('#referencia-controles')).toBeHidden();
+}
+
+export async function definirDataDeReferencia(page, valor) {
+  await abrirControlesDeReferencia(page);
+  await page.getByLabel('Data de referência').fill(valor);
+}
+
 export async function usarDataDoExemplo(page) {
-  const botao = page.getByRole('button', { name: /Usar data do exemplo/ });
+  const botao = page.locator('#usar-data-seed');
   // O botão existe no HTML antes de o app carregar o seed. O texto ganha a data do exemplo no mesmo instante em que o clique
   // é ligado; clicar antes disso não faz nada e deixaria a tela com a data de hoje.
   await expect(botao).toHaveText(/\(15\/10\/2026\)/);
+  await abrirControlesDeReferencia(page);
   await botao.click();
   await expect(page.locator('#indicadores .indicador-valor')).toHaveCount(4);
+  await fecharControlesDeReferencia(page);
 }
 
 // Os 4 indicadores em destaque, na ordem da tela: vencidas, próximos 7 dias, sobrestados, concluídas na semana.

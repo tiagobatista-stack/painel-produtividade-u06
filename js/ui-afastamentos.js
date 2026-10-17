@@ -50,10 +50,39 @@ export function desenharAgenda(hoje) {
 
 // ---------- Aviso de afastamento próximo ----------
 
+// O aviso de afastamento próximo é uma linha discreta com botão fechar. O fechamento é lembrado no navegador pela identidade dos
+// afastamentos avisados (não pela contagem de dias): só volta a aparecer quando outro afastamento passa a estar próximo.
+const CHAVE_AVISO_FECHADO = 'painel-demandas:aviso-afastamento-fechado';
+
+function avisoJaFechado(assinatura) {
+  try {
+    return estado.storage?.getItem(CHAVE_AVISO_FECHADO) === assinatura;
+  } catch {
+    return false;
+  }
+}
+
+function lembrarAvisoFechado(assinatura) {
+  try {
+    estado.storage?.setItem(CHAVE_AVISO_FECHADO, assinatura);
+  } catch {
+    // sem armazenamento o aviso só fica fechado até recarregar
+  }
+}
+
 export function desenharBanner(hoje) {
   const proximos = afastamentosProximos(estado.dados.afastamentos, hoje);
   const caixa = $('aviso-afastamento');
-  caixa.hidden = proximos.length === 0;
+  const assinatura = proximos.map(({ afastamento: a }) => a.id).join('|');
+  caixa.hidden = proximos.length === 0 || avisoJaFechado(assinatura);
+  const fechar = elemento('button', 'aviso-fechar', '×');
+  fechar.type = 'button';
+  fechar.setAttribute('aria-label', 'Fechar o aviso de afastamento');
+  fechar.addEventListener('click', () => {
+    lembrarAvisoFechado(assinatura);
+    caixa.hidden = true;
+    $('titulo-indicadores').focus(); // o foco não se perde junto com o botão
+  });
   caixa.replaceChildren(
     ...proximos.map(({ afastamento: a, dias }) => {
       const { prazos, viagens } = avisosAfastamento(a, estado.dados.demandas, hoje);
@@ -63,7 +92,8 @@ export function desenharBanner(hoje) {
       if (prazos.length) partes.push(`${plural(prazos.length, 'demanda tem', 'demandas têm')} prazo no período: considere antecipar.`);
       if (viagens.length) partes.push(`${plural(viagens.length, 'viagem de operação coincide', 'viagens de operação coincidem')} com o período: ajuste a escala com a coordenação.`);
       return elemento('p', '', partes.join(' '));
-    })
+    }),
+    fechar
   );
 }
 
