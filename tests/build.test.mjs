@@ -4,7 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join, normalize, relative, resolve, sep } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BUILD = join(RAIZ, 'scripts', 'build.mjs');
@@ -16,6 +16,7 @@ const listar = (pasta) =>
 const arquivos = (pasta) => listar(pasta).map((f) => relative(pasta, f).split(sep).join('/')).sort();
 const construir = (destino) => execFileSync(process.execPath, [BUILD, destino], { encoding: 'utf8' });
 const PAGINAS = ['index.html', 'kanban.html'];
+const URLS_DO_MAPA = ['https://tile.openstreetmap.org/{z}/{x}/{y}.png', 'https://geo.sema.mt.gov.br/geoserver/ows', 'https://www.openstreetmap.org/copyright'];
 
 before(() => {
   base = mkdtempSync(join(tmpdir(), 'painel-build-'));
@@ -34,7 +35,7 @@ test('o build copia somente o que o navegador precisa', () => {
   assert.ok(lista.includes('data/planilha-exemplo.tsv'));
   const js = readdirSync(join(RAIZ, 'js')).filter((f) => f.endsWith('.js')).map((f) => `js/${f}`).sort();
   assert.deepEqual(lista.filter((f) => f.startsWith('js/')), js);
-  assert.deepEqual(lista.filter((f) => !/^(index\.html|kanban\.html|css\/|js\/|data\/)/.test(f)), []);
+  assert.deepEqual(lista.filter((f) => !/^(index\.html|kanban\.html|css\/|js\/|data\/|vendor\/)/.test(f)), []);
 });
 
 test('o build não leva testes, ferramentas, documentos, scripts, legado, dependências nem arquivos ocultos', () => {
@@ -57,7 +58,7 @@ test('todo import dos módulos e todo recurso do HTML existe no resultado', () =
     if (visitados.has(arquivo)) return;
     visitados.add(arquivo);
     assert.ok(existsSync(arquivo), `faltando no build: ${relative(saida, arquivo)}`);
-    if (!arquivo.endsWith('.js')) return;
+    if (!arquivo.endsWith('.js') || arquivo.includes(`${sep}vendor${sep}`)) return; // o Leaflet é de terceiros, empacotado: não se lê import dele
     const fonte = readFileSync(arquivo, 'utf8');
     for (const [, especificador] of fonte.matchAll(/(?:import|export)[^'"]*?from\s+'([^']+)'/g)) {
       assert.ok(especificador.startsWith('./'), `${relative(saida, arquivo)} importa fora de js/: ${especificador}`);
@@ -70,7 +71,10 @@ test('todo import dos módulos e todo recurso do HTML existe no resultado', () =
   // Tudo o que as páginas alcançam está no build, e tudo o que está no build é alcançado (nada faltando, nada sobrando).
   // As duas páginas se alcançam pelo link do topo, então entram na lista de alcançados.
   const alcancados = [...visitados].map((f) => relative(saida, f).split(sep).join('/')).sort();
-  assert.deepEqual(alcancados, arquivos(saida));
+  // Do Leaflet, a licença e as imagens do CSS dele vão junto sem serem citadas por uma página.
+  const doLeaflet = arquivos(saida).filter((f) => f.startsWith('vendor/leaflet/images/') || f === 'vendor/leaflet/LICENSE');
+  assert.ok(doLeaflet.includes('vendor/leaflet/LICENSE'), 'a licença do Leaflet precisa ir junto');
+  assert.deepEqual([...alcancados, ...doLeaflet].sort(), arquivos(saida));
 });
 
 test('o código do navegador não depende de recursos externos nem de manipuladores embutidos', () => {
@@ -84,8 +88,10 @@ test('o código do navegador não depende de recursos externos nem de manipulado
   for (const f of listar(join(saida, 'js'))) {
     const fonte = readFileSync(f, 'utf8');
     // O endereço do espaço de nomes do SVG é só um identificador (document.createElementNS), não uma requisição.
-    const semNamespaceSvg = fonte.replaceAll('http://www.w3.org/2000/svg', '');
-    assert.equal(/https?:\/\//.test(semNamespaceSvg), false, `URL externa em ${relative(saida, f)}`);
+    let semPermitidas = fonte.replaceAll('http://www.w3.org/2000/svg', '');
+    // Só js/camadas-mapa.js tem endereço externo: os servidores de blocos (conferidos com a política de conteúdo abaixo) e o link da atribuição.
+    if (f.endsWith(`${sep}camadas-mapa.js`)) for (const url of URLS_DO_MAPA) semPermitidas = semPermitidas.replaceAll(url, '');
+    assert.equal(/https?:\/\//.test(semPermitidas), false, `URL externa em ${relative(saida, f)}`);
     assert.equal(/\beval\(|new Function|\.innerHTML\s*=/.test(fonte), false, `construção insegura em ${relative(saida, f)}`);
   }
 });
@@ -117,4 +123,17 @@ test('vercel.json: build, pasta de saída e cabeçalhos de segurança', () => {
   const csp = cab['Content-Security-Policy'];
   for (const d of ["default-src 'self'", "script-src 'self'", "style-src 'self'", "object-src 'none'", "frame-ancestors 'none'", "base-uri 'none'"]) assert.ok(csp.includes(d), d);
   assert.equal(csp.includes('unsafe-inline') || csp.includes('unsafe-eval') || csp.includes('*'), false);
+  // O mapa com camadas muda só o img-src: os servidores de blocos, por nome, e mais nada.
+  const diretivas = Object.fromEntries(csp.split(';').map((d) => d.trim().split(/\s+/)).map(([nome, ...valores]) => [nome, valores]));
+  assert.deepEqual(diretivas['img-src'], ["'self'", 'data:', 'https://tile.openstreetmap.org', 'https://geo.sema.mt.gov.br']);
+  for (const nome of ['default-src', 'script-src', 'style-src', 'font-src', 'connect-src']) assert.equal(diretivas[nome].some((v) => v.startsWith('http')), false, nome);
+  assert.deepEqual(diretivas['connect-src'], ["'self'"]);
+});
+
+test('os servidores de mapa do código são exatamente os liberados em img-src', async () => {
+  const { SERVIDORES_EXTERNOS } = await import(pathToFileURL(join(RAIZ, 'js', 'camadas-mapa.js')).href);
+  const v = JSON.parse(readFileSync(join(RAIZ, 'vercel.json'), 'utf8'));
+  const csp = v.headers.find((h) => h.source === '/(.*)').headers.find((h) => h.key === 'Content-Security-Policy').value;
+  const imgSrc = csp.split(';').map((d) => d.trim()).find((d) => d.startsWith('img-src ')).split(/\s+/).slice(1);
+  assert.deepEqual(imgSrc.filter((x) => x.startsWith('https:')).sort(), [...SERVIDORES_EXTERNOS].sort());
 });
