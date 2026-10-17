@@ -37,8 +37,6 @@ h2 { font-size: 1.05rem; margin: 18px 0 8px; }
 .topo .referencia input, .topo .referencia button, .topo button.primario { min-height: 32px; padding: 3px 8px; font-size: 0.85rem; }
 .referencia { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; margin-top: 4px; font-size: 0.85rem; }
 .referencia label { font-weight: 600; }
-.link-topo { margin-left: auto; color: #fff; font-size: 0.85rem; text-decoration: underline; }
-.link-topo:hover { color: var(--azul-claro); }
 
 /* ---- M8: abas, foco de hoje ---- */
 .abas { display: flex; gap: 2px; overflow-x: auto; margin: 12px 0 8px; border-bottom: 2px solid var(--borda); }

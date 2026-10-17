@@ -15,7 +15,7 @@ const listar = (pasta) =>
   readdirSync(pasta, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? listar(join(pasta, e.name)) : [join(pasta, e.name)]));
 const arquivos = (pasta) => listar(pasta).map((f) => relative(pasta, f).split(sep).join('/')).sort();
 const construir = (destino) => execFileSync(process.execPath, [BUILD, destino], { encoding: 'utf8' });
-const PAGINAS = ['index.html', 'kanban.html'];
+const PAGINAS = ['index.html'];
 const URLS_DO_MAPA = ['https://tile.openstreetmap.org/{z}/{x}/{y}.png', 'https://geo.sema.mt.gov.br/geoserver/ows', 'https://www.openstreetmap.org/copyright', 'https://www.openstreetmap.org'];
 
 before(() => {
@@ -29,13 +29,18 @@ test('o build copia somente o que o navegador precisa', () => {
   const lista = arquivos(saida);
   for (const pagina of PAGINAS) assert.ok(lista.includes(pagina), pagina);
   assert.ok(lista.includes('css/styles.css'));
-  assert.ok(lista.includes('css/kanban.css'));
   assert.ok(lista.includes('data/seed.json'));
-  assert.ok(lista.includes('data/kanban-exemplo.json'));
   assert.ok(lista.includes('data/planilha-exemplo.tsv'));
   const js = readdirSync(join(RAIZ, 'js')).filter((f) => f.endsWith('.js')).map((f) => `js/${f}`).sort();
   assert.deepEqual(lista.filter((f) => f.startsWith('js/')), js);
-  assert.deepEqual(lista.filter((f) => !/^(index\.html|kanban\.html|css\/|js\/|data\/|vendor\/)/.test(f)), []);
+  assert.deepEqual(lista.filter((f) => !/^(index\.html|css\/|js\/|data\/|vendor\/)/.test(f)), []);
+});
+
+test('o build não gera kanban.html nem nenhum arquivo do Kanban de projetos (ferramenta de metodologia, removida do site)', () => {
+  const lista = arquivos(saida);
+  assert.equal(lista.includes('kanban.html'), false);
+  assert.deepEqual(lista.filter((f) => /kanban|design-thinking|ui-dt/i.test(f)), []);
+  assert.deepEqual(lista.filter((f) => f.endsWith('.html')), ['index.html']); // a única página publicada
 });
 
 test('o build não leva testes, ferramentas, documentos, scripts, legado, dependências nem arquivos ocultos', () => {
@@ -47,12 +52,11 @@ test('o build não leva testes, ferramentas, documentos, scripts, legado, depend
 });
 
 test('todo import dos módulos e todo recurso do HTML existe no resultado', () => {
-  // Recursos de cada página (os links entre as páginas contam como recursos; os de âncora e data: não).
+  // Recursos da página (os de âncora e data: não contam).
   const recursosDe = (pagina) => [...readFileSync(join(saida, pagina), 'utf8').matchAll(/(?:src|href)="([^"]+)"/g)].map((m) => m[1]).filter((u) => !u.startsWith('data:') && !u.startsWith('#'));
   const recursos = PAGINAS.flatMap(recursosDe);
   assert.ok(recursosDe('index.html').includes('css/styles.css') && recursosDe('index.html').includes('js/app.js'));
-  assert.ok(recursosDe('kanban.html').includes('css/kanban.css') && recursosDe('kanban.html').includes('js/kanban-app.js'));
-  assert.ok(recursosDe('index.html').includes('kanban.html') && recursosDe('kanban.html').includes('index.html'), 'as duas páginas devem ter link uma para a outra');
+  assert.equal(recursosDe('index.html').some((r) => /kanban/i.test(r)), false, 'a página não aponta para nada do Kanban');
   const visitados = new Set();
   const visitar = (arquivo) => {
     if (visitados.has(arquivo)) return;
@@ -69,8 +73,8 @@ test('todo import dos módulos e todo recurso do HTML existe no resultado', () =
   };
   for (const r of recursos) visitar(join(saida, r));
   // Tudo o que as páginas alcançam está no build, e tudo o que está no build é alcançado (nada faltando, nada sobrando).
-  // As duas páginas se alcançam pelo link do topo, então entram na lista de alcançados.
-  const alcancados = [...visitados].map((f) => relative(saida, f).split(sep).join('/')).sort();
+  // A página é a raiz do site (ninguém aponta para ela), então entra na lista de alcançados como ponto de partida.
+  const alcancados = [...new Set([...visitados, ...PAGINAS.map((p) => join(saida, p))])].map((f) => relative(saida, f).split(sep).join('/')).sort();
   // Do Leaflet, a licença e as imagens do CSS dele vão junto sem serem citadas por uma página.
   const doLeaflet = arquivos(saida).filter((f) => f.startsWith('vendor/leaflet/images/') || f === 'vendor/leaflet/LICENSE');
   assert.ok(doLeaflet.includes('vendor/leaflet/LICENSE'), 'a licença do Leaflet precisa ir junto');
