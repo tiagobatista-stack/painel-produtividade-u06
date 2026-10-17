@@ -53,33 +53,54 @@
     {
       "id": "DEM-0003", "tipo": "processo", "titulo": "Manifestação em procedimento do Ministério Público (fictício)",
       "origem": "mp", "status": "em_andamento", "prazo": "2026-10-13", "criada_em": "2026-10-01", "esforco_h": 4,
-      "processo": "SEMA-PRO-FICT-0042", "etapa": "parecer", "historico": [],
-      "observacoes": "Feito: minuta do parecer enviada à chefia em 12/10. Pendente: aguardar a análise jurídica e anexar a resposta ao processo."
+      "protocolo": "SEMA-PRO-FICT-0042", "etapa": "parecer",
+      "descricao": "Manifestação técnica solicitada em procedimento fictício, com documentos a reunir e resposta no prazo.",
+      "responsavel": "Equipe Jurídica Fictícia", "municipio": "Cidade Fictícia Alfa",
+      "anotacoes": [
+        { "id": "A-1", "texto": "Conferir os anexos do processo", "feita": true, "criada_em": "2026-10-02", "concluida_em": "2026-10-08" },
+        { "id": "A-2", "texto": "Redigir a minuta da manifestação", "feita": false, "criada_em": "2026-10-02", "concluida_em": null },
+        { "id": "A-3", "texto": "Enviar para revisão da coordenação", "feita": false, "criada_em": "2026-10-02", "concluida_em": null }
+      ],
+      "historico": []
     },
     {
       "id": "DEM-0004", "tipo": "processo", "titulo": "Informação técnica para ofício do Poder Judiciário (fictício)",
       "origem": "judiciario", "status": "a_fazer", "prazo": "2026-11-06", "criada_em": "2026-10-05", "esforco_h": 6,
-      "processo": "SEMA-PRO-FICT-0051", "etapa": "analise", "historico": []
+      "protocolo": "SEMA-PRO-FICT-0051", "etapa": "analise",
+      "descricao": "Informação técnica para instruir ofício fictício.", "responsavel": "Analista Fictício", "municipio": "Cidade Fictícia Beta",
+      "historico": []
     },
     {
       "id": "DEM-0005", "tipo": "processo", "titulo": "Resposta à chefia sobre processo de licenciamento (fictício)",
       "origem": "chefia", "status": "a_fazer", "prazo": "2026-10-16", "criada_em": "2026-10-12", "esforco_h": 2,
-      "processo": "SEMA-PRO-FICT-0063", "etapa": "despacho", "historico": []
+      "protocolo": "SEMA-PRO-FICT-0063", "etapa": "analise", "historico": []
     },
     {
       "id": "DEM-0006", "tipo": "processo", "titulo": "Resposta a manifestação de ouvidoria (fictício)",
       "origem": "ouvidoria", "status": "aguardando", "prazo": "2026-10-30", "criada_em": "2026-10-08", "esforco_h": 2,
-      "processo": "SEMA-PRO-FICT-0070", "etapa": "aguardando_informacao", "historico": []
+      "protocolo": "SEMA-PRO-FICT-0070", "etapa": "triagem", "historico": []
     },
     {
       "id": "DEM-0007", "tipo": "processo", "titulo": "Análise de denúncia sobre supressão vegetal (fictícia)",
       "origem": "denuncia", "status": "a_fazer", "prazo": "2026-10-20", "criada_em": "2026-10-13", "esforco_h": 5,
-      "processo": "SEMA-PRO-FICT-0088", "etapa": "analise", "historico": []
+      "protocolo": "SEMA-PRO-FICT-0088", "etapa": "analise",
+      "descricao": "Denúncia fictícia sobre supressão vegetal, com histórico de alertas da área.",
+      "anotacoes": [
+        { "id": "A-1", "texto": "Consultar alertas anteriores da área", "feita": false, "criada_em": "2026-10-06", "concluida_em": null },
+        { "id": "A-2", "texto": "Pedir imagem de satélite recente", "feita": false, "criada_em": "2026-10-06", "concluida_em": null }
+      ],
+      "historico": []
     },
     {
       "id": "DEM-0008", "tipo": "reuniao", "titulo": "Reunião de alinhamento com a coordenação",
       "origem": "chefia", "status": "a_fazer", "prazo": "2026-10-20", "criada_em": "2026-10-10", "esforco_h": 1,
-      "data_hora": "2026-10-20T09:00", "local": "Sala de reuniões (fictícia)", "historico": []
+      "data_hora": "2026-10-20T09:00", "local": "Sala de reuniões (fictícia)",
+      "descricao": "Alinhar prioridades da semana com a coordenação.", "responsavel": "Coordenação Fictícia",
+      "anotacoes": [
+        { "id": "A-1", "texto": "Levar o resumo semanal", "feita": false, "criada_em": "2026-10-10", "concluida_em": null },
+        { "id": "A-2", "texto": "Listar pendências de relatórios", "feita": false, "criada_em": "2026-10-10", "concluida_em": null }
+      ],
+      "historico": []
     },
     {
       "id": "DEM-0009", "tipo": "reuniao", "titulo": "Reunião de planejamento da próxima operação",
@@ -104,7 +125,7 @@
     {
       "id": "DEM-0013", "tipo": "processo", "titulo": "Parecer em processo de ouvidoria (fictício)",
       "origem": "ouvidoria", "status": "concluida", "prazo": "2026-10-14", "criada_em": "2026-10-02", "esforco_h": 3,
-      "processo": "SEMA-PRO-FICT-0035", "etapa": "concluido", "concluida_em": "2026-10-14",
+      "protocolo": "SEMA-PRO-FICT-0035", "etapa": "devolvido", "concluida_em": "2026-10-14",
       "historico": [{ "data": "2026-10-14", "evento": "Concluída" }]
     }
   ]

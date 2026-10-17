@@ -1,5 +1,6 @@
 // Motor de prioridade. Fonte das regras: docs/REGRAS_PRIORIDADE.md.
 // Módulo puro: sem DOM, sem armazenamento. Usado pela interface, pelos testes Node e pelo MCP.
+import { PRIORIDADE_MANUAL } from './rotulos.js';
 import { dataValida, diasEntre, estaConcluida, estaSobrestada, prazoDemanda, relatoriosPendentes } from './indicadores.js';
 
 export class ErroValidacao extends Error {
@@ -86,15 +87,28 @@ export function priorizar(demanda, hoje, { afastamentos = [] } = {}) {
   return { score, faixa: faixaDoScore(score), motivos };
 }
 
-// Fila aberta ordenada por: maior score, prazo mais próximo, data de criação.
-// Demandas com erro de validação não derrubam as demais; vão para `erros`.
+// Ajuste manual (docs/REGRAS_PRIORIDADE.md, T14): a faixa escolhida define o grupo na fila; o score calculado não muda.
+// Devolve o nome da faixa manual, ou null quando a prioridade é automática.
+export function faixaManual(demanda) {
+  return PRIORIDADE_MANUAL[demanda.prioridade_manual] ?? null;
+}
+
+const posicaoDaFaixa = (nome) => REGRAS.faixas.findIndex((f) => f.nome === nome);
+
+// Fila aberta ordenada por: faixa efetiva (a manual, se houver), maior score calculado, prazo mais próximo, data de criação.
+// `faixa` é a efetiva; `faixa_calculada` e `score` vêm sempre do cálculo. Demandas com erro de validação não derrubam as demais; vão para `erros`.
 export function priorizarFila(demandas, hoje, contexto = {}) {
   const fila = [];
   const erros = [];
   for (const demanda of demandas) {
     try {
       const resultado = priorizar(demanda, hoje, contexto);
-      if (!resultado.foraDaFila) fila.push({ demanda, prazo: prazoDemanda(demanda), ...resultado });
+      if (resultado.foraDaFila) continue;
+      const manual = faixaManual(demanda);
+      fila.push({
+        demanda, prazo: prazoDemanda(demanda), ...resultado,
+        faixa: manual ?? resultado.faixa, faixa_calculada: resultado.faixa, modo: manual ? 'manual' : 'automatica',
+      });
     } catch (e) {
       if (!(e instanceof ErroValidacao)) throw e;
       erros.push({ demanda, erro: e.message });
@@ -102,6 +116,7 @@ export function priorizarFila(demandas, hoje, contexto = {}) {
   }
   fila.sort(
     (a, b) =>
+      posicaoDaFaixa(a.faixa) - posicaoDaFaixa(b.faixa) ||
       b.score - a.score ||
       a.prazo.localeCompare(b.prazo) ||
       (a.demanda.criada_em || '').localeCompare(b.demanda.criada_em || '')

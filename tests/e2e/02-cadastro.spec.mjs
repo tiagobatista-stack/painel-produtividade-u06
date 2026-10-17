@@ -25,7 +25,6 @@ test.describe('cadastro, edição e status', () => {
     await dialogo.getByLabel('Prazo', { exact: true }).fill('');
     await dialogo.getByRole('button', { name: 'Salvar' }).click();
     await expect(dialogo.getByRole('alert')).toContainText('Informe o título.');
-    await expect(dialogo.getByRole('alert')).toContainText('Informe o número do processo');
     await expect(dialogo.getByLabel('Título')).toHaveAttribute('aria-invalid', 'true');
     await expect(dialogo.getByLabel('Título')).toBeFocused();
     await dialogo.getByRole('button', { name: 'Cancelar' }).click();
@@ -38,7 +37,7 @@ test.describe('cadastro, edição e status', () => {
     await page.getByRole('button', { name: 'Nova demanda' }).click();
     const dialogo = page.getByRole('dialog', { name: 'Nova demanda' });
     await dialogo.getByLabel('Título').fill('Prazo impossível');
-    await dialogo.getByLabel('Nº do processo (fictício)').fill('SEMA-PRO-FICT-1');
+    await dialogo.getByLabel('Protocolo/referência').fill('SEMA-PRO-FICT-1');
     // O campo de data do navegador não aceita 31/02; o valor chega vazio e o formulário recusa.
     await dialogo.getByLabel('Prazo', { exact: true }).evaluate((el) => { el.value = '2026-02-31'; });
     await dialogo.getByRole('button', { name: 'Salvar' }).click();
@@ -49,11 +48,11 @@ test.describe('cadastro, edição e status', () => {
     await abrir(page);
     await page.getByRole('button', { name: 'Nova demanda' }).click();
     const dialogo = page.getByRole('dialog', { name: 'Nova demanda' });
-    await expect(dialogo.getByLabel('Nº do processo (fictício)')).toBeVisible();
+    await expect(dialogo.getByLabel('Etapa')).toBeVisible();
     await dialogo.getByLabel('Tipo').selectOption({ label: 'Palestra' });
     await expect(dialogo.getByLabel('Público esperado (pessoas)')).toBeVisible();
     await expect(dialogo.getByLabel('Local')).toBeVisible();
-    await expect(dialogo.getByLabel('Nº do processo (fictício)')).toBeHidden();
+    await expect(dialogo.getByLabel('Etapa')).toBeHidden();
     await expect(dialogo.getByLabel('Origem').locator('option')).toHaveText(['Chefia', 'Própria']);
     await dialogo.getByLabel('Tipo').selectOption({ label: 'Processo SIGADOC' });
     await expect(dialogo.getByLabel('Origem').locator('option')).toHaveCount(7);

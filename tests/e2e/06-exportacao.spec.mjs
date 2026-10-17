@@ -18,7 +18,8 @@ test.describe('resumo da semana e exportações', () => {
     const l = linhas(conteudo);
     expect(l).toHaveLength(14); // cabeçalho + 13 demandas
     expect(l[0]).toMatch(/^ID;TIPO;TITULO;/);
-    expect(l.some((x) => x.includes('Sobrestado (aguardando)') && x.endsWith(';sim;'))).toBe(true);
+    const colunaSobrestada = l[0].split(';').indexOf('SOBRESTADA');
+    expect(l.some((x) => x.includes('Sobrestado (aguardando)') && x.split(';')[colunaSobrestada] === 'sim')).toBe(true);
     expect(conteudo.toString('utf8')).not.toContain('COORD'); // demandas não levam coordenadas
     await expect(page.locator('#mensagem')).toContainText('Arquivo gerado: demandas-2026-10-15.csv');
   });

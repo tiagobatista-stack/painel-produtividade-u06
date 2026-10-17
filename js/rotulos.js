@@ -37,3 +37,13 @@ export const ROTULOS_EVENTO = {
   prazo_processo: 'Prazo de processo', prazo_demanda: 'Prazo', afastamento: 'Afastamento',
 };
 export const SITUACOES_AFASTAMENTO = { planejado: 'Planejado', solicitado: 'Solicitado', aprovado: 'Aprovado' };
+
+// Etapas por tipo (só o processo usa etapa). A chave é o valor gravado; o rótulo é o que a tela mostra.
+export const ETAPAS = {
+  processo: { triagem: 'Triagem', analise: 'Análise', parecer: 'Parecer', devolvido: 'Devolvido' },
+};
+// Valores de etapa gravados antes da lista fixa → etapa equivalente.
+export const ETAPA_ANTIGA = { parecer: 'parecer', analise: 'analise', despacho: 'analise', aguardando_informacao: 'triagem', concluido: 'devolvido' };
+
+// Ajuste manual de prioridade: chave gravada → faixa do motor (js/regras.js).
+export const PRIORIDADE_MANUAL = { baixa: 'Baixa', media: 'Média', alta: 'Alta', critica: 'Crítica' };

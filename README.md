@@ -16,6 +16,10 @@ Painel de Demandas: fila única priorizada por prazo e criticidade para reuniõe
 
 M0 a M6 concluídos. M7 (qualidade e publicação): build para `public/`, testes e2e com Playwright, workflow do GitHub Actions e cabeçalhos de segurança prontos e verificados localmente. Falta publicar: repositório no GitHub e deploy na Vercel (exigem as contas e a autorização do usuário).
 
+## Formulário de demanda
+
+Cadastro e edição em diálogo com cabeçalho e rodapé fixos: tipo, origem, título, descrição, status, prioridade, responsável, prazo, município, protocolo/referência, etapa (processo), esforço e anotações. A prioridade é automática (calculada pelo `js/regras.js`), com ajuste manual opcional que exige motivo; a prévia no rodapé mostra sempre a prioridade calculada. As anotações são uma lista com caixa de seleção, também marcável no cartão da fila. Regras em `docs/REGRAS_PRIORIDADE.md` (T14) e requisitos RF15 a RF18 em `docs/REQUISITOS.md`.
+
 ## Aviso
 
 A URL publicada na Vercel é pública: somente dados fictícios entram neste repositório.
