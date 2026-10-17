@@ -1,4 +1,4 @@
-import { test, expect, abrir, abrirPainel, cadastrarProcesso, cartao, fecharPainel, painel } from './apoio.mjs';
+import { test, expect, abrir, abrirPainel, cadastrarProcesso, cartao, fecharPainel, painel, usarDataDoExemplo } from './apoio.mjs';
 
 const TITULO = 'Organizar arquivos digitais da equipe'; // DEM-0011, tipo "outra", prazo 25/10, faixa Baixa
 const guardadas = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('painel-demandas:v1')).demandas.length);
@@ -101,6 +101,7 @@ test.describe('excluir sem confirmação, com Desfazer (RF20)', () => {
     await expect(cartao(page, TITULO).getByRole('button')).toBeFocused();
 
     await page.reload();
+    await usarDataDoExemplo(page); // a data de referência é só da tela: depois de recarregar vale a data real, e a ordem mudaria
     await expect(page.locator('#fila .demanda-titulo').first()).toBeVisible();
     expect(await titulos(page)).toEqual(antes);
   });
