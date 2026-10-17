@@ -45,9 +45,11 @@ export const CABECALHO_DEMANDAS = [
   'PROTOCOLO', 'ETAPA', 'DATA_HORA', 'LOCAL', 'PUBLICO', 'EQUIPE', 'SAIDA', 'RETORNO', 'PONTOS',
   'RELATORIOS_PENDENTES', 'AUTOS_A_LAVRAR', 'SOBRESTADA',
   'DESCRICAO', 'RESPONSAVEL', 'MUNICIPIO', 'PRIORIDADE_MODO', 'MOTIVO_AJUSTE', 'ANOTACOES',
+  'ENDERECO', 'COORD_X', 'COORD_Y',
 ];
 
-// Todas as demandas (inclusive concluídas e sobrestadas), sem coordenadas. Faixa e score só existem para as ativas:
+// Todas as demandas (inclusive concluídas e sobrestadas). ENDERECO, COORD_X (longitude) e COORD_Y (latitude) ficam no fim e só existem
+// nas demandas que têm localização (a operação tem coordenada nos pontos). Faixa e score só existem para as ativas:
 // FAIXA é a efetiva (a manual, se houver) e SCORE é sempre o calculado. PROTOCOLO é o nº do processo nos processos.
 export function csvDemandas(demandas, hoje, contexto = {}) {
   const linhas = [...demandas].sort(porId).map((d) => {
@@ -89,6 +91,9 @@ export function csvDemandas(demandas, hoje, contexto = {}) {
       faixaManual(d) ? 'manual' : 'automatica',
       celulaTexto(d.motivo_ajuste),
       celulaTexto(anotacoesEmTexto(d.anotacoes)),
+      celulaTexto(d.endereco),
+      celulaNumero(d.coord_x),
+      celulaNumero(d.coord_y),
     ];
   });
   return montarCsv(CABECALHO_DEMANDAS, linhas);

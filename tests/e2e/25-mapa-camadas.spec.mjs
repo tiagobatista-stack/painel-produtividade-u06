@@ -73,12 +73,12 @@ test.describe('mapa com camadas: OpenStreetMap e satélite', () => {
 
   test('os marcadores são os itens da lista filtrada, e limpar o filtro devolve todos', async ({ page }) => {
     await abrirComCamada(page, 'OpenStreetMap');
-    await expect(marcadores(page)).toHaveCount(21);
+    await expect(marcadores(page)).toHaveCount(25);
     await page.locator('#pontos-indicadores button', { hasText: 'Auto a lavrar' }).click();
     await expect(marcadores(page)).toHaveCount(2);
     await expect(page.locator('#mapa-legenda .legenda-item').nth(2)).toHaveText('Relatório concluído, auto a lavrar: 2');
     await filtrosPontos(page).getByRole('button', { name: 'Limpar filtros' }).click();
-    await expect(marcadores(page)).toHaveCount(21);
+    await expect(marcadores(page)).toHaveCount(25);
     await filtrosPontos(page).getByLabel('Operação').selectOption({ label: 'Equipe Fictícia Sul · saída 22/09/2026' });
     await expect(marcadores(page)).toHaveCount(8);
     await filtrosPontos(page).getByLabel('Buscar').fill('nada disso existe');
@@ -151,7 +151,7 @@ test.describe('mapa com camadas: OpenStreetMap e satélite', () => {
     await irParaAba(page, 'Pontos');
     await expect(visao(page, 'Mapa')).toHaveAttribute('aria-pressed', 'true');
     await expect(camada(page, 'Satélite')).toHaveAttribute('aria-pressed', 'true');
-    await expect(marcadores(page)).toHaveCount(21);
+    await expect(marcadores(page)).toHaveCount(25);
   });
 
   test('o mapa mostra a coordenada em GMS sob o cursor e o clique fixa o ponto para copiar', async ({ page, context, isMobile }) => {
@@ -188,18 +188,18 @@ test.describe('mapa com camadas: OpenStreetMap e satélite', () => {
     await page.route(SERVIDORES, (rota) => rota.fulfill({ status: 200, contentType: 'image/png', body: PNG }));
     await camada(page, 'Satélite').click();
     await expect(camada(page, 'Satélite')).toHaveAttribute('aria-pressed', 'true');
-    await expect(marcadores(page)).toHaveCount(21);
+    await expect(marcadores(page)).toHaveCount(25);
   });
 
   test('demanda com coordenada vira marcador próprio, com prioridade no popup, e obedece aos filtros', async ({ page }) => {
     await simularServidores(page);
     await comDemandaCoordenada(page);
     await camada(page, 'OpenStreetMap').click();
-    await expect(marcadores(page)).toHaveCount(22);
+    await expect(marcadores(page)).toHaveCount(26);
     const demanda = page.locator('[data-foco="mapa-demanda-DEM-9001"]');
     await expect(demanda).toHaveAttribute('aria-label', /Demanda Vistoria fictícia no oceano, prioridade Baixa\. Abrir os detalhes/);
     await expect(demanda.locator('.marcador-letra')).toHaveText('B');
-    await expect(page.locator('#mapa-legenda .legenda-item').last()).toHaveText('Demandas com coordenada (letra = faixa): 1');
+    await expect(page.locator('#mapa-legenda .legenda-item').last()).toHaveText('Demandas com coordenada (letra = faixa): 5');
 
     await demanda.click();
     const popup = page.locator('.leaflet-popup');
@@ -214,14 +214,14 @@ test.describe('mapa com camadas: OpenStreetMap e satélite', () => {
     await filtrosPontos(page).getByLabel('Buscar').fill('oceano');
     await expect(marcadores(page)).toHaveCount(1); // a busca vale para a demanda; nenhum ponto combina
     await filtrosPontos(page).getByRole('button', { name: 'Limpar filtros' }).click();
-    await expect(marcadores(page)).toHaveCount(22);
+    await expect(marcadores(page)).toHaveCount(26);
     await filtrosPontos(page).getByLabel('Operação').selectOption({ label: 'Equipe Fictícia Sul · saída 22/09/2026' });
     await expect(marcadores(page)).toHaveCount(8); // escolher uma operação esconde as demandas
   });
 
   test('o mapa cabe na largura da tela, sem rolagem horizontal da página', async ({ page }) => {
     await abrirComCamada(page, 'OpenStreetMap');
-    await expect(marcadores(page)).toHaveCount(21);
+    await expect(marcadores(page)).toHaveCount(25);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
     const caixa = await page.locator('#mapa-leaflet').boundingBox();
     expect(caixa.x).toBeGreaterThanOrEqual(0);
@@ -240,6 +240,6 @@ test.describe('mapa com camadas: OpenStreetMap e satélite', () => {
     await page.waitForTimeout(500);
     expect(pedidos.length).toBe(antes);
     await visao(page, 'Mapa').click();
-    await expect(marcadores(page)).toHaveCount(21);
+    await expect(marcadores(page)).toHaveCount(25);
   });
 });

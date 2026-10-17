@@ -16,7 +16,7 @@ const listar = (pasta) =>
 const arquivos = (pasta) => listar(pasta).map((f) => relative(pasta, f).split(sep).join('/')).sort();
 const construir = (destino) => execFileSync(process.execPath, [BUILD, destino], { encoding: 'utf8' });
 const PAGINAS = ['index.html', 'kanban.html'];
-const URLS_DO_MAPA = ['https://tile.openstreetmap.org/{z}/{x}/{y}.png', 'https://geo.sema.mt.gov.br/geoserver/ows', 'https://www.openstreetmap.org/copyright'];
+const URLS_DO_MAPA = ['https://tile.openstreetmap.org/{z}/{x}/{y}.png', 'https://geo.sema.mt.gov.br/geoserver/ows', 'https://www.openstreetmap.org/copyright', 'https://www.openstreetmap.org'];
 
 before(() => {
   base = mkdtempSync(join(tmpdir(), 'painel-build-'));

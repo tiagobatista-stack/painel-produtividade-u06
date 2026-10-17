@@ -52,6 +52,7 @@
     },
     {
       "id": "DEM-0003", "tipo": "processo", "titulo": "Manifestação em procedimento do Ministério Público (fictício)",
+      "endereco": "Rodovia Fictícia, km 40 (referência fictícia)", "coord_x": -27.2, "coord_y": -12.5, "coord_x_texto": "27° 12' 00,00\" O", "coord_y_texto": "12° 30' 00,00\" S",
       "origem": "mp", "status": "em_andamento", "prazo": "2026-10-13", "criada_em": "2026-10-01", "esforco_h": 4,
       "protocolo": "SEMA-PRO-FICT-0042", "etapa": "parecer",
       "descricao": "Manifestação técnica solicitada em procedimento fictício, com documentos a reunir e resposta no prazo.",
@@ -65,6 +66,7 @@
     },
     {
       "id": "DEM-0004", "tipo": "processo", "titulo": "Informação técnica para ofício do Poder Judiciário (fictício)",
+      "endereco": "Fazenda Exemplo Beta (fictícia)", "coord_x": -26.4, "coord_y": -13.8, "coord_x_texto": "26° 24' 00,00\" O", "coord_y_texto": "13° 48' 00,00\" S",
       "origem": "judiciario", "status": "a_fazer", "prazo": "2026-11-06", "criada_em": "2026-10-05", "esforco_h": 6,
       "protocolo": "SEMA-PRO-FICT-0051", "etapa": "analise",
       "descricao": "Informação técnica para instruir ofício fictício.", "responsavel": "Analista Fictício", "municipio": "Cidade Fictícia Beta",
@@ -82,6 +84,7 @@
     },
     {
       "id": "DEM-0007", "tipo": "processo", "titulo": "Análise de denúncia sobre supressão vegetal (fictícia)",
+      "endereco": "Margem do córrego Exemplo, próximo à ponte (fictício)", "coord_x": -25.7, "coord_y": -15.9, "coord_x_texto": "25° 42' 00,00\" O", "coord_y_texto": "15° 54' 00,00\" S",
       "origem": "denuncia", "status": "a_fazer", "prazo": "2026-10-20", "criada_em": "2026-10-13", "esforco_h": 5,
       "protocolo": "SEMA-PRO-FICT-0088", "etapa": "analise",
       "descricao": "Denúncia fictícia sobre supressão vegetal, com histórico de alertas da área.",
@@ -109,6 +112,7 @@
     },
     {
       "id": "DEM-0010", "tipo": "palestra", "titulo": "Palestra sobre prevenção de desmatamento",
+      "endereco": "Auditório da unidade (fictício)", "coord_x": -28.1, "coord_y": -17.3, "coord_x_texto": "28° 06' 00,00\" O", "coord_y_texto": "17° 18' 00,00\" S",
       "origem": "propria", "status": "a_fazer", "prazo": "2026-10-22", "criada_em": "2026-10-06", "esforco_h": 3,
       "data_hora": "2026-10-22T10:00", "local": "Auditório (fictício)", "publico": 40, "historico": []
     },

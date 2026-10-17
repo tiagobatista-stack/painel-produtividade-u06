@@ -1,16 +1,18 @@
 // Interface do formulário de demanda (nova e edição): campos por tipo, prévia da prioridade calculada e anotações.
+import { linkParaLocalizar } from './camadas-mapa.js';
+import { lerParDeCoordenadas } from './coordenadas.js';
 import { ErroCadastro, TIPOS_CADASTRAVEIS, criarDemanda, editarDemanda, origensDoTipo } from './demandas.js';
 import { ErroValidacao, priorizar } from './regras.js';
 import { ETAPAS, ORIGENS, PRIORIDADE_MANUAL, STATUS, TIPOS } from './rotulos.js';
-import { $, criarGestorErros, estado, hojeAtual, opcoes, persistir } from './ui-comum.js';
+import { $, abrirEmNovaAba, criarGestorErros, estado, hojeAtual, opcoes, persistir } from './ui-comum.js';
 import { criarEditorAnotacoes } from './ui-anotacoes.js';
 
 const CAMPOS = [
   'tipo', 'origem', 'titulo', 'descricao', 'status', 'prioridade_manual', 'motivo_ajuste', 'responsavel', 'prazo', 'municipio', 'protocolo',
-  'data_hora', 'local', 'publico', 'etapa', 'esforco_h', 'prazo_dias', 'horas_ponto', 'anotacoes',
+  'data_hora', 'local', 'publico', 'etapa', 'esforco_h', 'prazo_dias', 'horas_ponto', 'endereco', 'latitude', 'longitude', 'anotacoes',
 ];
 const CAMPOS_DE_TEXTO = [
-  'titulo', 'descricao', 'responsavel', 'municipio', 'protocolo', 'data_hora', 'local', 'publico', 'prazo', 'esforco_h', 'prazo_dias', 'horas_ponto', 'motivo_ajuste',
+  'titulo', 'descricao', 'responsavel', 'municipio', 'protocolo', 'data_hora', 'local', 'publico', 'prazo', 'esforco_h', 'prazo_dias', 'horas_ponto', 'motivo_ajuste', 'endereco',
 ];
 
 const dialogo = $('dialogo');
@@ -73,11 +75,40 @@ function atualizarCamposDoTipo(tipo) {
   for (const campo of formulario.querySelectorAll('[data-tipos]')) {
     campo.hidden = !campo.dataset.tipos.split(' ').includes(tipo);
   }
+  atualizarAvisosDeCoordenada();
   const atual = $('f-origem').value;
   const validas = origensDoTipo(tipo);
   opcoes($('f-origem'), validas.map((o) => [o, ORIGENS[o]]), validas.includes(atual) ? atual : validas[0]);
   const etapas = ETAPAS[tipo];
   if (etapas) opcoes($('f-etapa'), [['', 'Sem etapa'], ...Object.entries(etapas)], '');
+}
+
+// Avisos de coordenada enquanto se digita (hemisfério assumido, ponto fora de Mato Grosso). Os erros só aparecem ao salvar.
+function atualizarAvisosDeCoordenada() {
+  const { avisos } = lerParDeCoordenadas($('f-latitude').value, $('f-longitude').value);
+  const caixa = $('avisos-coordenada');
+  caixa.replaceChildren(...avisos.map((aviso) => {
+    const linha = document.createElement('span');
+    linha.textContent = aviso;
+    linha.className = 'aviso-linha';
+    return linha;
+  }));
+  caixa.hidden = avisos.length === 0 || $('f-latitude').closest('[data-tipos]').hidden;
+}
+
+// "Localizar": abre o OpenStreetMap em nova aba (a página não faz requisição). Coordenadas inválidas são mostradas, não ignoradas.
+function localizar() {
+  const par = lerParDeCoordenadas($('f-latitude').value, $('f-longitude').value);
+  if (!par.vazio && Object.keys(par.erros).length) {
+    gestor.mostrar(par.erros);
+    return;
+  }
+  const url = linkParaLocalizar({ latitude: par.latitude, longitude: par.longitude, endereco: $('f-endereco').value });
+  if (!url) {
+    gestor.mostrar({ endereco: 'Informe o endereço ou as coordenadas para localizar.' });
+    return;
+  }
+  abrirEmNovaAba(url);
 }
 
 function atualizarMotivo() {
@@ -97,6 +128,10 @@ export function abrirFormulario(demanda, origemDoClique) {
   opcoes($('f-prioridade_manual'), [['', 'Automática (calculada)'], ...Object.entries(PRIORIDADE_MANUAL)], '');
   atualizarCamposDoTipo(tipoSelect.value);
   if (demanda) {
+    // Latitude e longitude voltam como foram digitadas; sem o texto, o decimal gravado.
+    const decimal = (v) => (Number.isFinite(v) ? String(v).replace('.', ',') : '');
+    $('f-latitude').value = demanda.coord_y_texto ?? decimal(demanda.coord_y);
+    $('f-longitude').value = demanda.coord_x_texto ?? decimal(demanda.coord_x);
     $('f-origem').value = demanda.origem;
     for (const campo of CAMPOS_DE_TEXTO) {
       if (demanda[campo] !== undefined) $(`f-${campo}`).value = demanda[campo];
@@ -106,6 +141,7 @@ export function abrirFormulario(demanda, origemDoClique) {
   }
   // Demanda nova começa sem prazo: a data de referência não é um padrão.
   atualizarMotivo();
+  atualizarAvisosDeCoordenada();
   anotacoes.carregar(demanda?.anotacoes ?? []);
   atualizarPrevia();
   dialogo.showModal();
@@ -148,6 +184,8 @@ export function iniciarFormulario() {
     if (!$('f-prazo').value && e.target.value) $('f-prazo').value = e.target.value.slice(0, 10);
   });
   formulario.addEventListener('input', atualizarPrevia);
+  for (const id of ['f-latitude', 'f-longitude']) $(id).addEventListener('input', atualizarAvisosDeCoordenada);
+  $('f-localizar').addEventListener('click', localizar);
   formulario.addEventListener('change', atualizarPrevia);
   formulario.addEventListener('submit', enviarFormulario);
   $('cancelar').addEventListener('click', () => dialogo.close());

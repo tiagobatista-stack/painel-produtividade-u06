@@ -54,3 +54,15 @@ export const SERVIDORES_EXTERNOS = [...new Set(Object.values(CAMADAS_EXTERNAS).m
 export function camadaValida(valor) {
   return CAMADAS_VALIDAS.includes(valor) ? valor : CAMADA_PADRAO;
 }
+
+// "Localizar": endereço do OpenStreetMap que o usuário abre em nova aba. A página não faz requisição: só monta o link.
+// Com coordenadas, aponta o ponto; sem elas e com endereço, abre a busca do endereço; sem nada, devolve null.
+const OPENSTREETMAP = 'https://www.openstreetmap.org';
+
+export function linkParaLocalizar({ latitude, longitude, endereco } = {}) {
+  if (Number.isFinite(latitude) && Number.isFinite(longitude)) {
+    return `${OPENSTREETMAP}/?mlat=${latitude}&mlon=${longitude}#map=16/${latitude}/${longitude}`;
+  }
+  const texto = typeof endereco === 'string' ? endereco.trim() : '';
+  return texto ? `${OPENSTREETMAP}/search?query=${encodeURIComponent(texto)}` : null;
+}
