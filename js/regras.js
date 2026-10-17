@@ -14,7 +14,7 @@ export class ErroValidacao extends Error {
 // de modo que a interface, os testes e o MCP nunca divirjam.
 export const REGRAS = {
   prazo: { vencido: 50, ate2dias: 30, de3a7dias: 15 },
-  tipo: { operacao: 20, processo: 15, reuniao: 10, palestra: 5, outra: 0 },
+  tipo: { operacao: 20, processo: 15, licenciamento: 15, reuniao: 10, palestra: 5, outra: 0 },
   origemProcesso: { mp: 25, judiciario: 25, procuradoria: 25, ouvidoria: 15, denuncia: 10 },
   chefia: 10,
   relatoriosPendentes: [
@@ -30,7 +30,7 @@ export const REGRAS = {
   ],
 };
 
-const ROTULO_TIPO = { operacao: 'Operação de alertas', processo: 'Processo SIGADOC', reuniao: 'Reunião', palestra: 'Palestra', outra: 'Outra' };
+const ROTULO_TIPO = { operacao: 'Operação de alertas', processo: 'Processo SIGADOC', licenciamento: 'Licenciamento', reuniao: 'Reunião', palestra: 'Palestra', outra: 'Outra' };
 const ROTULO_ORIGEM = {
   mp: 'Ministério Público', judiciario: 'Poder Judiciário', procuradoria: 'Procuradoria de Justiça',
   ouvidoria: 'Ouvidoria', denuncia: 'Denúncia',
@@ -69,7 +69,8 @@ export function priorizar(demanda, hoje, { afastamentos = [] } = {}) {
   somar(...pontosPrazo(diasEntre(hoje, prazo)));
   somar(REGRAS.tipo[demanda.tipo], REGRAS.tipo[demanda.tipo] ? ROTULO_TIPO[demanda.tipo] : null);
 
-  if (demanda.tipo === 'processo' && demanda.origem in REGRAS.origemProcesso) {
+  // Licenciamento usa as mesmas origens do processo (MP, Judiciário, Procuradoria, ouvidoria, denúncia).
+  if ((demanda.tipo === 'processo' || demanda.tipo === 'licenciamento') && demanda.origem in REGRAS.origemProcesso) {
     somar(REGRAS.origemProcesso[demanda.origem], `Origem: ${ROTULO_ORIGEM[demanda.origem]}`);
   }
   if (demanda.origem === 'chefia') somar(REGRAS.chefia, 'Origem: chefia ou coordenação');

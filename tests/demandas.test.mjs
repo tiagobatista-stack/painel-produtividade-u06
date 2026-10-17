@@ -25,7 +25,7 @@ const erroCampos = (fn) => {
 
 test('cria demanda de cada tipo com id sequencial, criação e histórico', () => {
   const d = criarDemanda(processo, seed.demandas, HOJE);
-  assert.equal(d.id, 'DEM-0014');
+  assert.equal(d.id, 'DEM-0015');
   assert.equal(d.criada_em, HOJE);
   assert.deepEqual(d.historico, [{ data: HOJE, evento: 'Criada' }]);
   assert.equal(d.esforco_h, 2);
@@ -110,9 +110,9 @@ test('editar mantém a data de conclusão de quem já estava concluída', () => 
 
 const ids = (r) => r.itens.map((x) => x.demanda.id);
 
-test('filtro padrão lista as 10 abertas ativas em ordem de prioridade (sobrestada fora)', () => {
+test('filtro padrão lista as 11 abertas ativas em ordem de prioridade (sobrestada fora)', () => {
   const r = listarDemandas(seed.demandas, {}, HOJE, ctx);
-  assert.equal(r.itens.length, 10);
+  assert.equal(r.itens.length, 11);
   assert.equal(r.itens.some((x) => x.demanda.id === 'DEM-0006'), false);
   assert.equal(ids(r)[0], 'DEM-0003');
   assert.ok(r.itens.every((x) => x.faixa));
@@ -148,14 +148,14 @@ test('nova demanda entra na fila com prioridade calculada', () => {
   const item = r.itens.find((x) => x.demanda.id === nova.id);
   assert.equal(item.score, 90);
   assert.equal(item.faixa, 'Crítica');
-  assert.equal(r.itens.length, 11);
+  assert.equal(r.itens.length, 12);
 });
 
 test('demanda com prazo inválido aparece em erros, não na fila', () => {
   const ruim = { id: 'RUIM', tipo: 'outra', origem: 'propria', status: 'a_fazer', prazo: '', titulo: 'Sem prazo', criada_em: HOJE };
   const r = listarDemandas([...seed.demandas, ruim], {}, HOJE, ctx);
   assert.deepEqual(r.erros.map((x) => x.demanda.id), ['RUIM']);
-  assert.equal(r.itens.length, 10);
+  assert.equal(r.itens.length, 11);
 });
 
 test('filtro Sobrestado lista as sobrestadas pelo prazo registrado, sem pontuação, e respeita tipo e busca', () => {
@@ -204,10 +204,10 @@ test('limpar filtros: listar com o padrão devolve a fila ativa completa, e o pa
   const filtrada = listarDemandas(seed.demandas, { busca: 'reunião', tipo: 'reuniao', status: 'concluida', prioridade: 'Alta' }, HOJE, ctx);
   assert.equal(filtrada.itens.length, 0);
   const limpa = listarDemandas(seed.demandas, { ...FILTROS_PADRAO }, HOJE, ctx);
-  assert.equal(limpa.itens.length, 10);
+  assert.equal(limpa.itens.length, 11);
   assert.deepEqual(limpa.itens.map((x) => x.demanda.id), listarDemandas(seed.demandas, {}, HOJE, ctx).itens.map((x) => x.demanda.id));
   assert.equal(Object.isFrozen(FILTROS_PADRAO), true);
-  assert.equal(seed.demandas.length, 13); // listar nunca altera as demandas
+  assert.equal(seed.demandas.length, 14); // listar nunca altera as demandas
 });
 
 // ---- Campos novos, ajuste manual de prioridade, anotações e migração ----

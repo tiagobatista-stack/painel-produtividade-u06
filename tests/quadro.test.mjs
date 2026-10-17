@@ -14,10 +14,10 @@ const ids = (itens) => itens.map((x) => x.demanda.id);
 const coluna = (quadro, chave) => quadro.colunas.find((c) => c.chave === chave);
 const quadro = () => montarQuadro(seed.demandas, HOJE, contexto);
 
-test('RF16: colunas do seed — A fazer 7, Em andamento 3, Sobrestado 1, Concluída na semana 2', () => {
+test('RF16: colunas do seed — A fazer 8, Em andamento 3, Sobrestado 1, Concluída na semana 2', () => {
   const q = quadro();
   assert.deepEqual(q.colunas.map((c) => c.chave), COLUNAS.map((c) => c.chave));
-  assert.deepEqual(q.colunas.map((c) => c.total), [7, 3, 1, 2]);
+  assert.deepEqual(q.colunas.map((c) => c.total), [8, 3, 1, 2]);
   assert.deepEqual(ids(coluna(q, 'aguardando').itens), ['DEM-0006']);
   assert.deepEqual(ids(coluna(q, 'concluida').itens).sort(), ['DEM-0012', 'DEM-0013']);
 });
@@ -47,7 +47,7 @@ test('RF19: classes de serviço do seed', () => {
   const daClasse = (classe) => todos.filter((x) => x.classe === classe && !x.concluida).map((x) => x.demanda.id).sort();
   assert.deepEqual(daClasse('urgente'), ['DEM-0002', 'DEM-0003']);
   assert.deepEqual(daClasse('data_fixa'), ['DEM-0008', 'DEM-0009', 'DEM-0010']);
-  assert.deepEqual(daClasse('padrao'), ['DEM-0001', 'DEM-0004', 'DEM-0005', 'DEM-0006', 'DEM-0007']);
+  assert.deepEqual(daClasse('padrao'), ['DEM-0001', 'DEM-0004', 'DEM-0005', 'DEM-0006', 'DEM-0007', 'DEM-0014']);
   assert.deepEqual(daClasse('rotina'), ['DEM-0011']);
   assert.deepEqual(CLASSES.map((c) => c.chave), ['urgente', 'data_fixa', 'padrao', 'rotina']);
 });

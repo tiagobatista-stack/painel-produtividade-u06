@@ -11,7 +11,7 @@ test.describe('abas pelo endereço e topo fixo (RF15)', () => {
     await expect(aba(page, 'quadro')).toBeVisible();
     for (const nome of ['pontos', 'agenda', 'afastamentos', 'relatorios']) await expect(aba(page, nome)).toBeHidden();
     // "Quadro" mostra a fila atual (o quadro Kanban é do M9)
-    await expect(page.locator('#fila > li')).toHaveCount(10);
+    await expect(page.locator('#fila > li')).toHaveCount(11);
 
     for (const nome of ['pontos', 'agenda', 'afastamentos', 'relatorios']) {
       await irParaAba(page, ROTULOS[nome]);

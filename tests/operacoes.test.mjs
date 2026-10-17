@@ -22,7 +22,7 @@ const codigo = (fn) => {
 
 test('importar a planilha de exemplo gera a operação com prazo = retorno + N', () => {
   const op = novaOperacao();
-  assert.equal(op.id, 'DEM-0014');
+  assert.equal(op.id, 'DEM-0015');
   assert.equal(op.tipo, 'operacao');
   assert.equal(op.origem, 'chefia');
   assert.equal(op.status, 'a_fazer');
@@ -165,8 +165,8 @@ test('editar operação: título, origem e parâmetros; status e prazo derivados
 test('a nova operação aparece na fila e nos filtros', () => {
   const todas = [...seed.demandas, novaOperacao()];
   const { itens } = listarDemandas(todas, { tipo: 'operacao' }, HOJE, { afastamentos: seed.afastamentos });
-  assert.deepEqual(itens.map((x) => x.demanda.id), ['DEM-0002', 'DEM-0001', 'DEM-0014']);
-  assert.equal(listarDemandas(todas, { busca: 'Fictício B' }, HOJE).itens.some((x) => x.demanda.id === 'DEM-0014'), true);
+  assert.deepEqual(itens.map((x) => x.demanda.id), ['DEM-0002', 'DEM-0001', 'DEM-0015']);
+  assert.equal(listarDemandas(todas, { busca: 'Fictício B' }, HOJE).itens.some((x) => x.demanda.id === 'DEM-0015'), true);
 });
 
 test('sobrestar operação: aguardando identificação do autuado, fora da fila e dos indicadores de prazo', () => {
@@ -183,7 +183,7 @@ test('sobrestar operação: aguardando identificação do autuado, fora da fila 
   assert.equal(listarDemandas(todas, {}, HOJE, ctx).itens.some((x) => x.demanda.id === 'DEM-0001'), false);
   assert.deepEqual(listarDemandas(todas, { status: 'aguardando' }, HOJE, ctx).itens.map((x) => x.demanda.id), ['DEM-0001', 'DEM-0006']);
   const ind = calcularIndicadores(todas, HOJE);
-  assert.deepEqual([ind.abertas, ind.sobrestados, ind.relatoriosPendentes, ind.proximos7], [9, 2, 3, 4]);
+  assert.deepEqual([ind.abertas, ind.sobrestados, ind.relatoriosPendentes, ind.proximos7], [10, 2, 3, 4]);
   assert.equal(sobrestarOperacao(s, HOJE), s); // repetir não duplica o histórico
 });
 

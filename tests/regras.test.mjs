@@ -120,7 +120,7 @@ test('motivos listam cada critério que pontuou', () => {
 test('seed em 2026-10-15: scores conferidos em docs/REGRAS_PRIORIDADE.md', () => {
   const esperado = {
     'DEM-0003': 90, 'DEM-0002': 80, 'DEM-0001': 68, 'DEM-0004': 60, 'DEM-0005': 55, 'DEM-0007': 40,
-    'DEM-0008': 35, 'DEM-0010': 20, 'DEM-0009': 10, 'DEM-0011': 0,
+    'DEM-0008': 35, 'DEM-0014': 25, 'DEM-0010': 20, 'DEM-0009': 10, 'DEM-0011': 0,
   };
   const { fila, erros } = priorizarFila(seed.demandas, HOJE, { afastamentos: seed.afastamentos });
   assert.deepEqual(erros, []);

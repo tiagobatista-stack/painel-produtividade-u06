@@ -118,7 +118,7 @@ test.describe('excluir sem confirmação, com Desfazer (RF20)', () => {
     await expect(toast(page)).toBeHidden();
     await expect(page.locator('#titulo-fila')).toBeFocused();
     await expect(cartao(page, TITULO)).toHaveCount(0);
-    expect(await guardadas(page)).toBe(12);
+    expect(await guardadas(page)).toBe(13);
   });
 
   test('uma operação excluída volta com todos os pontos', async ({ page }) => {
@@ -136,13 +136,13 @@ test.describe('excluir sem confirmação, com Desfazer (RF20)', () => {
 
   test('se o número foi reaproveitado por outra demanda, o Desfazer é recusado com aviso', async ({ page }) => {
     await abrir(page);
-    await cadastrarProcesso(page, { titulo: 'Processo que será excluído' }); // DEM-0014
+    await cadastrarProcesso(page, { titulo: 'Processo que será excluído' }); // DEM-0015
     const p = await abrirPainel(page, 'Processo que será excluído');
     await p.getByRole('button', { name: /^Excluir/ }).click();
     await expect(desfazer(page)).toBeVisible();
-    await cadastrarProcesso(page, { titulo: 'Outro processo', processo: 'SEMA-PRO-FICT-0998' }); // recebe de novo o DEM-0014
+    await cadastrarProcesso(page, { titulo: 'Outro processo', processo: 'SEMA-PRO-FICT-0998' }); // recebe de novo o DEM-0015
     await desfazer(page).click();
-    await expect(page.locator('#erro')).toContainText('Não foi possível desfazer: o número DEM-0014 já foi usado por outra demanda.');
+    await expect(page.locator('#erro')).toContainText('Não foi possível desfazer: o número DEM-0015 já foi usado por outra demanda.');
     await expect(cartao(page, 'Outro processo')).toHaveCount(1);
     await expect(cartao(page, 'Processo que será excluído')).toHaveCount(0);
   });

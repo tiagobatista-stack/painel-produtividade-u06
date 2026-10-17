@@ -67,17 +67,17 @@ test('relatório agrupado, autos e anotações aparecem na linha do ponto e na b
   op = registrarAuto(op, 1, { tipo: 'auto_infracao', data: '2026-10-17' }, HOJE);
   op = salvarObservacaoPonto(op, 2, 'Pendente: confirmar o autuado.', HOJE);
   const demandas = [...seed.demandas, op];
-  const linha = (n) => listarPontos(demandas, { operacao: 'DEM-0014' }).find((l) => l.n === n);
+  const linha = (n) => listarPontos(demandas, { operacao: 'DEM-0015' }).find((l) => l.n === n);
   assert.deepEqual(linha(1).relatorio, { id: 'R1', pontos: [1, 2, 3] });
   assert.deepEqual(linha(1).autos.map((a) => a.tipo), ['termo_embargo', 'auto_infracao']);
   assert.equal(linha(1).situacao, 'com_auto');
   assert.equal(linha(2).situacao, 'a_lavrar');
   assert.equal(linha(4).relatorio, null);
   assert.equal(linha(4).situacao, 'aguardando_relatorio');
-  assert.deepEqual(ids(listarPontos(demandas, { busca: 'confirmar o autuado' })), ['DEM-0014:2']);
-  assert.deepEqual(ids(listarPontos(demandas, { busca: 'R1', operacao: 'DEM-0014' })), ['DEM-0014:2', 'DEM-0014:3', 'DEM-0014:1']);
-  assert.deepEqual(ids(listarPontos(demandas, { busca: 'termo de embargo' })), ['DEM-0014:1']);
-  const resumo = resumoDosPontos(listarPontos(demandas, { operacao: 'DEM-0014' }));
+  assert.deepEqual(ids(listarPontos(demandas, { busca: 'confirmar o autuado' })), ['DEM-0015:2']);
+  assert.deepEqual(ids(listarPontos(demandas, { busca: 'R1', operacao: 'DEM-0015' })), ['DEM-0015:2', 'DEM-0015:3', 'DEM-0015:1']);
+  assert.deepEqual(ids(listarPontos(demandas, { busca: 'termo de embargo' })), ['DEM-0015:1']);
+  const resumo = resumoDosPontos(listarPontos(demandas, { operacao: 'DEM-0015' }));
   assert.deepEqual([resumo.total, resumo.aguardando_relatorio, resumo.a_lavrar, resumo.com_auto], [13, 10, 2, 1]);
 });
 

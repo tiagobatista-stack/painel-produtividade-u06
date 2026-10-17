@@ -25,7 +25,7 @@ try {
 
   console.log('\n== 2. listar_regras ==');
   const regras = await cliente.chamar('listar_regras', {});
-  confere(`tabela com ${regras.dados.pontuacao.length} critérios e ${regras.dados.faixas.length} faixas`, regras.dados.pontuacao.length === 14 && regras.dados.faixas.length === 4);
+  confere(`tabela com ${regras.dados.pontuacao.length} critérios e ${regras.dados.faixas.length} faixas`, regras.dados.pontuacao.length === 15 && regras.dados.faixas.length === 4);
   for (const p of regras.dados.pontuacao.slice(0, 3)) console.log(`  ${p.criterio}: ${p.condicao} → +${p.pontos}`);
   console.log('  ...');
 

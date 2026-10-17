@@ -131,6 +131,18 @@
       "origem": "ouvidoria", "status": "concluida", "prazo": "2026-10-14", "criada_em": "2026-10-02", "esforco_h": 3,
       "protocolo": "SEMA-PRO-FICT-0035", "etapa": "devolvido", "concluida_em": "2026-10-14",
       "historico": [{ "data": "2026-10-14", "evento": "Concluída" }]
+    },
+    {
+      "id": "DEM-0014", "tipo": "licenciamento", "titulo": "Análise de pedido de licença de operação de empreendimento fictício",
+      "origem": "chefia", "status": "a_fazer", "prazo": "2026-10-30", "criada_em": "2026-10-08", "esforco_h": 6,
+      "protocolo": "SEMA-PRO-FICT-0140", "etapa": "analise",
+      "descricao": "Pedido fictício de licença de operação, com estudo ambiental a conferir e condicionantes a propor.",
+      "responsavel": "Equipe de Licenciamento Fictícia", "municipio": "Cidade Fictícia Beta",
+      "anotacoes": [
+        { "id": "A-1", "texto": "Conferir o estudo ambiental anexado", "feita": true, "criada_em": "2026-10-09", "concluida_em": "2026-10-12" },
+        { "id": "A-2", "texto": "Propor as condicionantes da licença", "feita": false, "criada_em": "2026-10-09", "concluida_em": null }
+      ],
+      "historico": []
     }
   ]
 }

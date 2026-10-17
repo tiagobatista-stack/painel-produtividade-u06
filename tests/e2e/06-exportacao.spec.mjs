@@ -16,7 +16,7 @@ test.describe('resumo da semana e exportações', () => {
     expect(nome).toBe('demandas-2026-10-15.csv');
     expect([...conteudo.subarray(0, 3)]).toEqual([0xef, 0xbb, 0xbf]); // BOM UTF-8
     const l = linhas(conteudo);
-    expect(l).toHaveLength(14); // cabeçalho + 13 demandas
+    expect(l).toHaveLength(15); // cabeçalho + 14 demandas
     expect(l[0]).toMatch(/^ID;TIPO;TITULO;/);
     const colunaSobrestada = l[0].split(';').indexOf('SOBRESTADA');
     expect(l.some((x) => x.includes('Sobrestado (aguardando)') && x.split(';')[colunaSobrestada] === 'sim')).toBe(true);
@@ -57,7 +57,7 @@ test.describe('resumo da semana e exportações', () => {
     expect(nome).toBe('painel-2026-10-15.json');
     const dados = JSON.parse(conteudo.toString('utf8'));
     expect(dados.versao).toBe(1);
-    expect(dados.demandas).toHaveLength(14);
+    expect(dados.demandas).toHaveLength(15);
     expect(dados.demandas.some((d) => d.titulo === 'Processo para o JSON')).toBe(true);
     expect(dados.afastamentos).toHaveLength(2);
   });
@@ -75,7 +75,7 @@ test.describe('resumo da semana e exportações', () => {
     await abrir(page);
     await importarExemplo(page);
     const { conteudo } = await baixar(page, 'Exportar pontos (CSV)');
-    const leste = linhas(conteudo).filter((x) => x.includes(';DEM-0014;'));
+    const leste = linhas(conteudo).filter((x) => x.includes(';DEM-0015;'));
     expect(leste).toHaveLength(13);
     expect(leste[0].startsWith('1;Equipe Fictícia Leste;-20,5137;-15,5937;Município Fictício A;09/11/2026;13/11/2026;')).toBe(true);
 

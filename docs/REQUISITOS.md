@@ -2,7 +2,7 @@
 
 Aplicação didática, estática, sobre **dados fictícios**. Não se conecta ao SIGADOC nem a bases reais de alertas.
 
-> **Faixa reservada — linha "Localização e Vistoria":** RF42, RF43, RF48 e RF49 a RF70; RNF11 a RNF15; casos de teste T19 a T30. Não usar estes números em outra linha de trabalho. Estão **especificados e ainda não implementados**, exceto o **RF42 e o RF48 (entregues no PR B: coordenadas e endereço no cadastro e na edição)** e o mapa v1 (RF41). O mapa e a ação de campo são detalhados em `docs/MAPA.md` e `docs/ACAO_DE_CAMPO.md`.
+> **Faixa reservada — linha "Localização e Vistoria":** RF42, RF43, RF48 e RF49 a RF70; RNF11 a RNF15; casos de teste T19 a T30 (T19 a T22 já usados pelo Licenciamento). Não usar estes números em outra linha de trabalho. Estão **especificados e ainda não implementados**, exceto o **RF42 e o RF48 (entregues no PR B: coordenadas e endereço no cadastro e na edição)**, o **RF43 (tipo Licenciamento, entregue)** e o mapa v1 (RF41). O mapa e a ação de campo são detalhados em `docs/MAPA.md` e `docs/ACAO_DE_CAMPO.md`.
 
 ## Funcionais
 
@@ -69,7 +69,7 @@ O fluxo da demanda que exige vistoria é: **análise → decisão de vistoria �
 | ID | Requisito | Marco |
 |---|---|---|
 | RF42 | **Coordenada na Nova demanda e na edição** (RF42 fundido com a entrada de coordenada do antigo RF48): campos Latitude e Longitude em **decimal ou GMS**. Guarda `coord_y` e `coord_x` (decimal, 6 casas) e `coord_y_texto` e `coord_x_texto` (como digitado). **Hemisfério opcional:** sem ele, assume S (latitude) e O (longitude) e mostra "hemisfério não informado: assumido S/O"; decimal positivo sem sinal segue a mesma regra. N, L e E são aceitos e disparam o aviso de fora de Mato Grosso (latitude de 7° a 18° S, longitude de 50° a 62° O), sem bloquear. Usa o mesmo conversor da importação (`js/coordenadas.js`) com a opção `assumirSulOeste` ligada **só no formulário**; a importação mantém o comportamento atual. Coordenadas no painel lateral. CSV de demandas com `COORD_X`, `COORD_Y` e `ENDERECO`, com o mesmo aviso de dados sensíveis do CSV de pontos. **Entregue** (todas as demandas, menos a operação; seed com 4 demandas de localização fictícia no Atlântico) | PR B (entregue) |
-| RF43 | **Tipo "Licenciamento"** no formulário, nos filtros, nas exportações, no calendário e no motor; campos, origens e pontuação ficam a decidir em `docs/REGRAS_PRIORIDADE.md`, sem mudar nenhum peso | Pontos |
+| RF43 | **Tipo "Licenciamento"** (entregue): na lista de tipos do formulário, nos filtros, nas exportações, no calendário (prazo), no quadro (classe Padrão), no resumo semanal, no MCP e no motor de prioridade, com os mesmos campos, etapas e origens do processo e **+15 pontos** (valor numa só tabela, a alterar no futuro). Exemplo fictício: DEM-0014. Ver `docs/REGRAS_PRIORIDADE.md` | Pontos |
 | RF49 | **Município:** automático pela coordenada quando houver, senão informado. Limites de `Geoportal:LIM_MUNICIPIOS_MT` salvos como GeoJSON simplificado em `data/`, gerado por script local documentado | Localização |
 | RF50 | **Situação da vistoria** em todas as demandas: não requer, pendente, programada, vistoriada (com data) ou não acessada | Localização |
 | RF51 | A coordenada só existe quando há local a vistoriar. **Denúncia: nunca registrar o denunciante** | Localização |

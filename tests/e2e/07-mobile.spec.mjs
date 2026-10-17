@@ -48,9 +48,9 @@ test.describe('versão mobile (360 px)', () => {
   test('cadastrar e importar continuam funcionando no celular, sem estourar a largura', async ({ page }) => {
     await abrir(page);
     await cadastrarProcesso(page, { titulo: 'Processo no celular' });
-    await expect(page.locator('#contagem')).toHaveText('11 demandas');
-    await importarExemplo(page);
     await expect(page.locator('#contagem')).toHaveText('12 demandas');
+    await importarExemplo(page);
+    await expect(page.locator('#contagem')).toHaveText('13 demandas');
     const op = await abrirPainel(page, 'Equipe Fictícia Leste'); // os pontos e o retorno ficam no painel lateral
     await op.getByRole('button', { name: /Registrar retorno de/ }).tap();
     await page.getByRole('dialog', { name: 'Registrar retorno' }).getByRole('button', { name: 'Registrar retorno' }).tap();

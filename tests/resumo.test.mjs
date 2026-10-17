@@ -14,11 +14,11 @@ test('semana de 12/10 a 18/10: produção e situação do exemplo', () => {
   assert.equal(r.inicio, '2026-10-12');
   assert.equal(r.fim, '2026-10-18');
   assert.equal(r.concluidas.total, 2);
-  assert.deepEqual(r.concluidas.porTipo, { operacao: 0, processo: 1, reuniao: 1, palestra: 0, outra: 0 });
+  assert.deepEqual(r.concluidas.porTipo, { operacao: 0, processo: 1, licenciamento: 0, reuniao: 1, palestra: 0, outra: 0 });
   assert.equal(r.relatoriosConcluidos, 5); // pontos 3, 4, 5, 6 (12/10) e 7 (14/10) da operação Norte
   assert.equal(r.autosLavrados, 4); // pontos 1 e 2 (13/10), 3 e 4 (14/10)
   assert.equal(r.relatoriosSemAuto, 2); // pontos 5 e 6, não constatados
-  assert.deepEqual(r.situacao, { abertas: 10, vencidas: 2, proximos7: 5, relatoriosPendentes: 9, autosALavrar: 2, sobrestados: 1 });
+  assert.deepEqual(r.situacao, { abertas: 11, vencidas: 2, proximos7: 5, relatoriosPendentes: 9, autosALavrar: 2, sobrestados: 1 });
 });
 
 test('os números do resumo batem com os indicadores da tela', () => {
@@ -73,7 +73,7 @@ test('texto do resumo semanal', () => {
   assert.ok(linhas.includes('- Relatórios de vistoria concluídos: 5 (2 sem auto)'));
   assert.ok(linhas.includes('- Autos de infração lavrados: 4'));
   assert.ok(linhas.includes('Situação em 15/10/2026'));
-  assert.ok(linhas.includes('- Demandas abertas (ativas): 10'));
+  assert.ok(linhas.includes('- Demandas abertas (ativas): 11'));
   assert.ok(linhas.includes('- Relatórios pendentes: 9'));
   assert.ok(linhas.includes('- Sobrestadas (prazo suspenso): 1'));
 });

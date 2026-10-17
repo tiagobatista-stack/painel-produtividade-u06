@@ -24,9 +24,9 @@ function eventosDaDemanda(d, { prazos = false } = {}) {
     const prazo = prazoDemanda(d);
     if (prazo) eventos.push({ data: prazo, hora: null, tipo: 'prazo_relatorio', titulo: `Prazo dos relatórios: ${d.titulo}`, id: d.id });
   }
-  if (prazos && (d.tipo === 'processo' || d.tipo === 'outra')) {
+  if (prazos && (d.tipo === 'processo' || d.tipo === 'licenciamento' || d.tipo === 'outra')) {
     const prazo = prazoDemanda(d);
-    const tipo = d.tipo === 'processo' ? 'prazo_processo' : 'prazo_demanda';
+    const tipo = { processo: 'prazo_processo', licenciamento: 'prazo_licenciamento' }[d.tipo] ?? 'prazo_demanda';
     if (prazo) eventos.push({ data: prazo, hora: null, tipo, titulo: d.protocolo ? `${d.protocolo} — ${d.titulo}` : d.titulo, id: d.id });
   }
   return eventos;

@@ -21,7 +21,7 @@ test.describe('operação de alertas', () => {
     await expect(op.locator('details.pontos')).toHaveJSProperty('open', true);
 
     // o auto só vem depois do relatório concluído
-    const ponto1 = page.locator('#ponto-DEM-0014-1');
+    const ponto1 = page.locator('#ponto-DEM-0015-1');
     await ponto1.selectOption({ label: 'Auto lavrado' });
     await expect(page.locator('#painel-aviso')).toContainText('O auto só pode ser lavrado depois do relatório concluído.');
     await expect(ponto1).toHaveValue('vistoriado');
@@ -29,10 +29,10 @@ test.describe('operação de alertas', () => {
     await ponto1.selectOption({ label: 'Relatório concluído' });
     await expect(page.locator('#painel-aviso')).toBeHidden();
     expect((await complementares(page))[2]).toBe('3'); // autos a lavrar: 2 + 1
-    await page.locator('#ponto-DEM-0014-1').selectOption({ label: 'Auto lavrado' });
+    await page.locator('#ponto-DEM-0015-1').selectOption({ label: 'Auto lavrado' });
     expect((await complementares(page))[2]).toBe('2');
-    await expect(page.locator('#ponto-DEM-0014-1')).toHaveValue('auto_lavrado');
-    await expect(page.locator('#ponto-DEM-0014-1')).toBeFocused();
+    await expect(page.locator('#ponto-DEM-0015-1')).toHaveValue('auto_lavrado');
+    await expect(page.locator('#ponto-DEM-0015-1')).toBeFocused();
 
     // o resumo da semana já conta o relatório e o auto de hoje (15/10/2026)
     await expect(page.locator('#resumo-semana .indicador-valor').nth(1)).toHaveText('6'); // 5 + 1
@@ -70,7 +70,7 @@ test.describe('operação de alertas', () => {
     await norte.getByRole('button', { name: 'Sobrestar operação' }).click();
     await expect(page.locator('#mensagem')).toContainText('Operação sobrestada');
     await fecharPainel(page);
-    await expect(page.locator('#contagem')).toHaveText('9 demandas'); // abertas
+    await expect(page.locator('#contagem')).toHaveText('10 demandas'); // abertas
     expect((await complementares(page))[1]).toBe('3'); // relatórios pendentes
     expect((await indicadores(page))[2]).toBe('2'); // sobrestados
     await page.getByRole('search').getByLabel('Status').selectOption({ label: 'Sobrestado (aguardando)' });
@@ -79,7 +79,7 @@ test.describe('operação de alertas', () => {
     await sobrestada.getByRole('button', { name: 'Retomar operação' }).click();
     await fecharPainel(page);
     await page.getByRole('search').getByLabel('Status').selectOption({ label: 'Abertas (ativas)' });
-    await expect(page.locator('#contagem')).toHaveText('10 demandas');
+    await expect(page.locator('#contagem')).toHaveText('11 demandas');
     const retomada = await abrirPainel(page, 'operação de outubro (Norte)');
     await expect(retomada.locator('.prioridade')).toHaveText('Prioridade Alta · 68 pontos');
   });
