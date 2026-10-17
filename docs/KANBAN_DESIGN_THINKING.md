@@ -1,5 +1,7 @@
 # Kanban de projetos com Design Thinking
 
+> **Não faz parte do produto.** Era só metodologia de desenvolvimento. A ferramenta (`kanban.html` e seus arquivos) foi removida do site em 2026-10-17 e continua disponível no histórico do Git: o último commit da `main` que a contém é `8afbe8d` (introduzida em `abc903a`). Este documento fica como registro da metodologia; os requisitos RF28 a RF33 abaixo descrevem o que a ferramenta fazia, e os arquivos e testes citados já não existem na `main`.
+
 Página à parte do painel de demandas (`kanban.html`), no mesmo repositório e no mesmo deploy. **Não altera** o painel, o motor de prioridade (`js/regras.js`), os casos T1–T14, o seed nem o MCP. Só dados fictícios.
 
 ## O que a página faz
