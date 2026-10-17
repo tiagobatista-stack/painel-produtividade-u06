@@ -2,14 +2,16 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  criarDemanda, editarDemanda, alterarStatus, listarDemandas, proximoId, normalizarBusca, ErroCadastro, origensDoTipo, FILTROS_PADRAO, filtrosEmUso,
+  criarDemanda, editarDemanda, alterarStatus, alternarAnotacaoDaDemanda, migrarDemanda, listarDemandas, proximoId, normalizarBusca, ErroCadastro, origensDoTipo, FILTROS_PADRAO, filtrosEmUso,
 } from '../js/demandas.js';
+import { adicionarAnotacoes } from '../js/anotacoes.js';
+import { priorizar } from '../js/regras.js';
 
 const HOJE = '2026-10-15';
 const seed = JSON.parse(readFileSync(new URL('../data/seed.json', import.meta.url), 'utf8'));
 const ctx = { afastamentos: seed.afastamentos };
 
-const processo = { tipo: 'processo', titulo: 'Parecer de teste', origem: 'mp', prazo: '2026-10-14', status: 'a_fazer', processo: 'SEMA-PRO-FICT-0999', etapa: 'analise', esforco_h: '2' };
+const processo = { tipo: 'processo', titulo: 'Parecer de teste', origem: 'mp', prazo: '2026-10-14', status: 'a_fazer', protocolo: 'SEMA-PRO-FICT-0999', etapa: 'analise', esforco_h: '2' };
 const reuniao = { tipo: 'reuniao', titulo: 'Reunião de teste', origem: 'chefia', prazo: '2026-10-20', status: 'a_fazer', data_hora: '2026-10-20T09:00', local: 'Sala fictícia' };
 const palestra = { tipo: 'palestra', titulo: 'Palestra de teste', origem: 'propria', prazo: '2026-10-22', status: 'a_fazer', data_hora: '2026-10-22T10:00', local: 'Auditório', publico: '40' };
 const outra = { tipo: 'outra', titulo: 'Tarefa de teste', origem: 'propria', prazo: '2026-10-25', status: 'a_fazer' };
@@ -25,15 +27,15 @@ test('cria demanda de cada tipo com id sequencial, criação e histórico', () =
   assert.equal(d.criada_em, HOJE);
   assert.deepEqual(d.historico, [{ data: HOJE, evento: 'Criada' }]);
   assert.equal(d.esforco_h, 2);
-  assert.equal(d.processo, 'SEMA-PRO-FICT-0999');
+  assert.equal(d.protocolo, 'SEMA-PRO-FICT-0999');
   assert.equal(criarDemanda(palestra, [], HOJE).publico, 40);
   assert.equal(criarDemanda(reuniao, [], HOJE).local, 'Sala fictícia');
   assert.equal(criarDemanda(outra, [], HOJE).tipo, 'outra');
 });
 
 test('campos de outro tipo são descartados', () => {
-  const d = criarDemanda({ ...outra, processo: 'X', local: 'Y', publico: 3 }, [], HOJE);
-  assert.equal('processo' in d, false);
+  const d = criarDemanda({ ...outra, etapa: 'analise', local: 'Y', publico: 3 }, [], HOJE);
+  assert.equal('etapa' in d, false);
   assert.equal('local' in d, false);
   assert.equal('publico' in d, false);
 });
@@ -44,7 +46,7 @@ test('proximoId parte de DEM-0001 e ignora ids fora do padrão', () => {
 });
 
 test('validação por tipo aponta todos os campos inválidos', () => {
-  assert.deepEqual(erroCampos(() => criarDemanda({ tipo: 'processo' }, [], HOJE)), ['origem', 'processo', 'prazo', 'status', 'titulo'].sort());
+  assert.deepEqual(erroCampos(() => criarDemanda({ tipo: 'processo' }, [], HOJE)), ['origem', 'prazo', 'status', 'titulo'].sort());
   assert.deepEqual(erroCampos(() => criarDemanda({ ...reuniao, local: ' ', data_hora: '2026-10-20' }, [], HOJE)), ['data_hora', 'local']);
   assert.deepEqual(erroCampos(() => criarDemanda({ ...palestra, publico: '-2' }, [], HOJE)), ['publico']);
   assert.deepEqual(erroCampos(() => criarDemanda({ ...outra, prazo: '2026-02-31x' }, [], HOJE)), ['prazo']);
@@ -155,7 +157,7 @@ test('demanda com prazo inválido aparece em erros, não na fila', () => {
 });
 
 test('filtro Sobrestado lista as sobrestadas pelo prazo registrado, sem pontuação, e respeita tipo e busca', () => {
-  const sobrestada = { id: 'S2', tipo: 'processo', origem: 'mp', status: 'aguardando', prazo: '2026-10-01', titulo: 'Aguardando interessado', criada_em: HOJE, processo: 'SEMA-PRO-FICT-1' };
+  const sobrestada = { id: 'S2', tipo: 'processo', origem: 'mp', status: 'aguardando', prazo: '2026-10-01', titulo: 'Aguardando interessado', criada_em: HOJE, protocolo: 'SEMA-PRO-FICT-1' };
   const todas = [...seed.demandas, sobrestada];
   const r = listarDemandas(todas, { status: 'aguardando' }, HOJE, ctx);
   assert.deepEqual(ids(r), ['S2', 'DEM-0006']); // prazo mais antigo primeiro
@@ -203,4 +205,124 @@ test('limpar filtros: listar com o padrão devolve a fila ativa completa, e o pa
   assert.deepEqual(limpa.itens.map((x) => x.demanda.id), listarDemandas(seed.demandas, {}, HOJE, ctx).itens.map((x) => x.demanda.id));
   assert.equal(Object.isFrozen(FILTROS_PADRAO), true);
   assert.equal(seed.demandas.length, 13); // listar nunca altera as demandas
+});
+
+// ---- Campos novos, ajuste manual de prioridade, anotações e migração ----
+
+test('campos novos: descrição, responsável, município e protocolo são guardados e têm limites', () => {
+  const d = criarDemanda({ ...processo, descricao: ' Contexto ', responsavel: 'Equipe A', municipio: 'Cidade Fictícia', protocolo: 'SEMA-PRO-FICT-0001' }, [], HOJE);
+  assert.deepEqual([d.descricao, d.responsavel, d.municipio, d.protocolo], ['Contexto', 'Equipe A', 'Cidade Fictícia', 'SEMA-PRO-FICT-0001']);
+  assert.deepEqual(d.anotacoes, []);
+  assert.equal('prioridade_manual' in d, false);
+  assert.deepEqual(erroCampos(() => criarDemanda({ ...outra, descricao: 'x'.repeat(2001) }, [], HOJE)), ['descricao']);
+  assert.equal(criarDemanda({ ...outra, descricao: 'x'.repeat(2000) }, [], HOJE).descricao.length, 2000);
+  assert.deepEqual(erroCampos(() => criarDemanda({ ...outra, titulo: 'x'.repeat(121) }, [], HOJE)), ['titulo']);
+  assert.deepEqual(erroCampos(() => criarDemanda({ ...outra, municipio: 'x'.repeat(121) }, [], HOJE)), ['municipio']);
+});
+
+test('etapa do processo é escolhida na lista; valor fora dela é recusado', () => {
+  for (const etapa of ['triagem', 'analise', 'parecer', 'devolvido']) assert.equal(criarDemanda({ ...processo, etapa }, [], HOJE).etapa, etapa);
+  assert.deepEqual(erroCampos(() => criarDemanda({ ...processo, etapa: 'qualquer coisa' }, [], HOJE)), ['etapa']);
+  assert.equal('etapa' in criarDemanda({ ...processo, etapa: '' }, [], HOJE), false);
+});
+
+test('prioridade manual: exige motivo (até 200) e só aceita as quatro faixas', () => {
+  assert.deepEqual(erroCampos(() => criarDemanda({ ...outra, prioridade_manual: 'alta' }, [], HOJE)), ['motivo_ajuste']);
+  assert.deepEqual(erroCampos(() => criarDemanda({ ...outra, prioridade_manual: 'alta', motivo_ajuste: '  ' }, [], HOJE)), ['motivo_ajuste']);
+  assert.deepEqual(erroCampos(() => criarDemanda({ ...outra, prioridade_manual: 'alta', motivo_ajuste: 'x'.repeat(201) }, [], HOJE)), ['motivo_ajuste']);
+  assert.deepEqual(erroCampos(() => criarDemanda({ ...outra, prioridade_manual: 'urgente', motivo_ajuste: 'x' }, [], HOJE)), ['prioridade_manual']);
+  const d = criarDemanda({ ...outra, prioridade_manual: 'alta', motivo_ajuste: 'Pedido da chefia' }, [], HOJE);
+  assert.deepEqual([d.prioridade_manual, d.motivo_ajuste], ['alta', 'Pedido da chefia']);
+  // automática: motivo digitado e esquecido no formulário não é guardado
+  const auto = criarDemanda({ ...outra, prioridade_manual: '', motivo_ajuste: 'sobra' }, [], HOJE);
+  assert.equal('prioridade_manual' in auto, false);
+  assert.equal('motivo_ajuste' in auto, false);
+});
+
+test('editar: voltar para automática remove o ajuste; trocar registra no histórico; campos limpos somem', () => {
+  const d0 = criarDemanda({ ...processo, descricao: 'antiga', responsavel: 'Fulano' }, [], HOJE);
+  const d1 = editarDemanda(d0, { ...processo, prioridade_manual: 'baixa', motivo_ajuste: 'Aguarda outra área' }, HOJE);
+  assert.deepEqual([d1.prioridade_manual, d1.motivo_ajuste], ['baixa', 'Aguarda outra área']);
+  assert.equal('descricao' in d1, false); // veio vazio no formulário
+  assert.equal('responsavel' in d1, false);
+  assert.ok(d1.historico.some((h) => h.evento === 'Prioridade: Automática → Baixa (manual)'));
+  const d2 = editarDemanda(d1, { ...processo, prioridade_manual: '' }, HOJE);
+  assert.equal('prioridade_manual' in d2, false);
+  assert.equal('motivo_ajuste' in d2, false);
+  assert.ok(d2.historico.some((h) => h.evento === 'Prioridade: Baixa (manual) → Automática'));
+});
+
+test('ajuste manual muda o grupo na fila, não o score calculado', () => {
+  const nova = criarDemanda({ ...processo, prioridade_manual: 'baixa', motivo_ajuste: 'x' }, seed.demandas, HOJE); // MP vencido → 90
+  const { itens } = listarDemandas([...seed.demandas, nova], {}, HOJE, ctx);
+  const item = itens.find((x) => x.demanda.id === nova.id);
+  assert.deepEqual([item.score, item.faixa, item.faixa_calculada, item.modo], [90, 'Baixa', 'Crítica', 'manual']);
+  assert.ok(itens.indexOf(item) >= itens.findIndex((x) => x.faixa === 'Baixa'));
+  // o filtro por prioridade usa a faixa efetiva
+  assert.ok(listarDemandas([...seed.demandas, nova], { prioridade: 'Baixa' }, HOJE, ctx).itens.some((x) => x.demanda.id === nova.id));
+  assert.equal(listarDemandas([...seed.demandas, nova], { prioridade: 'Crítica' }, HOJE, ctx).itens.some((x) => x.demanda.id === nova.id), false);
+});
+
+test('anotações no cadastro: guardadas, com histórico das já concluídas; edição registra "Anotação concluída"', () => {
+  const lista = [
+    { id: 'A-1', texto: 'feita', feita: true, criada_em: HOJE, concluida_em: HOJE },
+    { id: 'A-2', texto: 'pendente', feita: false, criada_em: HOJE, concluida_em: null },
+  ];
+  const d = criarDemanda({ ...outra, anotacoes: lista }, [], HOJE);
+  assert.equal(d.anotacoes.length, 2);
+  assert.deepEqual(d.historico.map((h) => h.evento), ['Criada', 'Anotação concluída: feita']);
+  const e = editarDemanda(d, { ...outra, anotacoes: d.anotacoes.map((a) => ({ ...a, feita: true })) }, '2026-10-16');
+  assert.deepEqual(e.historico.map((h) => h.evento), ['Criada', 'Anotação concluída: feita', 'Editada', 'Anotação concluída: pendente']);
+  assert.deepEqual(editarDemanda(d, { ...outra }, HOJE).anotacoes, []); // sem a lista no formulário, a lista fica vazia
+});
+
+test('marcar anotação direto no cartão: alterna, registra no histórico e não mexe na prioridade', () => {
+  const d0 = criarDemanda({ ...outra, anotacoes: adicionarAnotacoes([], 'a\nb\nc', HOJE) }, [], HOJE);
+  const d1 = alternarAnotacaoDaDemanda(d0, 'A-2', '2026-10-16');
+  assert.deepEqual(d1.anotacoes.map((a) => a.feita), [false, true, false]);
+  assert.equal(d1.historico.at(-1).evento, 'Anotação concluída: b');
+  assert.equal(d0.anotacoes[1].feita, false); // original intacto
+  assert.equal(priorizar(d1, HOJE).score, priorizar(d0, HOJE).score);
+  const d2 = alternarAnotacaoDaDemanda(d1, 'A-2', '2026-10-17'); // desmarcar não gera evento
+  assert.equal(d2.historico.length, d1.historico.length);
+  assert.equal(alternarAnotacaoDaDemanda(d0, 'A-99', HOJE), d0);
+});
+
+test('migração: dados antigos abrem sem erro (processo → protocolo, etapa da lista, anotacoes vazio)', () => {
+  const antiga = { id: 'DEM-0003', tipo: 'processo', titulo: 'Antiga', origem: 'mp', status: 'em_andamento', prazo: '2026-10-13', criada_em: '2026-10-01', processo: 'SEMA-PRO-FICT-0042', etapa: 'despacho', historico: [] };
+  const m = migrarDemanda(antiga);
+  assert.equal(m.protocolo, 'SEMA-PRO-FICT-0042');
+  assert.equal('processo' in m, false);
+  assert.equal(m.etapa, 'analise');
+  assert.deepEqual(m.anotacoes, []);
+  assert.equal('processo' in antiga, true); // não altera o argumento
+  assert.deepEqual(migrarDemanda(m), m); // idempotente
+  const etapas = ['parecer', 'analise', 'despacho', 'aguardando_informacao', 'concluido', 'triagem', 'devolvido'].map((etapa) => migrarDemanda({ ...antiga, etapa }).etapa);
+  assert.deepEqual(etapas, ['parecer', 'analise', 'analise', 'triagem', 'devolvido', 'triagem', 'devolvido']);
+  assert.equal('etapa' in migrarDemanda({ ...antiga, etapa: 'outra coisa' }), false);
+  // outros tipos e valores estranhos
+  assert.deepEqual(migrarDemanda({ id: 'X', tipo: 'outra', descricao: 5, prioridade_manual: 'xyz', motivo_ajuste: 'm' }), { id: 'X', tipo: 'outra', anotacoes: [] });
+  assert.equal(migrarDemanda({ id: 'Y', tipo: 'outra', protocolo: 'P', processo: 'Q' }).protocolo, 'P'); // protocolo já existente prevalece
+});
+
+test('migração: o motor continua calculando a fila com os dados migrados do exemplo', () => {
+  const migradas = seed.demandas.map(migrarDemanda);
+  assert.ok(migradas.every((d) => Array.isArray(d.anotacoes) && !('processo' in d)));
+  const a = listarDemandas(seed.demandas, {}, HOJE, ctx).itens.map((x) => [x.demanda.id, x.score]);
+  const b = listarDemandas(migradas, {}, HOJE, ctx).itens.map((x) => [x.demanda.id, x.score]);
+  assert.deepEqual(b, a);
+});
+
+test('busca cobre descrição, responsável, município, protocolo e etapa', () => {
+  const comuns = { ...outra };
+  const d = criarDemanda({ ...comuns, titulo: 'Qualquer', descricao: 'ajustar cronograma', responsavel: 'Equipe Quadrante', municipio: 'Cidade Fictícia Gama', protocolo: 'REF-777' }, [], HOJE);
+  const p = criarDemanda({ ...processo, etapa: 'parecer', protocolo: 'SEMA-PRO-FICT-0123' }, [d], HOJE);
+  const todas = [d, p];
+  const achar = (busca) => ids(listarDemandas(todas, { busca }, HOJE, ctx));
+  assert.deepEqual(achar('cronograma'), [d.id]);
+  assert.deepEqual(achar('quadrante'), [d.id]);
+  assert.deepEqual(achar('gama'), [d.id]);
+  assert.deepEqual(achar('ref-777'), [d.id]);
+  assert.deepEqual(achar('0123'), [p.id]);
+  assert.deepEqual(achar('parecer'), [p.id]);
 });

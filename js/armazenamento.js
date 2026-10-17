@@ -1,4 +1,6 @@
 // Persistência no navegador (localStorage). O storage é recebido por parâmetro para permitir testes sem navegador.
+import { migrarDemanda } from './demandas.js';
+
 export const CHAVE = 'painel-demandas:v1';
 
 const copia = (x) => JSON.parse(JSON.stringify(x));
@@ -9,12 +11,12 @@ function formatoValido(d) {
 
 // Retorna { dados, origem } com origem 'armazenamento' ou 'seed' (primeira abertura, dado corrompido ou storage indisponível).
 export function carregar(storage, seed) {
-  const padrao = { versao: 1, demandas: copia(seed.demandas), afastamentos: copia(seed.afastamentos) };
+  const padrao = { versao: 1, demandas: copia(seed.demandas).map(migrarDemanda), afastamentos: copia(seed.afastamentos) };
   try {
     const bruto = storage?.getItem(CHAVE);
     if (bruto) {
       const dados = JSON.parse(bruto);
-      if (formatoValido(dados)) return { dados, origem: 'armazenamento' };
+      if (formatoValido(dados)) return { dados: { ...dados, demandas: dados.demandas.map(migrarDemanda) }, origem: 'armazenamento' };
     }
   } catch {
     // storage indisponível ou JSON corrompido: cai no exemplo

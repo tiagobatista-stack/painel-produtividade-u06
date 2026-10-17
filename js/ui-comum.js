@@ -11,6 +11,7 @@ export const estado = {
   storage: null,
   focoApos: null, // valor de data-foco a restaurar depois de redesenhar
   pontosAbertos: new Set(), // operações com a lista de pontos aberta
+  anotacoesAbertas: new Set(), // demandas com a lista de anotações aberta no cartão
   atualizar: () => {},
 };
 
@@ -75,7 +76,9 @@ export function persistir() {
 }
 
 // Gestor de erros de formulário: mensagem ao lado do campo, resumo anunciado e foco no primeiro campo inválido.
-export function criarGestorErros({ resumo, campos, idCampo, idErro }) {
+export function criarGestorErros({ resumo, campos, idCampo, idErro, idDica }) {
+  // Dica opcional abaixo do campo: continua associada ao campo (aria-describedby), com ou sem erro.
+  const dica = (c) => (idDica && document.getElementById(idDica(c)) ? idDica(c) : null);
   const limpar = () => {
     resumo.hidden = true;
     resumo.replaceChildren();
@@ -83,7 +86,8 @@ export function criarGestorErros({ resumo, campos, idCampo, idErro }) {
       $(idErro(c)).textContent = '';
       const input = $(idCampo(c));
       input.removeAttribute('aria-invalid');
-      input.removeAttribute('aria-describedby');
+      if (dica(c)) input.setAttribute('aria-describedby', dica(c));
+      else input.removeAttribute('aria-describedby');
     }
   };
   const mostrar = (erros) => {
@@ -94,7 +98,7 @@ export function criarGestorErros({ resumo, campos, idCampo, idErro }) {
       $(idErro(c)).textContent = erros[c];
       const input = $(idCampo(c));
       input.setAttribute('aria-invalid', 'true');
-      input.setAttribute('aria-describedby', idErro(c));
+      input.setAttribute('aria-describedby', [idErro(c), dica(c)].filter(Boolean).join(' '));
       lista.append(elemento('li', '', erros[c]));
       primeiro ??= input;
     }

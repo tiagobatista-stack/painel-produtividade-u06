@@ -4,7 +4,8 @@
 // Células de texto que começam com = + - @ ou tabulação ganham um apóstrofo, para não virarem fórmula (injeção de CSV),
 // já que títulos, municípios e notas podem vir de planilhas coladas.
 import { autosALavrar, estaConcluida, estaSobrestada, prazoDemanda, relatoriosPendentes } from './indicadores.js';
-import { priorizar } from './regras.js';
+import { faixaManual, priorizar } from './regras.js';
+import { anotacoesEmTexto } from './anotacoes.js';
 import { esforcoHoras } from './operacoes.js';
 import { ETAPAS_PONTO, ORIGENS, STATUS, TIPOS } from './rotulos.js';
 
@@ -41,17 +42,19 @@ const porId = (a, b) => a.id.localeCompare(b.id);
 
 export const CABECALHO_DEMANDAS = [
   'ID', 'TIPO', 'TITULO', 'ORIGEM', 'STATUS', 'PRAZO', 'CRIADA_EM', 'CONCLUIDA_EM', 'ESFORCO_H', 'FAIXA', 'SCORE',
-  'PROCESSO', 'ETAPA', 'DATA_HORA', 'LOCAL', 'PUBLICO', 'EQUIPE', 'SAIDA', 'RETORNO', 'PONTOS',
+  'PROTOCOLO', 'ETAPA', 'DATA_HORA', 'LOCAL', 'PUBLICO', 'EQUIPE', 'SAIDA', 'RETORNO', 'PONTOS',
   'RELATORIOS_PENDENTES', 'AUTOS_A_LAVRAR', 'SOBRESTADA',
+  'DESCRICAO', 'RESPONSAVEL', 'MUNICIPIO', 'PRIORIDADE_MODO', 'MOTIVO_AJUSTE', 'ANOTACOES',
 ];
 
-// Todas as demandas (inclusive concluídas e sobrestadas), sem coordenadas. Faixa e score só existem para as ativas.
+// Todas as demandas (inclusive concluídas e sobrestadas), sem coordenadas. Faixa e score só existem para as ativas:
+// FAIXA é a efetiva (a manual, se houver) e SCORE é sempre o calculado. PROTOCOLO é o nº do processo nos processos.
 export function csvDemandas(demandas, hoje, contexto = {}) {
   const linhas = [...demandas].sort(porId).map((d) => {
     let prioridade = { faixa: '', score: '' };
     try {
       const r = priorizar(d, hoje, contexto);
-      if (!r.foraDaFila) prioridade = { faixa: r.faixa, score: r.score };
+      if (!r.foraDaFila) prioridade = { faixa: faixaManual(d) ?? r.faixa, score: r.score };
     } catch {
       // prazo inválido: sem prioridade
     }
@@ -68,7 +71,7 @@ export function csvDemandas(demandas, hoje, contexto = {}) {
       celulaNumero(operacao ? esforcoHoras(d) : d.esforco_h),
       celulaTexto(prioridade.faixa),
       celulaNumero(prioridade.score === '' ? null : prioridade.score),
-      celulaTexto(d.processo),
+      celulaTexto(d.protocolo),
       celulaTexto(d.etapa),
       celulaDataHora(d.data_hora),
       celulaTexto(d.local),
@@ -80,6 +83,12 @@ export function csvDemandas(demandas, hoje, contexto = {}) {
       operacao ? String(relatoriosPendentes(d)) : '',
       operacao ? String(autosALavrar(d)) : '',
       estaSobrestada(d) ? 'sim' : 'não',
+      celulaTexto(d.descricao),
+      celulaTexto(d.responsavel),
+      celulaTexto(d.municipio),
+      faixaManual(d) ? 'manual' : 'automatica',
+      celulaTexto(d.motivo_ajuste),
+      celulaTexto(anotacoesEmTexto(d.anotacoes)),
     ];
   });
   return montarCsv(CABECALHO_DEMANDAS, linhas);

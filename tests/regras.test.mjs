@@ -163,3 +163,33 @@ test('sobrestada fica fora de priorizarFila e não é erro', () => {
   assert.deepEqual(fila.map((x) => x.demanda.id), ['NOR']);
   assert.deepEqual(erros, []);
 });
+
+// ---- T14: ajuste manual da prioridade (a faixa manual define o grupo; dentro dele vale o score calculado, depois o prazo) ----
+
+test('T14 reunião T6 (35, Média) com ajuste manual Alta → faixa Alta (manual), calculada Média 35', () => {
+  const t6 = simples('reuniao', 'chefia', 5, { id: 'T6', prioridade_manual: 'alta', motivo_ajuste: 'Pedido da chefia' });
+  assert.deepEqual(r(t6), { score: 35, faixa: 'Média', motivos: ['Prazo de 3 a 7 dias (+15)', 'Reunião (+10)', 'Origem: chefia ou coordenação (+10)'] }); // o cálculo não muda
+  const { fila } = priorizarFila([t6], HOJE);
+  assert.deepEqual([fila[0].faixa, fila[0].faixa_calculada, fila[0].score, fila[0].modo], ['Alta', 'Média', 35, 'manual']);
+});
+
+test('T14 a faixa manual define o grupo; dentro dele ordena por score calculado e depois por prazo', () => {
+  const t5 = simples('processo', 'chefia', 1, { id: 'T5' }); // 55 Alta
+  const t6 = simples('reuniao', 'chefia', 5, { id: 'T6', prioridade_manual: 'alta', motivo_ajuste: 'x' }); // 35 → Alta manual
+  const t6b = simples('reuniao', 'chefia', 4, { id: 'T6B', prioridade_manual: 'alta', motivo_ajuste: 'x' }); // 35 → Alta manual, prazo mais próximo
+  const media = simples('processo', 'denuncia', 5, { id: 'M40' }); // 40 Média automática
+  const t2 = simples('processo', 'mp', -2, { id: 'T2', prioridade_manual: 'baixa', motivo_ajuste: 'x' }); // 90 Crítica → Baixa manual
+  const baixa = simples('reuniao', 'propria', 20, { id: 'B10' }); // 10 Baixa automática
+  const { fila } = priorizarFila([baixa, t2, media, t6, t5, t6b], HOJE);
+  assert.deepEqual(fila.map((x) => x.demanda.id), ['T5', 'T6B', 'T6', 'M40', 'T2', 'B10']);
+  assert.deepEqual(fila.map((x) => x.faixa), ['Alta', 'Alta', 'Alta', 'Média', 'Baixa', 'Baixa']);
+  assert.deepEqual(fila.map((x) => x.modo), ['automatica', 'manual', 'manual', 'automatica', 'manual', 'automatica']);
+  assert.equal(fila[4].faixa_calculada, 'Crítica'); // T2: 90 calculados, mas no grupo Baixa
+  assert.equal(fila[4].score, 90);
+});
+
+test('T14 ajuste manual inválido é ignorado; demanda concluída ou sobrestada continua fora da fila', () => {
+  assert.equal(priorizarFila([simples('reuniao', 'chefia', 5, { prioridade_manual: 'urgentissima' })], HOJE).fila[0].modo, 'automatica');
+  const { fila } = priorizarFila([simples('reuniao', 'chefia', 5, { status: 'concluida', prioridade_manual: 'alta' }), simples('processo', 'mp', 0, { status: 'aguardando', prioridade_manual: 'critica' })], HOJE);
+  assert.deepEqual(fila, []);
+});

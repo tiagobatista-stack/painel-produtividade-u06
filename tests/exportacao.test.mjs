@@ -66,7 +66,7 @@ test('CSV de demandas: operação, processo, sobrestada, concluída e reunião',
   // operação Norte: prazo 17/10, esforço 6 pendentes × 3 h, faixa Alta, 68
   assert.deepEqual(['TIPO', 'STATUS', 'PRAZO', 'ESFORCO_H', 'FAIXA', 'SCORE', 'PONTOS', 'RELATORIOS_PENDENTES', 'AUTOS_A_LAVRAR', 'SOBRESTADA', 'EQUIPE', 'SAIDA', 'RETORNO'].map((c) => col('DEM-0001', c)),
     ['Operação de alertas', 'Em andamento', '17/10/2026', '18', 'Alta', '68', '13', '6', '1', 'não', 'Equipe Fictícia Norte', '03/10/2026', '07/10/2026']);
-  assert.deepEqual(['ORIGEM', 'PROCESSO', 'ETAPA', 'FAIXA', 'SCORE', 'ESFORCO_H'].map((c) => col('DEM-0003', c)), ['Ministério Público', 'SEMA-PRO-FICT-0042', 'parecer', 'Crítica', '90', '4']);
+  assert.deepEqual(['ORIGEM', 'PROTOCOLO', 'ETAPA', 'FAIXA', 'SCORE', 'ESFORCO_H'].map((c) => col('DEM-0003', c)), ['Ministério Público', 'SEMA-PRO-FICT-0042', 'parecer', 'Crítica', '90', '4']);
   assert.deepEqual(['STATUS', 'FAIXA', 'SCORE', 'SOBRESTADA', 'PRAZO'].map((c) => col('DEM-0006', c)), ['Sobrestado (aguardando)', '', '', 'sim', '30/10/2026']);
   assert.deepEqual(['STATUS', 'CONCLUIDA_EM', 'FAIXA', 'SCORE'].map((c) => col('DEM-0012', c)), ['Concluída', '13/10/2026', '', '']);
   assert.deepEqual(['DATA_HORA', 'LOCAL'].map((c) => col('DEM-0008', c)), ['20/10/2026 09:00', 'Sala de reuniões (fictícia)']);
@@ -148,4 +148,45 @@ test('nomes e tipos dos arquivos', () => {
   assert.equal(ARQUIVOS.json.nome(HOJE), 'painel-2026-10-15.json');
   assert.equal(ARQUIVOS.resumo.nome(HOJE), 'resumo-semanal-2026-10-15.txt');
   assert.match(ARQUIVOS.demandas.mime, /^text\/csv/);
+});
+
+test('CSV de demandas: colunas novas (descrição, responsável, município, modo da prioridade, motivo e anotações)', () => {
+  const novas = ['PROTOCOLO', 'DESCRICAO', 'RESPONSAVEL', 'MUNICIPIO', 'PRIORIDADE_MODO', 'MOTIVO_AJUSTE', 'ANOTACOES'];
+  assert.ok(novas.every((c) => CABECALHO_DEMANDAS.includes(c)));
+  assert.equal(CABECALHO_DEMANDAS.includes('PROCESSO'), false); // o nº do processo é o protocolo, sem campo duplicado
+  const csv = csvDemandas(seed.demandas, HOJE, ctx);
+  const col = (id, nome) => celulas(linhaDoId(csv, id))[CABECALHO_DEMANDAS.indexOf(nome)];
+  assert.deepEqual(['PROTOCOLO', 'RESPONSAVEL', 'MUNICIPIO', 'PRIORIDADE_MODO', 'MOTIVO_AJUSTE'].map((c) => col('DEM-0003', c)),
+    ['SEMA-PRO-FICT-0042', 'Equipe Jurídica Fictícia', 'Cidade Fictícia Alfa', 'automatica', '']);
+  assert.equal(col('DEM-0003', 'ANOTACOES'), '[x] Conferir os anexos do processo | [ ] Redigir a minuta da manifestação | [ ] Enviar para revisão da coordenação');
+  assert.equal(col('DEM-0011', 'ANOTACOES'), ''); // sem anotações
+  assert.equal(col('DEM-0011', 'PRIORIDADE_MODO'), 'automatica');
+});
+
+test('CSV de demandas: ajuste manual aparece como FAIXA efetiva, com SCORE calculado e o motivo', () => {
+  const manual = { ...seed.demandas.find((d) => d.id === 'DEM-0008'), prioridade_manual: 'alta', motivo_ajuste: 'Pedido da chefia' }; // 35 Média calculada
+  const csv = csvDemandas([manual], HOJE, ctx);
+  const linha = celulas(linhasDe(csv)[1]);
+  const col = (nome) => linha[CABECALHO_DEMANDAS.indexOf(nome)];
+  assert.deepEqual(['FAIXA', 'SCORE', 'PRIORIDADE_MODO', 'MOTIVO_AJUSTE'].map(col), ['Alta', '35', 'manual', 'Pedido da chefia']);
+});
+
+test('CSV de demandas: texto de anotação e descrição com fórmula, ponto e vírgula e quebra de linha fica protegido', () => {
+  const d = {
+    id: 'DEM-0050', tipo: 'outra', origem: 'propria', status: 'a_fazer', prazo: '2026-10-25', titulo: 'T', criada_em: HOJE,
+    descricao: '=1+1', responsavel: '+cmd', municipio: '@x', motivo_ajuste: '-y',
+    anotacoes: [{ id: 'A-1', texto: 'um; dois', feita: true }, { id: 'A-2', texto: 'três', feita: false }],
+  };
+  const csv = csvDemandas([d], HOJE, ctx);
+  assert.ok(csv.includes(";'=1+1;'+cmd;'@x;"));
+  assert.ok(csv.includes('"[x] um; dois | [ ] três"'));
+  assert.ok(csv.includes(";'-y;")); // motivo mesmo sem ajuste manual válido sai como texto protegido
+});
+
+test('JSON completo leva todos os campos novos', () => {
+  const d = { ...seed.demandas.find((x) => x.id === 'DEM-0003'), prioridade_manual: 'baixa', motivo_ajuste: 'm' };
+  const json = JSON.parse(jsonCompleto({ demandas: [d], afastamentos: [] }, '2026-10-15T10:00:00Z'));
+  const salva = json.demandas[0];
+  for (const campo of ['descricao', 'responsavel', 'municipio', 'protocolo', 'prioridade_manual', 'motivo_ajuste', 'anotacoes']) assert.ok(campo in salva, campo);
+  assert.equal(salva.anotacoes.length, 3);
 });

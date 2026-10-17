@@ -1,7 +1,8 @@
 // Cadastro, edição, status e filtros. Funções puras: não alteram os argumentos e não tocam em tela nem armazenamento.
 import { dataValida, estaConcluida, estaSobrestada, prazoDemanda } from './indicadores.js';
-import { priorizarFila } from './regras.js';
-import { ORIGENS, STATUS, TIPOS } from './rotulos.js';
+import { faixaManual, priorizarFila } from './regras.js';
+import { ETAPAS, ETAPA_ANTIGA, ORIGENS, PRIORIDADE_MANUAL, STATUS, TIPOS } from './rotulos.js';
+import { alternarAnotacao, eventosDeConclusao, normalizarAnotacoes } from './anotacoes.js';
 
 export const TIPOS_CADASTRAVEIS = ['processo', 'reuniao', 'palestra', 'outra'];
 const ORIGENS_PROCESSO = Object.keys(ORIGENS);
@@ -22,17 +23,52 @@ export class ErroCadastro extends Error {
 const PRAZO_DIAS_MAX = 365;
 const HORAS_MAX = 24;
 
+const DESCRICAO_MAX = 2000;
+const MOTIVO_MAX = 200;
+const CURTO_MAX = 120;
+// Campos opcionais: quando ficam vazios na edição, o valor antigo é removido em vez de ficar para trás.
+const OPCIONAIS = ['descricao', 'responsavel', 'municipio', 'protocolo', 'etapa', 'prioridade_manual', 'motivo_ajuste'];
+
 const texto = (v) => (typeof v === 'string' ? v.trim() : '');
 const vazio = (v) => v === undefined || v === null || String(v).trim() === '';
 
-// Valida e normaliza os campos de acordo com o tipo. Lança ErroCadastro com todos os erros encontrados.
-function normalizar(tipo, dados) {
-  const erros = {};
-  const limpo = {};
-
+// Campos comuns a todos os tipos (inclusive a operação): título, descrição, responsável, município, protocolo,
+// ajuste manual de prioridade e anotações. Preenche `limpo` e `erros`.
+function normalizarComuns(dados, limpo, erros, hoje) {
   limpo.titulo = texto(dados.titulo);
   if (!limpo.titulo) erros.titulo = 'Informe o título.';
   else if (limpo.titulo.length > 120) erros.titulo = 'Use no máximo 120 caracteres.';
+
+  const descricao = texto(dados.descricao);
+  if (descricao.length > DESCRICAO_MAX) erros.descricao = `Use no máximo ${DESCRICAO_MAX} caracteres.`;
+  else if (descricao) limpo.descricao = descricao;
+
+  for (const campo of ['responsavel', 'municipio', 'protocolo']) {
+    const valor = texto(dados[campo]);
+    if (valor.length > CURTO_MAX) erros[campo] = `Use no máximo ${CURTO_MAX} caracteres.`;
+    else if (valor) limpo[campo] = valor;
+  }
+
+  // Prioridade: vazio = automática (calculada). Com ajuste manual, o motivo é obrigatório.
+  const manual = texto(dados.prioridade_manual);
+  if (manual) {
+    if (!(manual in PRIORIDADE_MANUAL)) erros.prioridade_manual = 'Escolha automática, baixa, média, alta ou crítica.';
+    else limpo.prioridade_manual = manual;
+    const motivo = texto(dados.motivo_ajuste);
+    if (!motivo) erros.motivo_ajuste = 'Informe o motivo do ajuste.';
+    else if (motivo.length > MOTIVO_MAX) erros.motivo_ajuste = `Use no máximo ${MOTIVO_MAX} caracteres.`;
+    else limpo.motivo_ajuste = motivo;
+  }
+
+  limpo.anotacoes = normalizarAnotacoes(dados.anotacoes, hoje);
+}
+
+// Valida e normaliza os campos de acordo com o tipo. Lança ErroCadastro com todos os erros encontrados.
+function normalizar(tipo, dados, hoje) {
+  const erros = {};
+  const limpo = {};
+
+  normalizarComuns(dados, limpo, erros, hoje);
 
   limpo.origem = dados.origem;
   if (!origensDoTipo(tipo).includes(limpo.origem)) erros.origem = 'Escolha uma origem válida para este tipo.';
@@ -50,9 +86,11 @@ function normalizar(tipo, dados) {
   }
 
   if (tipo === 'processo') {
-    limpo.processo = texto(dados.processo);
-    if (!limpo.processo) erros.processo = 'Informe o número do processo (fictício).';
-    if (!vazio(dados.etapa)) limpo.etapa = texto(dados.etapa);
+    // O número do processo é o próprio protocolo/referência (normalizarComuns).
+    if (!vazio(dados.etapa)) {
+      if (texto(dados.etapa) in ETAPAS.processo) limpo.etapa = texto(dados.etapa);
+      else erros.etapa = 'Escolha uma etapa da lista.';
+    }
   }
 
   if (tipo === 'reuniao' || tipo === 'palestra') {
@@ -89,12 +127,11 @@ export function validarParametros({ prazo_dias, horas_ponto }) {
   return { prazo_dias: dias, horas_ponto: horas };
 }
 
-// Edição de operação: título, origem e parâmetros. Status e prazo são derivados dos pontos.
+// Edição de operação: título, origem, parâmetros e campos comuns. Status e prazo são derivados dos pontos.
 function editarOperacao(original, dados, hoje) {
   const erros = {};
-  const titulo = texto(dados.titulo);
-  if (!titulo) erros.titulo = 'Informe o título.';
-  else if (titulo.length > 120) erros.titulo = 'Use no máximo 120 caracteres.';
+  const limpo = {};
+  normalizarComuns(dados, limpo, erros, hoje);
   if (!ORIGENS_GERAIS.includes(dados.origem)) erros.origem = 'Escolha uma origem válida para este tipo.';
   let parametros = {};
   try {
@@ -104,7 +141,26 @@ function editarOperacao(original, dados, hoje) {
     Object.assign(erros, e.erros);
   }
   if (Object.keys(erros).length) throw new ErroCadastro(erros);
-  return { ...original, titulo, origem: dados.origem, ...parametros, historico: [...(original.historico || []), { data: hoje, evento: 'Editada' }] };
+  const historico = [...(original.historico || []), { data: hoje, evento: 'Editada' }, ...eventosEdicao(original, limpo, hoje)];
+  return { ...semOpcionais(original), ...limpo, origem: dados.origem, ...parametros, historico };
+}
+
+function semOpcionais(demanda) {
+  const base = { ...demanda };
+  for (const campo of OPCIONAIS) delete base[campo];
+  return base;
+}
+
+const rotuloPrioridade = (d) => (faixaManual(d) ? `${faixaManual(d)} (manual)` : 'Automática');
+
+// Eventos de histórico além de "Editada": mudança de prioridade (manual/automática) e anotações concluídas.
+function eventosEdicao(original, limpo, hoje) {
+  const eventos = [];
+  if (rotuloPrioridade(original) !== rotuloPrioridade(limpo)) {
+    eventos.push({ data: hoje, evento: `Prioridade: ${rotuloPrioridade(original)} → ${rotuloPrioridade(limpo)}` });
+  }
+  for (const evento of eventosDeConclusao(original.anotacoes, limpo.anotacoes)) eventos.push({ data: hoje, evento });
+  return eventos;
 }
 
 export function proximoId(demandas) {
@@ -119,17 +175,18 @@ export function criarDemanda(dados, existentes, hoje) {
   if (!TIPOS_CADASTRAVEIS.includes(dados.tipo)) {
     throw new ErroCadastro({ tipo: 'Este tipo não é cadastrado por formulário (a operação vem da importação da planilha).' });
   }
-  const limpo = normalizar(dados.tipo, dados);
-  const demanda = { id: proximoId(existentes), tipo: dados.tipo, ...limpo, criada_em: hoje, historico: [{ data: hoje, evento: 'Criada' }] };
+  const limpo = normalizar(dados.tipo, dados, hoje);
+  const historico = [{ data: hoje, evento: 'Criada' }, ...eventosDeConclusao([], limpo.anotacoes).map((evento) => ({ data: hoje, evento }))];
+  const demanda = { id: proximoId(existentes), tipo: dados.tipo, ...limpo, criada_em: hoje, historico };
   if (demanda.status === 'concluida') demanda.concluida_em = hoje;
   return demanda;
 }
 
 export function editarDemanda(original, dados, hoje) {
   if (original.tipo === 'operacao') return editarOperacao(original, dados, hoje);
-  const limpo = normalizar(original.tipo, dados);
-  const { concluida_em, ...base } = original;
-  const editada = { ...base, ...limpo, historico: [...(original.historico || []), { data: hoje, evento: 'Editada' }] };
+  const limpo = normalizar(original.tipo, dados, hoje);
+  const { concluida_em, ...base } = semOpcionais(original);
+  const editada = { ...base, ...limpo, historico: [...(original.historico || []), { data: hoje, evento: 'Editada' }, ...eventosEdicao(original, limpo, hoje)] };
   if (limpo.status !== original.status) {
     editada.historico.push({ data: hoje, evento: `Status: ${STATUS[original.status]} → ${STATUS[limpo.status]}` });
   }
@@ -151,12 +208,45 @@ export function alterarStatus(demanda, novoStatus, hoje) {
   return nova;
 }
 
+// Marca ou desmarca uma anotação direto do cartão. Concluir registra "Anotação concluída" no histórico.
+export function alternarAnotacaoDaDemanda(demanda, idAnotacao, hoje) {
+  const antes = demanda.anotacoes ?? [];
+  if (!antes.some((a) => a.id === idAnotacao)) return demanda;
+  const depois = alternarAnotacao(antes, idAnotacao, hoje);
+  const historico = [...(demanda.historico || []), ...eventosDeConclusao(antes, depois).map((evento) => ({ data: hoje, evento }))];
+  return { ...demanda, anotacoes: depois, historico };
+}
+
+// Migração de dados salvos antes dos campos novos (idempotente): `processo` vira `protocolo`, a etapa passa a ser
+// um valor da lista fixa, e toda demanda ganha `anotacoes`. Não altera o argumento.
+export function migrarDemanda(demanda) {
+  const d = { ...demanda };
+  if ('processo' in d) {
+    if (!d.protocolo && typeof d.processo === 'string' && d.processo.trim()) d.protocolo = d.processo.trim();
+    delete d.processo;
+  }
+  if (d.tipo === 'processo' && d.etapa !== undefined) {
+    const etapa = d.etapa in ETAPAS.processo ? d.etapa : ETAPA_ANTIGA[d.etapa];
+    if (etapa) d.etapa = etapa;
+    else delete d.etapa;
+  }
+  for (const campo of ['descricao', 'responsavel', 'municipio', 'protocolo', 'motivo_ajuste']) {
+    if (d[campo] !== undefined && typeof d[campo] !== 'string') delete d[campo];
+  }
+  if (d.prioridade_manual !== undefined && !(d.prioridade_manual in PRIORIDADE_MANUAL)) {
+    delete d.prioridade_manual;
+    delete d.motivo_ajuste;
+  }
+  d.anotacoes = normalizarAnotacoes(d.anotacoes);
+  return d;
+}
+
 export function normalizarBusca(s) {
   return String(s ?? '').normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
 }
 
 function textoPesquisavel(d) {
-  const partes = [d.id, d.titulo, d.processo, d.etapa, d.local, d.equipe, TIPOS[d.tipo], ORIGENS[d.origem]];
+  const partes = [d.id, d.titulo, d.descricao, d.responsavel, d.municipio, d.protocolo, ETAPAS.processo[d.etapa], d.local, d.equipe, TIPOS[d.tipo], ORIGENS[d.origem]];
   if (d.pontos) partes.push(...d.pontos.map((p) => p.municipio));
   return normalizarBusca(partes.filter(Boolean).join(' '));
 }

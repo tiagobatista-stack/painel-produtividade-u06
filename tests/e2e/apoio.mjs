@@ -45,7 +45,7 @@ export async function cadastrarProcesso(page, { titulo, origem = 'Ministério P�
   const dialogo = page.getByRole('dialog', { name: 'Nova demanda' });
   await dialogo.getByLabel('Título').fill(titulo);
   await dialogo.getByLabel('Origem').selectOption({ label: origem });
-  await dialogo.getByLabel('Nº do processo (fictício)').fill(processo);
+  await dialogo.getByLabel('Protocolo/referência').fill(processo);
   await dialogo.getByLabel('Prazo', { exact: true }).fill(prazo);
   await dialogo.getByRole('button', { name: 'Salvar' }).click();
   await expect(dialogo).toBeHidden();

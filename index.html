@@ -99,86 +99,140 @@
     </section>
   </main>
 
-  <dialog id="dialogo" aria-labelledby="dialogo-titulo">
+  <dialog id="dialogo" class="dialogo-demanda" aria-labelledby="dialogo-titulo">
     <form id="formulario" novalidate>
-      <h2 id="dialogo-titulo">Nova demanda</h2>
-      <p class="nota">Use apenas dados fictícios: a publicação na internet é pública.</p>
-      <div id="resumo-erros" class="erro" role="alert" tabindex="-1" hidden></div>
+      <header class="dlg-cabecalho">
+        <h2 id="dialogo-titulo">Nova demanda</h2>
+        <button type="button" id="fechar-dialogo" class="fechar" aria-label="Fechar">×</button>
+      </header>
 
-      <div class="campo" data-campo="tipo">
-        <label for="f-tipo">Tipo</label>
-        <select id="f-tipo" name="tipo"></select>
-        <span class="erro-campo" id="e-tipo"></span>
-      </div>
-      <div class="campo" data-campo="titulo">
-        <label for="f-titulo">Título</label>
-        <input id="f-titulo" name="titulo" maxlength="120" autocomplete="off">
-        <span class="erro-campo" id="e-titulo"></span>
-      </div>
-      <div class="campo" data-campo="origem">
-        <label for="f-origem">Origem</label>
-        <select id="f-origem" name="origem"></select>
-        <span class="erro-campo" id="e-origem"></span>
+      <div class="dlg-corpo">
+        <p class="nota">Use apenas dados fictícios: a publicação na internet é pública.</p>
+        <div id="resumo-erros" class="erro" role="alert" tabindex="-1" hidden></div>
+
+        <div class="grade-campos">
+          <div class="campo" data-campo="tipo">
+            <label for="f-tipo" class="obrig">Tipo</label>
+            <select id="f-tipo" name="tipo" aria-required="true"></select>
+            <span class="erro-campo" id="e-tipo"></span>
+          </div>
+          <div class="campo" data-campo="origem">
+            <label for="f-origem">Origem</label>
+            <select id="f-origem" name="origem"></select>
+            <span class="erro-campo" id="e-origem"></span>
+          </div>
+
+          <div class="campo inteira" data-campo="titulo">
+            <label for="f-titulo" class="obrig">Título</label>
+            <input id="f-titulo" name="titulo" maxlength="120" autocomplete="off" aria-required="true" placeholder="Ex.: Renovar licença ambiental">
+            <span class="erro-campo" id="e-titulo"></span>
+          </div>
+          <div class="campo inteira" data-campo="descricao">
+            <label for="f-descricao">Descrição</label>
+            <textarea id="f-descricao" name="descricao" rows="3" maxlength="2000" placeholder="Contexto, objetivo e próximos passos"></textarea>
+            <span class="erro-campo" id="e-descricao"></span>
+          </div>
+
+          <div class="campo" data-campo="status" data-tipos="processo reuniao palestra outra">
+            <label for="f-status">Status</label>
+            <select id="f-status" name="status"></select>
+            <span class="erro-campo" id="e-status"></span>
+          </div>
+          <div class="campo" data-campo="prioridade_manual">
+            <label for="f-prioridade_manual">Prioridade</label>
+            <select id="f-prioridade_manual" name="prioridade_manual" aria-describedby="d-prioridade_manual"></select>
+            <span class="dica" id="d-prioridade_manual">Automática usa as regras do painel; o ajuste manual exige motivo.</span>
+            <span class="erro-campo" id="e-prioridade_manual"></span>
+          </div>
+          <div class="campo inteira" data-campo="motivo_ajuste" id="campo-motivo" hidden>
+            <label for="f-motivo_ajuste" class="obrig">Motivo do ajuste</label>
+            <input id="f-motivo_ajuste" name="motivo_ajuste" maxlength="200" autocomplete="off" aria-required="true" placeholder="Por que a prioridade foi ajustada?">
+            <span class="erro-campo" id="e-motivo_ajuste"></span>
+          </div>
+
+          <div class="campo" data-campo="responsavel">
+            <label for="f-responsavel">Responsável</label>
+            <input id="f-responsavel" name="responsavel" maxlength="120" autocomplete="off" placeholder="Nome ou equipe">
+            <span class="erro-campo" id="e-responsavel"></span>
+          </div>
+          <div class="campo" data-campo="prazo" data-tipos="processo reuniao palestra outra">
+            <label for="f-prazo" class="obrig">Prazo</label>
+            <input id="f-prazo" name="prazo" type="date" aria-required="true">
+            <span class="erro-campo" id="e-prazo"></span>
+          </div>
+
+          <div class="campo" data-campo="municipio">
+            <label for="f-municipio">Município</label>
+            <input id="f-municipio" name="municipio" maxlength="120" autocomplete="off" placeholder="Ex.: Cuiabá - MT">
+            <span class="erro-campo" id="e-municipio"></span>
+          </div>
+          <div class="campo" data-campo="protocolo">
+            <label for="f-protocolo">Protocolo/referência</label>
+            <input id="f-protocolo" name="protocolo" maxlength="120" autocomplete="off" placeholder="SEMA-PRO-FICT-0000" aria-describedby="d-protocolo">
+            <span class="dica" id="d-protocolo">No processo, é o número do processo (fictício).</span>
+            <span class="erro-campo" id="e-protocolo"></span>
+          </div>
+
+          <div class="campo" data-campo="data_hora" data-tipos="reuniao palestra">
+            <label for="f-data_hora">Data e hora</label>
+            <input id="f-data_hora" name="data_hora" type="datetime-local">
+            <span class="erro-campo" id="e-data_hora"></span>
+          </div>
+          <div class="campo" data-campo="local" data-tipos="reuniao palestra">
+            <label for="f-local">Local</label>
+            <input id="f-local" name="local" autocomplete="off">
+            <span class="erro-campo" id="e-local"></span>
+          </div>
+          <div class="campo" data-campo="publico" data-tipos="palestra">
+            <label for="f-publico">Público esperado (pessoas)</label>
+            <input id="f-publico" name="publico" type="number" min="0" step="1">
+            <span class="erro-campo" id="e-publico"></span>
+          </div>
+
+          <div class="campo" data-campo="etapa" data-tipos="processo">
+            <label for="f-etapa">Etapa</label>
+            <select id="f-etapa" name="etapa"></select>
+            <span class="erro-campo" id="e-etapa"></span>
+          </div>
+          <div class="campo" data-campo="esforco_h" data-tipos="processo reuniao palestra outra">
+            <label for="f-esforco_h">Esforço estimado (h)</label>
+            <input id="f-esforco_h" name="esforco_h" type="number" min="0" step="0.5">
+            <span class="erro-campo" id="e-esforco_h"></span>
+          </div>
+
+          <div class="campo" data-campo="prazo_dias" data-tipos="operacao">
+            <label for="f-prazo_dias">Prazo dos relatórios (dias após o retorno)</label>
+            <input id="f-prazo_dias" name="prazo_dias" type="number" min="0" max="365" step="1">
+            <span class="erro-campo" id="e-prazo_dias"></span>
+          </div>
+          <div class="campo" data-campo="horas_ponto" data-tipos="operacao">
+            <label for="f-horas_ponto">Horas por relatório</label>
+            <input id="f-horas_ponto" name="horas_ponto" type="number" min="0" max="24" step="0.5">
+            <span class="erro-campo" id="e-horas_ponto"></span>
+          </div>
+
+          <div class="campo inteira" data-campo="anotacoes">
+            <label for="f-anotacao-nova">Anotações</label>
+            <div class="anotacao-nova">
+              <input id="f-anotacao-nova" maxlength="280" autocomplete="off" placeholder="Nova anotação" aria-describedby="d-anotacoes">
+              <button type="button" id="f-anotacao-add">+ Adicionar</button>
+            </div>
+            <span class="dica" id="d-anotacoes">Enter ou "+ Adicionar" inclui; colar várias linhas cria um item por linha.</span>
+            <span class="erro-campo" id="e-anotacoes" aria-live="polite"></span>
+            <label class="mostrar-concluidas"><input type="checkbox" id="f-mostrar-concluidas" checked> Mostrar concluídas</label>
+            <ul id="f-anotacoes-lista" class="lista-anotacoes"></ul>
+            <p id="f-anotacoes-desfazer" class="desfazer" role="status" hidden></p>
+          </div>
+        </div>
       </div>
 
-      <div class="campo" data-campo="processo" data-tipos="processo">
-        <label for="f-processo">Nº do processo (fictício)</label>
-        <input id="f-processo" name="processo" autocomplete="off" placeholder="SEMA-PRO-FICT-0000">
-        <span class="erro-campo" id="e-processo"></span>
-      </div>
-      <div class="campo" data-campo="etapa" data-tipos="processo">
-        <label for="f-etapa">Etapa</label>
-        <input id="f-etapa" name="etapa" autocomplete="off" placeholder="análise, parecer, despacho…">
-        <span class="erro-campo" id="e-etapa"></span>
-      </div>
-
-      <div class="campo" data-campo="data_hora" data-tipos="reuniao palestra">
-        <label for="f-data_hora">Data e hora</label>
-        <input id="f-data_hora" name="data_hora" type="datetime-local">
-        <span class="erro-campo" id="e-data_hora"></span>
-      </div>
-      <div class="campo" data-campo="local" data-tipos="reuniao palestra">
-        <label for="f-local">Local</label>
-        <input id="f-local" name="local" autocomplete="off">
-        <span class="erro-campo" id="e-local"></span>
-      </div>
-      <div class="campo" data-campo="publico" data-tipos="palestra">
-        <label for="f-publico">Público esperado (pessoas)</label>
-        <input id="f-publico" name="publico" type="number" min="0" step="1">
-        <span class="erro-campo" id="e-publico"></span>
-      </div>
-
-      <div class="campo" data-campo="prazo_dias" data-tipos="operacao">
-        <label for="f-prazo_dias">Prazo dos relatórios (dias após o retorno)</label>
-        <input id="f-prazo_dias" name="prazo_dias" type="number" min="0" max="365" step="1">
-        <span class="erro-campo" id="e-prazo_dias"></span>
-      </div>
-      <div class="campo" data-campo="horas_ponto" data-tipos="operacao">
-        <label for="f-horas_ponto">Horas por relatório</label>
-        <input id="f-horas_ponto" name="horas_ponto" type="number" min="0" max="24" step="0.5">
-        <span class="erro-campo" id="e-horas_ponto"></span>
-      </div>
-
-      <div class="campo" data-campo="prazo" data-tipos="processo reuniao palestra outra">
-        <label for="f-prazo">Prazo</label>
-        <input id="f-prazo" name="prazo" type="date">
-        <span class="erro-campo" id="e-prazo"></span>
-      </div>
-      <div class="campo" data-campo="status" data-tipos="processo reuniao palestra outra">
-        <label for="f-status">Status</label>
-        <select id="f-status" name="status"></select>
-        <span class="erro-campo" id="e-status"></span>
-      </div>
-      <div class="campo" data-campo="esforco_h" data-tipos="processo reuniao palestra outra">
-        <label for="f-esforco_h">Esforço estimado (horas)</label>
-        <input id="f-esforco_h" name="esforco_h" type="number" min="0" step="0.5">
-        <span class="erro-campo" id="e-esforco_h"></span>
-      </div>
-
-      <div class="acoes">
-        <button type="submit" class="primario">Salvar</button>
-        <button type="button" id="cancelar">Cancelar</button>
-      </div>
+      <footer class="dlg-rodape">
+        <div id="previa-prioridade" class="previa" aria-live="polite"></div>
+        <div class="acoes">
+          <button type="button" id="cancelar">Cancelar</button>
+          <button type="submit" class="primario">Salvar demanda</button>
+        </div>
+      </footer>
     </form>
   </dialog>
 

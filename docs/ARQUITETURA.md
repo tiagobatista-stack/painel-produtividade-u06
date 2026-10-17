@@ -12,10 +12,14 @@ Tudo roda no navegador, sem backend. A única peça compartilhada é o motor de 
 painel-produtividade-u06/
 ├── index.html
 ├── css/styles.css
-├── js/app.js            # interface
+├── js/app.js            # interface: indicadores, fila e cartões
+├── js/ui-formulario.js  # formulário de demanda e prévia da prioridade
+├── js/ui-anotacoes.js   # anotações no formulário e no cartão
+├── js/anotacoes.js      # anotações (funções puras)
+├── js/demandas.js       # cadastro, edição, filtros e migração (funções puras)
 ├── js/regras.js         # motor de prioridade (puro, módulo ES)
 ├── data/seed.json       # exemplo fictício
-├── tests/regras.test.mjs  # T1–T13 (node --test)
+├── tests/regras.test.mjs  # T1–T14 (node --test)
 ├── tests/e2e/           # Playwright
 ├── tools/demandas-mcp.mjs # servidor MCP local (somente leitura; ver docs/MCP.md)
 ├── tools/teste-mcp.mjs  # teste do servidor MCP
