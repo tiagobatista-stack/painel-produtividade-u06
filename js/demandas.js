@@ -1,6 +1,6 @@
 // Cadastro, edição, status e filtros. Funções puras: não alteram os argumentos e não tocam em tela nem armazenamento.
-import { dataValida, estaConcluida, estaSobrestada, prazoDemanda } from './indicadores.js';
-import { faixaManual, priorizarFila } from './regras.js';
+import { dataValida, estaConcluida, estaSobrestada, itensDosIndicadores, prazoDemanda } from './indicadores.js';
+import { ErroValidacao, faixaManual, priorizar, priorizarFila } from './regras.js';
 import { ETAPAS, ETAPA_ANTIGA, ORIGENS, PRIORIDADE_MANUAL, STATUS, TIPOS } from './rotulos.js';
 import { alternarAnotacao, eventosDeConclusao, normalizarAnotacoes } from './anotacoes.js';
 
@@ -131,7 +131,7 @@ export function validarParametros({ prazo_dias, horas_ponto }) {
 function editarOperacao(original, dados, hoje) {
   const erros = {};
   const limpo = {};
-  normalizarComuns(dados, limpo, erros, hoje);
+  normalizarComuns(semAnotacoesOmitidas(original, dados), limpo, erros, hoje);
   if (!ORIGENS_GERAIS.includes(dados.origem)) erros.origem = 'Escolha uma origem válida para este tipo.';
   let parametros = {};
   try {
@@ -143,6 +143,11 @@ function editarOperacao(original, dados, hoje) {
   if (Object.keys(erros).length) throw new ErroCadastro(erros);
   const historico = [...(original.historico || []), { data: hoje, evento: 'Editada' }, ...eventosEdicao(original, limpo, hoje)];
   return { ...semOpcionais(original), ...limpo, origem: dados.origem, ...parametros, historico };
+}
+
+// Quem edita sem informar `anotacoes` (por exemplo, outro módulo) não apaga a lista existente.
+function semAnotacoesOmitidas(original, dados) {
+  return dados.anotacoes === undefined ? { ...dados, anotacoes: original.anotacoes } : dados;
 }
 
 function semOpcionais(demanda) {
@@ -184,7 +189,7 @@ export function criarDemanda(dados, existentes, hoje) {
 
 export function editarDemanda(original, dados, hoje) {
   if (original.tipo === 'operacao') return editarOperacao(original, dados, hoje);
-  const limpo = normalizar(original.tipo, dados, hoje);
+  const limpo = normalizar(original.tipo, semAnotacoesOmitidas(original, dados), hoje);
   const { concluida_em, ...base } = semOpcionais(original);
   const editada = { ...base, ...limpo, historico: [...(original.historico || []), { data: hoje, evento: 'Editada' }, ...eventosEdicao(original, limpo, hoje)] };
   if (limpo.status !== original.status) {
@@ -237,8 +242,46 @@ export function migrarDemanda(demanda) {
     delete d.prioridade_manual;
     delete d.motivo_ajuste;
   }
-  d.anotacoes = normalizarAnotacoes(d.anotacoes);
+  // Texto livre antigo (`observacoes`) vira uma anotação por linha, no fim da lista.
+  if (typeof d.observacoes === 'string' && d.observacoes.trim()) {
+    const linhas = d.observacoes.split(/\r\n|\r|\n/).map((l) => ({ texto: l })).filter((l) => l.texto.trim());
+    d.anotacoes = normalizarAnotacoes([...(Array.isArray(d.anotacoes) ? d.anotacoes : []), ...linhas]);
+  } else {
+    d.anotacoes = normalizarAnotacoes(d.anotacoes);
+  }
+  delete d.observacoes;
   return d;
+}
+
+// Exclusão de demanda cadastrada por engano. Não altera a lista recebida.
+export function removerDemanda(demandas, id) {
+  return demandas.filter((d) => d.id !== id);
+}
+
+// Desfaz uma exclusão: devolve a demanda à posição em que estava. Recusa se o número já foi reaproveitado por outra
+// (proximoId usa o maior id + 1, então apagar a última demanda e criar outra repete o número).
+export function restaurarDemanda(demandas, demanda, indice) {
+  if (demandas.some((d) => d.id === demanda.id)) {
+    throw new ErroCadastro({ id: `Não foi possível desfazer: o número ${demanda.id} já foi usado por outra demanda.` });
+  }
+  const i = Number.isInteger(indice) ? Math.min(Math.max(indice, 0), demandas.length) : demandas.length;
+  return [...demandas.slice(0, i), demanda, ...demandas.slice(i)];
+}
+
+// Situação de uma demanda (faixa, pontos e motivos) sem depender dos filtros da fila: usada pelo painel lateral.
+// Mesmo formato dos itens de listarDemandas; `erro` só aparece se o prazo for inválido.
+export function itemDaDemanda(demanda, hoje, contexto = {}) {
+  const prazo = prazoDemanda(demanda);
+  if (estaConcluida(demanda)) return { demanda, prazo, concluida: true };
+  if (estaSobrestada(demanda)) return { demanda, prazo, sobrestada: true };
+  try {
+    const r = priorizar(demanda, hoje, contexto);
+    const manual = faixaManual(demanda);
+    return { demanda, prazo, ...r, faixa: manual ?? r.faixa, faixa_calculada: r.faixa, modo: manual ? 'manual' : 'automatica' };
+  } catch (e) {
+    if (!(e instanceof ErroValidacao)) throw e;
+    return { demanda, prazo, erro: e.message };
+  }
 }
 
 export function normalizarBusca(s) {
@@ -247,6 +290,7 @@ export function normalizarBusca(s) {
 
 function textoPesquisavel(d) {
   const partes = [d.id, d.titulo, d.descricao, d.responsavel, d.municipio, d.protocolo, ETAPAS.processo[d.etapa], d.local, d.equipe, TIPOS[d.tipo], ORIGENS[d.origem]];
+  if (d.anotacoes) partes.push(...d.anotacoes.map((a) => a.texto));
   if (d.pontos) partes.push(...d.pontos.map((p) => p.municipio));
   return normalizarBusca(partes.filter(Boolean).join(' '));
 }

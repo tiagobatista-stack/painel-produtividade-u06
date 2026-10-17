@@ -45,7 +45,7 @@ operação:   relatorios?: [{ id: 'R1', pontos: [1, 2, 3], criado_em }]    obser
 ponto:      etapa, data_relatorio, data_auto (primeiro auto),
             autos?: [{ id: 'A1', tipo: auto_infracao|termo_embargo|termo_apreensao|termo_interdicao|outro, data }],
             observacoes?: texto (até 500)
-demanda:    observacoes?: texto (até 2000)
+demanda:    (observacoes foi substituída pela lista `anotacoes` da demanda; o texto antigo é migrado, uma anotação por linha)
 ```
 
 ## Importação com graus, minutos e segundos

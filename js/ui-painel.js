@@ -1,12 +1,12 @@
 // Painel lateral de uma demanda: prioridade e motivos, dados, pontos da operação, histórico, status, editar e excluir.
 // É um <dialog> modal (foco preso, Esc fecha) estilizado como gaveta; o conteúdo é refeito a cada atualização da tela.
 import { autosALavrar, relatoriosPendentes } from './indicadores.js';
-import { OBSERVACOES_MAX, ErroCadastro, itemDaDemanda, salvarObservacoes } from './demandas.js';
-import { caixaDeAnotacao } from './ui-anotacoes.js';
+import { itemDaDemanda } from './demandas.js';
+import { blocoAnotacoes } from './ui-anotacoes.js';
 import { esforcoHoras } from './operacoes.js';
-import { ORIGENS, STATUS, TIPOS } from './rotulos.js';
-import { $, elemento, estado, formatarData, hojeAtual, mostrarAviso, opcoes, persistir, textoPrazo } from './ui-comum.js';
-import { abrirRetorno, avisarNoPainel, blocoPontos, botaoSobrestamento, temPlanejados } from './ui-operacao.js';
+import { ETAPAS, ORIGENS, STATUS, TIPOS } from './rotulos.js';
+import { $, elemento, estado, formatarData, hojeAtual, opcoes, textoPrazo } from './ui-comum.js';
+import { abrirRetorno, blocoPontos, botaoSobrestamento, temPlanejados } from './ui-operacao.js';
 
 const painel = $('painel-demanda');
 let idAberto = null;
@@ -16,10 +16,11 @@ let tratadores = { editar: () => {}, excluir: () => {}, mudarStatus: () => {} };
 
 const linha = (texto, classe = 'demanda-detalhe') => elemento('p', classe, texto);
 
-function linhaPrioridade({ demanda: d, faixa, score, concluida, sobrestada, erro }) {
+function linhaPrioridade({ demanda: d, faixa, faixa_calculada: faixaCalculada, modo, score, concluida, sobrestada, erro }) {
   if (concluida) return d.concluida_em ? `Concluída em ${formatarData(d.concluida_em)}` : 'Concluída';
   if (sobrestada) return d.tipo === 'operacao' ? 'Sobrestada: prazo suspenso, aguardando identificação do autuado' : 'Sobrestado: prazo suspenso, aguardando resposta do interessado';
   if (erro) return `Sem prioridade: ${erro}`;
+  if (modo === 'manual') return `Prioridade ${faixa} (manual) · calculada: ${faixaCalculada} ${score}`;
   return `Prioridade ${faixa} · ${score} pontos`;
 }
 
@@ -30,7 +31,14 @@ function blocoDados(item, hoje) {
   bloco.append(linha(`Origem: ${ORIGENS[d.origem]}`));
   if (sobrestada) bloco.append(linha(`Prazo registrado: ${formatarData(prazo)} (não conta enquanto sobrestado)`));
   else if (!concluida) bloco.append(linha(`Prazo: ${textoPrazo(prazo, hoje).texto}`, 'demanda-prazo'));
-  if (d.processo) bloco.append(linha(`Processo ${d.processo}${d.etapa ? ` · etapa: ${d.etapa.replaceAll('_', ' ')}` : ''}`));
+  if (d.descricao) bloco.append(linha(d.descricao, 'demanda-descricao-painel'));
+  const etapa = ETAPAS[d.tipo]?.[d.etapa];
+  if (d.protocolo || etapa) {
+    const rotulo = d.tipo === 'processo' ? 'Processo' : 'Protocolo';
+    bloco.append(linha([d.protocolo && `${rotulo} ${d.protocolo}`, etapa && `etapa: ${etapa}`].filter(Boolean).join(' · ')));
+  }
+  if (d.responsavel) bloco.append(linha(`Responsável: ${d.responsavel}`));
+  if (d.municipio) bloco.append(linha(`Município: ${d.municipio}`));
   if (d.data_hora) {
     const [dia, hora] = d.data_hora.split('T');
     bloco.append(linha(`${formatarData(dia)} às ${hora} · ${d.local}${d.publico !== undefined ? ` · ${d.publico} pessoas` : ''}`));
@@ -44,44 +52,13 @@ function blocoDados(item, hoje) {
   return bloco;
 }
 
-function blocoMotivos({ motivos }) {
+function blocoMotivos({ demanda: d, faixa, modo, motivos }) {
   if (!motivos) return null;
   const bloco = elemento('section', 'painel-motivos');
   const lista = elemento('ul');
+  if (modo === 'manual') lista.append(elemento('li', '', `Ajuste manual: ${faixa}. Motivo: ${d.motivo_ajuste}`));
   lista.append(...motivos.map((m) => elemento('li', '', m)));
   bloco.append(elemento('h3', '', 'Por que esta prioridade?'), lista);
-  return bloco;
-}
-
-// Anotações da demanda: o que já foi executado e o que está pendente. Vale para todos os tipos, inclusive operação.
-function blocoAnotacoes(d) {
-  const bloco = elemento('section', 'painel-anotacoes');
-  bloco.append(
-    caixaDeAnotacao({
-      chave: d.id,
-      titulo: 'Anotações',
-      valor: d.observacoes ?? '',
-      max: OBSERVACOES_MAX,
-      linhas: 5,
-      ajuda: 'Registre o que já foi executado e o que está pendente. Use só dados fictícios neste exemplo.',
-      aoSalvar: (texto) => {
-        const i = estado.dados.demandas.findIndex((x) => x.id === d.id);
-        try {
-          estado.dados.demandas[i] = salvarObservacoes(estado.dados.demandas[i], texto, hojeAtual());
-        } catch (e) {
-          if (!(e instanceof ErroCadastro)) throw e;
-          avisarNoPainel(Object.values(e.erros)[0]);
-          return false;
-        }
-        avisarNoPainel('');
-        mostrarAviso('');
-        persistir();
-        estado.focoApos = `anotacao-${d.id}`;
-        estado.atualizar();
-        return true;
-      },
-    })
-  );
   return bloco;
 }
 

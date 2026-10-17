@@ -27,7 +27,7 @@ function eventosDaDemanda(d, { prazos = false } = {}) {
   if (prazos && (d.tipo === 'processo' || d.tipo === 'outra')) {
     const prazo = prazoDemanda(d);
     const tipo = d.tipo === 'processo' ? 'prazo_processo' : 'prazo_demanda';
-    if (prazo) eventos.push({ data: prazo, hora: null, tipo, titulo: d.processo ? `${d.processo} — ${d.titulo}` : d.titulo, id: d.id });
+    if (prazo) eventos.push({ data: prazo, hora: null, tipo, titulo: d.protocolo ? `${d.protocolo} — ${d.titulo}` : d.titulo, id: d.id });
   }
   return eventos;
 }
