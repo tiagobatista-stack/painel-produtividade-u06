@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Painel de Demandas</title>
   <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -143,9 +144,21 @@
         <ul id="pontos-lista" class="fila"></ul>
 
         <div id="pontos-mapa" class="mapa" hidden>
-          <p class="nota">Mapa local, sem mapa-base: mostra a posição relativa dos pontos pela longitude e pela latitude, na mesma lista filtrada acima. Nenhum dado sai do navegador.</p>
+          <div class="visoes mapa-camadas" id="mapa-camadas" role="group" aria-label="Camada do mapa">
+            <button type="button" id="mapa-camada-sem" data-camada="sem" aria-pressed="true">Sem mapa-base</button>
+            <button type="button" id="mapa-camada-osm" data-camada="osm" aria-pressed="false">OpenStreetMap</button>
+            <button type="button" id="mapa-camada-satelite" data-camada="satelite" aria-pressed="false">Satélite</button>
+          </div>
+          <p id="mapa-nota" class="nota">Sem mapa-base: mostra a posição relativa dos pontos pela longitude e pela latitude, na mesma lista filtrada acima. Nenhum dado sai do navegador.</p>
           <p id="mapa-vazio" hidden>Nenhum ponto com coordenadas na lista atual.</p>
           <div id="mapa-svg-caixa" class="mapa-caixa"></div>
+          <div id="mapa-leaflet-area" hidden>
+            <div id="mapa-leaflet" class="mapa-leaflet"></div>
+            <div class="mapa-coordenada-linha">
+              <p id="mapa-coordenada" class="nota">Passe o cursor ou toque no mapa para ver a coordenada.</p>
+              <button type="button" id="mapa-copiar" disabled>Copiar coordenada</button>
+            </div>
+          </div>
           <ul id="mapa-legenda" class="mapa-legenda" aria-label="Legenda do mapa"></ul>
           <section id="mapa-sem-coordenada" hidden aria-labelledby="mapa-sem-coordenada-titulo">
             <h3 id="mapa-sem-coordenada-titulo">Pontos sem coordenadas</h3>
@@ -471,6 +484,7 @@
     <div id="painel-corpo" class="painel-corpo"></div>
   </dialog>
 
+  <script defer src="vendor/leaflet/leaflet.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

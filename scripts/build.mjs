@@ -1,4 +1,4 @@
-// Build estático: copia para public/ somente o que o navegador precisa (index.html, kanban.html, css/, js/, data/).
+// Build estático: copia para public/ somente o que o navegador precisa (index.html, kanban.html, css/, js/, data/, vendor/).
 // Não inclui testes, ferramentas, documentos, scripts nem o dashboard antigo (legado/).
 //   uso: node scripts/build.mjs [destino]      (padrão: public)
 import { cpSync, existsSync, mkdirSync, readdirSync, rmSync, statSync } from 'node:fs';
@@ -6,7 +6,7 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const FONTES = ['index.html', 'kanban.html', 'css', 'js', 'data'];
+const FONTES = ['index.html', 'kanban.html', 'css', 'js', 'data', 'vendor'];
 
 function destinoSeguro(argumento) {
   const destino = resolve(RAIZ, argumento ?? 'public');

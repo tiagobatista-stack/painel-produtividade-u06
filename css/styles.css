@@ -481,3 +481,27 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 .mapa-sem-coordenada { display: grid; gap: 4px; margin: 4px 0 0; padding-left: 18px; font-size: 0.9rem; }
 .mapa h3 { margin: 12px 0 0; font-size: 0.95rem; }
 #pontos-lista[hidden], #pontos-mapa[hidden] { display: none; }
+
+/* Mapa com camadas (Leaflet local): seletor de camada, mapa, coordenada sob o cursor, marcadores e popup. */
+.mapa-camadas { margin: 8px 0; }
+.mapa-leaflet { height: 65vh; min-height: 320px; border: 1px solid var(--borda); border-radius: 10px; font: inherit; z-index: 0; }
+#mapa-svg-caixa[hidden], #mapa-leaflet-area[hidden] { display: none; }
+.mapa-coordenada-linha { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 8px; }
+.mapa-coordenada-linha p { flex: 1 1 260px; margin: 0; overflow-wrap: anywhere; }
+.marcador-leaflet { background: transparent; border: 0; }
+.marcador-leaflet:focus { outline: none; }
+.marcador-leaflet:focus-visible .marcador-svg { outline: 3px solid #2563eb; outline-offset: 1px; border-radius: 50%; background: rgba(37, 99, 235, 0.18); }
+.marcador-svg { display: block; overflow: visible; }
+.forma-demanda { stroke-linejoin: round; }
+.demanda-faixa-critica { fill: #b91c1c; }
+.demanda-faixa-alta { fill: #c2410c; }
+.demanda-faixa-media { fill: #fcd34d; }
+.demanda-faixa-baixa { fill: #bfdbfe; }
+.demanda-faixa-sem { fill: #e2e8f0; }
+.marcador-letra { font: 700 13px "Segoe UI", Roboto, Arial, sans-serif; fill: #0f172a; pointer-events: none; }
+.demanda-faixa-critica + .marcador-letra, .demanda-faixa-alta + .marcador-letra { fill: #fff; }
+.popup-mapa { display: grid; gap: 4px; font-size: 0.9rem; color: var(--texto); }
+.popup-titulo { font-size: 0.95rem; }
+.popup-sub, .popup-linha { margin: 0; }
+.popup-rotulo { font-weight: 600; }
+.popup-abrir { margin-top: 4px; }

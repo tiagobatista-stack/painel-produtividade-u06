@@ -4,7 +4,9 @@ import { test as base, expect } from '@playwright/test';
 export const test = base.extend({
   page: async ({ page }, use) => {
     const problemas = [];
-    page.on('console', (m) => { if (m.type() === 'error') problemas.push(`console: ${m.text()}`); });
+    // Pedido de blocos de mapa que falha (servidor bloqueado de propósito no teste de recuo) não é erro da página.
+    const servidorDeMapa = /tile.openstreetmap.org|geo.sema.mt.gov.br/;
+    page.on('console', (m) => { if (m.type() === 'error' && !servidorDeMapa.test(m.location().url)) problemas.push(`console: ${m.text()}`); });
     page.on('pageerror', (e) => problemas.push(`erro de página: ${e.message}`));
     await page.addInitScript(() => {
       window.__violacoes = [];

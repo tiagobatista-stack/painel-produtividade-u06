@@ -2,7 +2,11 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { LARGURA_MAXIMA, MARGEM, contarPorSituacao, montarMapa, separarPorCoordenada, temCoordenada } from '../js/mapa.js';
+import {
+  LARGURA_MAXIMA, MARGEM, chaveDoConjunto, contarPorSituacao, demandasDoMapa, faixasDasDemandas, limitesDosMarcadores, marcadoresDeDemandas, marcadoresDePontos,
+  montarMapa, separarPorCoordenada, temCoordenada,
+} from '../js/mapa.js';
+import { listarDemandas } from '../js/demandas.js';
 import { listarPontos, pontosDasOperacoes } from '../js/pontos.js';
 import { SITUACOES_PONTO } from '../js/rotulos.js';
 
@@ -153,4 +157,86 @@ test('o afastamento é pequeno: cada marcador fica perto da posição real', () 
   assert.deepEqual(m.marcadores, sem.marcadores);
   const isolado = montarMapa([linhas[0]]).marcadores[0]; // sem vizinhos, nada se move: fica no centro
   assert.ok(Math.abs(isolado.x - montarMapa([linhas[0]]).largura / 2) < 0.001);
+});
+
+// ---- Marcadores do mapa com camadas (Leaflet) ----
+const HOJE = '2026-10-15';
+const SEM_FILTRO = { busca: '', operacao: '', situacao: '' };
+const demanda = (extra) => ({ id: 'DEM-9001', tipo: 'outra', titulo: 'Vistoria fictícia no oceano', origem: 'propria', status: 'a_fazer', prazo: '2026-10-20', criada_em: '2026-10-09', esforco_h: 2, historico: [], coord_x: -30.5, coord_y: -12.1, ...extra });
+
+test('um marcador por ponto com coordenada, com chave única, faixa da operação e etapa por extenso', () => {
+  const faixas = faixasDasDemandas(seed.demandas, HOJE);
+  const marcadores = marcadoresDePontos(listarPontos(seed.demandas, {}), faixas);
+  assert.equal(marcadores.length, 21);
+  assert.equal(new Set(marcadores.map((m) => m.chave)).size, 21);
+  for (const m of marcadores) {
+    assert.equal(m.tipo, 'ponto');
+    assert.ok(m.lat >= -90 && m.lat <= 90 && m.lon >= -180 && m.lon <= 180);
+    assert.ok(SITUACOES_PONTO[m.situacao], m.situacao);
+    assert.match(m.titulo, /^Ponto \d+ · /);
+    assert.ok(m.painelId.startsWith('DEM-'));
+    assert.ok(m.etapa && !/_/.test(m.etapa), `etapa por extenso: ${m.etapa}`);
+  }
+  // O mapa usa latitude = coord_y e longitude = coord_x, como as colunas do CSV de pontos.
+  const p1 = marcadores.find((m) => m.chave.endsWith('-1'));
+  assert.deepEqual([p1.lat, p1.lon].map((v) => v < 0), [true, true]);
+  // A faixa mostrada é a da operação, a mesma da fila.
+  for (const m of marcadores) assert.equal(m.faixa, faixas.get(m.painelId) ?? null);
+});
+
+test('os marcadores seguem a lista filtrada: só entram os pontos que passaram no filtro e têm coordenada', () => {
+  const filtrados = listarPontos(seed.demandas, { situacao: 'a_lavrar' });
+  assert.equal(marcadoresDePontos(filtrados).length, filtrados.length);
+  assert.equal(marcadoresDePontos(filtrados).length, 2);
+  assert.equal(marcadoresDePontos([ponto(1, null, null), ponto(2, -30, -12)]).length, 1);
+  assert.deepEqual(marcadoresDePontos([]), []);
+});
+
+test('demandas com coordenada viram marcadores; operação, concluída e sem coordenada ficam de fora', () => {
+  const lista = [
+    demanda(),
+    demanda({ id: 'DEM-9002', titulo: 'Sem coordenada', coord_x: undefined, coord_y: undefined }),
+    demanda({ id: 'DEM-9003', titulo: 'Concluída', status: 'concluida', concluida_em: '2026-10-14' }),
+    demanda({ id: 'DEM-9004', titulo: 'Só longitude', coord_y: undefined }),
+  ];
+  const todas = [...seed.demandas, ...lista];
+  const m = demandasDoMapa(todas, SEM_FILTRO, HOJE);
+  assert.deepEqual(m.map((x) => x.painelId), ['DEM-9001']);
+  assert.equal(m[0].tipo, 'demanda');
+  assert.equal(m[0].lat, -12.1);
+  assert.equal(m[0].lon, -30.5);
+  assert.equal(m[0].faixa, 'Baixa');
+  assert.equal(m[0].prazo, '2026-10-20');
+  assert.equal(m[0].etapa, 'A fazer');
+  assert.equal(marcadoresDeDemandas(listarDemandas(todas, { status: 'abertas' }, HOJE).itens).length, 1);
+  // Uma operação (que tem pontos) não vira marcador de demanda, mesmo que tivesse coord_x e coord_y.
+  const comOperacao = seed.demandas.map((d) => (d.tipo === 'operacao' ? { ...d, coord_x: -30, coord_y: -12 } : d));
+  assert.deepEqual(demandasDoMapa(comOperacao, SEM_FILTRO, HOJE), []);
+});
+
+test('as demandas no mapa obedecem à busca e somem quando se filtra por operação ou situação de ponto', () => {
+  const todas = [...seed.demandas, demanda()];
+  assert.equal(demandasDoMapa(todas, { ...SEM_FILTRO, busca: 'oceano' }, HOJE).length, 1);
+  assert.equal(demandasDoMapa(todas, { ...SEM_FILTRO, busca: 'oceano fictícia' }, HOJE).length, 1);
+  assert.equal(demandasDoMapa(todas, { ...SEM_FILTRO, busca: 'nada disso' }, HOJE).length, 0);
+  assert.equal(demandasDoMapa(todas, { ...SEM_FILTRO, situacao: 'a_lavrar' }, HOJE).length, 0);
+  assert.equal(demandasDoMapa(todas, { ...SEM_FILTRO, operacao: 'DEM-0001' }, HOJE).length, 0);
+  assert.equal(demandasDoMapa(todas, {}, HOJE).length, 1); // filtros ausentes valem como vazios
+});
+
+test('a etapa do processo aparece por extenso e o prazo vencido muda a faixa', () => {
+  const processo = demanda({ id: 'DEM-9005', tipo: 'processo', origem: 'chefia', etapa: 'analise', prazo: '2026-10-10' });
+  const [m] = demandasDoMapa([...seed.demandas, processo], SEM_FILTRO, HOJE).filter((x) => x.painelId === 'DEM-9005');
+  assert.equal(m.etapa, 'Análise');
+  assert.notEqual(m.faixa, 'Baixa'); // vencido há 5 dias, de chefia
+});
+
+test('limites e identificação do conjunto de marcadores', () => {
+  const ms = [{ chave: 'b', lat: -12, lon: -30 }, { chave: 'a', lat: -10, lon: -34 }, { chave: 'c', lat: -11, lon: -32 }];
+  assert.deepEqual(limitesDosMarcadores(ms), [[-12, -34], [-10, -30]]);
+  assert.equal(limitesDosMarcadores([]), null);
+  assert.deepEqual(limitesDosMarcadores([ms[0]]), [[-12, -30], [-12, -30]]); // um só: o mapa limita o zoom no enquadramento
+  assert.equal(chaveDoConjunto(ms), 'a|b|c');
+  assert.equal(chaveDoConjunto([ms[2], ms[0], ms[1]]), chaveDoConjunto(ms), 'a ordem não muda a identificação');
+  assert.notEqual(chaveDoConjunto(ms.slice(1)), chaveDoConjunto(ms));
 });

@@ -3,6 +3,9 @@
 // O desenho usa uma projeção equiretangular com a longitude corrigida pelo cosseno da latitude média: serve para ver posição
 // relativa e agrupamento dos pontos, não para medir distâncias com precisão.
 
+import { listarDemandas } from './demandas.js';
+import { ETAPAS, ETAPAS_PONTO, STATUS } from './rotulos.js';
+
 export const LARGURA_MAXIMA = 1000; // lado maior do desenho (unidades do viewBox)
 export const MARGEM = 70;
 const KM_POR_GRAU = 111.32;
@@ -149,4 +152,67 @@ export function contarPorSituacao(linhas, situacoes) {
   const contagem = Object.fromEntries(situacoes.map((s) => [s, 0]));
   for (const l of linhas) contagem[l.situacao] += 1;
   return contagem;
+}
+
+// ---- Dados dos marcadores do mapa com camadas (Leaflet). Puros: a interface só desenha o que sai daqui. ----
+
+// Faixa de prioridade de cada demanda aberta (a operação mostra no mapa a faixa dela). Sobrestada e concluída ficam sem faixa.
+export function faixasDasDemandas(demandas, hoje) {
+  const { itens } = listarDemandas(demandas, { status: 'abertas' }, hoje);
+  return new Map(itens.map((i) => [i.demanda.id, i.faixa ?? null]));
+}
+
+// Um marcador por ponto com coordenada. `linhas` é a lista já filtrada da aba Pontos; `faixas` vem de faixasDasDemandas.
+export function marcadoresDePontos(linhas, faixas = new Map()) {
+  return linhas.filter(temCoordenada).map((l) => ({
+    tipo: 'ponto',
+    chave: `ponto-${l.operacaoId}-${l.n}`,
+    lat: l.coordY,
+    lon: l.coordX,
+    situacao: l.situacao,
+    titulo: `Ponto ${l.n} · ${l.municipio}`,
+    subtitulo: l.equipe,
+    faixa: faixas.get(l.operacaoId) ?? null,
+    prazo: l.sobrestada ? null : l.prazo ?? null,
+    etapa: ETAPAS_PONTO[l.etapa] ?? l.etapa,
+    painelId: l.operacaoId,
+  }));
+}
+
+// Um marcador por demanda aberta (que não seja operação: os pontos já são os marcadores dela) com coordenada.
+export function marcadoresDeDemandas(itens) {
+  return itens
+    .filter((i) => i.demanda.tipo !== 'operacao' && Number.isFinite(i.demanda.coord_x) && Number.isFinite(i.demanda.coord_y))
+    .map(({ demanda: d, faixa, prazo }) => ({
+      tipo: 'demanda',
+      chave: `demanda-${d.id}`,
+      lat: d.coord_y,
+      lon: d.coord_x,
+      situacao: null,
+      titulo: d.titulo,
+      subtitulo: d.municipio ?? '',
+      faixa: faixa ?? null,
+      prazo: prazo ?? null,
+      etapa: d.tipo === 'processo' && d.etapa && ETAPAS.processo?.[d.etapa] ? ETAPAS.processo[d.etapa] : STATUS[d.status] ?? d.status,
+      painelId: d.id,
+    }));
+}
+
+// Demandas no mapa: só as abertas, com coordenada e que combinam com a busca. Escolher uma operação ou uma situação de ponto
+// esconde as demandas (elas não têm operação nem situação de ponto), para o mapa bater com a lista filtrada.
+export function demandasDoMapa(demandas, filtros, hoje) {
+  if (filtros.operacao || filtros.situacao) return [];
+  const { itens } = listarDemandas(demandas, { busca: filtros.busca ?? '', status: 'abertas' }, hoje);
+  return marcadoresDeDemandas(itens);
+}
+
+// Identifica o conjunto mostrado: o mapa só reenquadra quando ele muda (não a cada redesenho nem a cada movimento do usuário).
+export const chaveDoConjunto = (marcadores) => marcadores.map((m) => m.chave).sort().join('|');
+
+// Retângulo que cobre os marcadores: [[latMin, lonMin], [latMax, lonMax]]; null sem marcadores.
+export function limitesDosMarcadores(marcadores) {
+  if (marcadores.length === 0) return null;
+  const lats = marcadores.map((m) => m.lat);
+  const lons = marcadores.map((m) => m.lon);
+  return [[Math.min(...lats), Math.min(...lons)], [Math.max(...lats), Math.max(...lons)]];
 }

@@ -92,7 +92,7 @@ export function desenharPontos() {
   $('pontos-vazio').hidden = lista.length > 0;
   $('pontos-vazio').textContent = todos.length === 0 ? 'Nenhum ponto ainda: importe a planilha de uma operação.' : 'Nenhum ponto encontrado.';
   $('pontos-lista').replaceChildren(...lista.map(linhaDoPonto));
-  desenharMapa(lista); // a visão "Mapa" usa a mesma lista filtrada
+  desenharMapa(lista, filtros); // a visão "Mapa" usa a mesma lista filtrada
 }
 
 export function iniciarPontos() {
