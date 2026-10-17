@@ -229,7 +229,7 @@ const normalizar = (texto) => texto.replaceAll('\r\n', '\n').trim();
 
 // chave: identifica a caixa (ex.: "DEM-0003" ou "DEM-0001-p4"); `idCampo` do textarea é `anotacao-${chave}` e vai em data-foco.
 // aoSalvar(texto) devolve false se recusou (a caixa mantém o rascunho); salvar bem-sucedido apaga o rascunho.
-export function caixaDeAnotacao({ chave, titulo, valor = '', max, linhas = 4, ajuda, aoSalvar, classe = 'anotacao' }) {
+export function caixaDeAnotacao({ chave, titulo, valor = '', max, linhas = 4, ajuda, aoSalvar, classe = 'anotacao-caixa' }) {
   const bloco = elemento('div', classe);
   const idCampo = `anotacao-${chave}`;
   const rotulo = elemento('label', 'rotulo-anotacao', titulo);
