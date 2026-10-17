@@ -32,6 +32,9 @@ export function criarEditorAnotacoes() {
 
   function desenhar() {
     const { feitas } = contarAnotacoes(itens);
+    // A opção só faz sentido quando há anotação concluída; sem nenhuma, some (e volta a mostrar tudo).
+    mostrarConcluidas.parentElement.hidden = feitas === 0;
+    if (feitas === 0) mostrarConcluidas.checked = true;
     mostrarConcluidas.parentElement.lastChild.textContent = ` Mostrar concluídas (${feitas})`;
     const visiveis = ordenarAnotacoes(itens).filter((a) => mostrarConcluidas.checked || !a.feita);
     lista.replaceChildren(...visiveis.map(itemDaLista));
@@ -165,11 +168,15 @@ export function criarEditorAnotacoes() {
       limparAviso();
       desenhar();
     },
-    // Texto digitado e ainda não incluído também é guardado ao salvar, para não se perder.
-    obter() {
-      if (campoNovo.value.trim()) adicionar(campoNovo.value);
-      return itens;
+    // Texto digitado e ainda não incluído vira anotação ao salvar. Se não puder (muito longo, ou lista cheia), o texto fica na caixa,
+    // a mensagem aparece e `erro` vem preenchido: quem salva precisa parar, para o texto não se perder.
+    concluirPendente() {
+      if (!campoNovo.value.trim()) return { adicionadas: 0 };
+      const antes = itens.length;
+      if (!adicionar(campoNovo.value)) return { adicionadas: 0, erro: erro.textContent };
+      return { adicionadas: itens.length - antes };
     },
+    obter: () => itens,
     editando: () => editandoId !== null,
     cancelarEdicaoAtual() { if (editandoId !== null) cancelarEdicao(editandoId); },
     encerrar: limparAviso,
@@ -222,7 +229,7 @@ const normalizar = (texto) => texto.replaceAll('\r\n', '\n').trim();
 
 // chave: identifica a caixa (ex.: "DEM-0003" ou "DEM-0001-p4"); `idCampo` do textarea é `anotacao-${chave}` e vai em data-foco.
 // aoSalvar(texto) devolve false se recusou (a caixa mantém o rascunho); salvar bem-sucedido apaga o rascunho.
-export function caixaDeAnotacao({ chave, titulo, valor = '', max, linhas = 4, ajuda, aoSalvar, classe = 'anotacao' }) {
+export function caixaDeAnotacao({ chave, titulo, valor = '', max, linhas = 4, ajuda, aoSalvar, classe = 'anotacao-caixa' }) {
   const bloco = elemento('div', classe);
   const idCampo = `anotacao-${chave}`;
   const rotulo = elemento('label', 'rotulo-anotacao', titulo);

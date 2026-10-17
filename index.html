@@ -306,7 +306,9 @@
 
           <div class="campo" data-campo="municipio">
             <label for="f-municipio">Município</label>
-            <input id="f-municipio" name="municipio" maxlength="120" autocomplete="off" placeholder="Ex.: Cuiabá - MT">
+            <input id="f-municipio" name="municipio" maxlength="120" autocomplete="off" placeholder="Ex.: Cuiabá" list="lista-municipios">
+            <datalist id="lista-municipios"></datalist>
+            <span class="aviso-campo" id="a-municipio" aria-live="polite"></span>
             <span class="erro-campo" id="e-municipio"></span>
           </div>
           <div class="campo" data-campo="protocolo">
@@ -367,15 +369,16 @@
             <label for="f-latitude">Latitude</label>
             <input id="f-latitude" name="latitude" maxlength="40" autocomplete="off" placeholder="11° 25' 12&quot; S ou -11,42" aria-describedby="d-latitude">
             <span class="dica" id="d-latitude">Decimal ou graus, minutos e segundos. Sem hemisfério, vale S.</span>
+            <span class="aviso-campo" id="a-latitude" aria-live="polite"></span>
             <span class="erro-campo" id="e-latitude"></span>
           </div>
           <div class="campo" data-campo="longitude" data-tipos="processo reuniao palestra outra">
             <label for="f-longitude">Longitude</label>
             <input id="f-longitude" name="longitude" maxlength="40" autocomplete="off" placeholder="58° 45' 00&quot; O ou -58,75" aria-describedby="d-longitude">
             <span class="dica" id="d-longitude">Decimal ou graus, minutos e segundos. Sem hemisfério, vale O.</span>
+            <span class="aviso-campo" id="a-longitude" aria-live="polite"></span>
             <span class="erro-campo" id="e-longitude"></span>
           </div>
-          <p class="campo inteira aviso-coordenada" id="avisos-coordenada" role="status" hidden></p>
 
           <div class="campo inteira" data-campo="anotacoes">
             <label for="f-anotacao-nova">Anotações</label>

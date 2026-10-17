@@ -10,13 +10,15 @@ function formatoValido(d) {
 }
 
 // Retorna { dados, origem } com origem 'armazenamento' ou 'seed' (primeira abertura, dado corrompido ou storage indisponível).
-export function carregar(storage, seed) {
-  const padrao = { versao: 1, demandas: copia(seed.demandas).map(migrarDemanda), afastamentos: copia(seed.afastamentos) };
+// `contexto.municipios` (opcional) é o índice de municípios: padroniza o nome nos dados carregados, sem mudar a versão do armazenamento.
+export function carregar(storage, seed, contexto = {}) {
+  const migrar = (demanda) => migrarDemanda(demanda, contexto);
+  const padrao = { versao: 1, demandas: copia(seed.demandas).map(migrar), afastamentos: copia(seed.afastamentos) };
   try {
     const bruto = storage?.getItem(CHAVE);
     if (bruto) {
       const dados = JSON.parse(bruto);
-      if (formatoValido(dados)) return { dados: { ...dados, demandas: dados.demandas.map(migrarDemanda) }, origem: 'armazenamento' };
+      if (formatoValido(dados)) return { dados: { ...dados, demandas: dados.demandas.map(migrar) }, origem: 'armazenamento' };
     }
   } catch {
     // storage indisponível ou JSON corrompido: cai no exemplo

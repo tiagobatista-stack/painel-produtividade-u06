@@ -1,0 +1,582 @@
+{
+  "_aviso": "Gerado por scripts/gerar-municipios-mt.mjs. Dado geográfico público (IBGE); sem dado pessoal. Não editar à mão.",
+  "fonte": "https://servicodados.ibge.gov.br/api/v1/localidades/estados/51/municipios",
+  "extraido_em": "2026-10-17",
+  "total": 142,
+  "geoportal": {
+    "data": "2026-10-17",
+    "camada": "Geoportal:LIM_MUNICIPIOS_MT",
+    "status": "nao_executada",
+    "motivo": "sem authkey (defina SEMA_AUTHKEY ou crie config.local.json)"
+  },
+  "municipios": [
+    {
+      "codigo": 5100102,
+      "nome": "Acorizal"
+    },
+    {
+      "codigo": 5100201,
+      "nome": "Água Boa"
+    },
+    {
+      "codigo": 5100250,
+      "nome": "Alta Floresta"
+    },
+    {
+      "codigo": 5100300,
+      "nome": "Alto Araguaia"
+    },
+    {
+      "codigo": 5100359,
+      "nome": "Alto Boa Vista"
+    },
+    {
+      "codigo": 5100409,
+      "nome": "Alto Garças"
+    },
+    {
+      "codigo": 5100508,
+      "nome": "Alto Paraguai"
+    },
+    {
+      "codigo": 5100607,
+      "nome": "Alto Taquari"
+    },
+    {
+      "codigo": 5100805,
+      "nome": "Apiacás"
+    },
+    {
+      "codigo": 5101001,
+      "nome": "Araguaiana"
+    },
+    {
+      "codigo": 5101209,
+      "nome": "Araguainha"
+    },
+    {
+      "codigo": 5101258,
+      "nome": "Araputanga"
+    },
+    {
+      "codigo": 5101308,
+      "nome": "Arenápolis"
+    },
+    {
+      "codigo": 5101407,
+      "nome": "Aripuanã"
+    },
+    {
+      "codigo": 5101605,
+      "nome": "Barão de Melgaço"
+    },
+    {
+      "codigo": 5101704,
+      "nome": "Barra do Bugres"
+    },
+    {
+      "codigo": 5101803,
+      "nome": "Barra do Garças"
+    },
+    {
+      "codigo": 5101837,
+      "nome": "Boa Esperança do Norte"
+    },
+    {
+      "codigo": 5101852,
+      "nome": "Bom Jesus do Araguaia"
+    },
+    {
+      "codigo": 5101902,
+      "nome": "Brasnorte"
+    },
+    {
+      "codigo": 5102504,
+      "nome": "Cáceres"
+    },
+    {
+      "codigo": 5102603,
+      "nome": "Campinápolis"
+    },
+    {
+      "codigo": 5102637,
+      "nome": "Campo Novo do Parecis"
+    },
+    {
+      "codigo": 5102678,
+      "nome": "Campo Verde"
+    },
+    {
+      "codigo": 5102686,
+      "nome": "Campos de Júlio"
+    },
+    {
+      "codigo": 5102694,
+      "nome": "Canabrava do Norte"
+    },
+    {
+      "codigo": 5102702,
+      "nome": "Canarana"
+    },
+    {
+      "codigo": 5102793,
+      "nome": "Carlinda"
+    },
+    {
+      "codigo": 5102850,
+      "nome": "Castanheira"
+    },
+    {
+      "codigo": 5103007,
+      "nome": "Chapada dos Guimarães"
+    },
+    {
+      "codigo": 5103056,
+      "nome": "Cláudia"
+    },
+    {
+      "codigo": 5103106,
+      "nome": "Cocalinho"
+    },
+    {
+      "codigo": 5103205,
+      "nome": "Colíder"
+    },
+    {
+      "codigo": 5103254,
+      "nome": "Colniza"
+    },
+    {
+      "codigo": 5103304,
+      "nome": "Comodoro"
+    },
+    {
+      "codigo": 5103353,
+      "nome": "Confresa"
+    },
+    {
+      "codigo": 5103361,
+      "nome": "Conquista D'Oeste"
+    },
+    {
+      "codigo": 5103379,
+      "nome": "Cotriguaçu"
+    },
+    {
+      "codigo": 5103403,
+      "nome": "Cuiabá"
+    },
+    {
+      "codigo": 5103437,
+      "nome": "Curvelândia"
+    },
+    {
+      "codigo": 5103452,
+      "nome": "Denise"
+    },
+    {
+      "codigo": 5103502,
+      "nome": "Diamantino"
+    },
+    {
+      "codigo": 5103601,
+      "nome": "Dom Aquino"
+    },
+    {
+      "codigo": 5103700,
+      "nome": "Feliz Natal"
+    },
+    {
+      "codigo": 5103809,
+      "nome": "Figueirópolis D'Oeste"
+    },
+    {
+      "codigo": 5103858,
+      "nome": "Gaúcha do Norte"
+    },
+    {
+      "codigo": 5103908,
+      "nome": "General Carneiro"
+    },
+    {
+      "codigo": 5103957,
+      "nome": "Glória D'Oeste"
+    },
+    {
+      "codigo": 5104104,
+      "nome": "Guarantã do Norte"
+    },
+    {
+      "codigo": 5104203,
+      "nome": "Guiratinga"
+    },
+    {
+      "codigo": 5104500,
+      "nome": "Indiavaí"
+    },
+    {
+      "codigo": 5104526,
+      "nome": "Ipiranga do Norte"
+    },
+    {
+      "codigo": 5104542,
+      "nome": "Itanhangá"
+    },
+    {
+      "codigo": 5104559,
+      "nome": "Itaúba"
+    },
+    {
+      "codigo": 5104609,
+      "nome": "Itiquira"
+    },
+    {
+      "codigo": 5104807,
+      "nome": "Jaciara"
+    },
+    {
+      "codigo": 5104906,
+      "nome": "Jangada"
+    },
+    {
+      "codigo": 5105002,
+      "nome": "Jauru"
+    },
+    {
+      "codigo": 5105101,
+      "nome": "Juara"
+    },
+    {
+      "codigo": 5105150,
+      "nome": "Juína"
+    },
+    {
+      "codigo": 5105176,
+      "nome": "Juruena"
+    },
+    {
+      "codigo": 5105200,
+      "nome": "Juscimeira"
+    },
+    {
+      "codigo": 5105234,
+      "nome": "Lambari D'Oeste"
+    },
+    {
+      "codigo": 5105259,
+      "nome": "Lucas do Rio Verde"
+    },
+    {
+      "codigo": 5105309,
+      "nome": "Luciara"
+    },
+    {
+      "codigo": 5105580,
+      "nome": "Marcelândia"
+    },
+    {
+      "codigo": 5105606,
+      "nome": "Matupá"
+    },
+    {
+      "codigo": 5105622,
+      "nome": "Mirassol d'Oeste"
+    },
+    {
+      "codigo": 5105903,
+      "nome": "Nobres"
+    },
+    {
+      "codigo": 5106000,
+      "nome": "Nortelândia"
+    },
+    {
+      "codigo": 5106109,
+      "nome": "Nossa Senhora do Livramento"
+    },
+    {
+      "codigo": 5106158,
+      "nome": "Nova Bandeirantes"
+    },
+    {
+      "codigo": 5106208,
+      "nome": "Nova Brasilândia"
+    },
+    {
+      "codigo": 5106216,
+      "nome": "Nova Canaã do Norte"
+    },
+    {
+      "codigo": 5108808,
+      "nome": "Nova Guarita"
+    },
+    {
+      "codigo": 5106182,
+      "nome": "Nova Lacerda"
+    },
+    {
+      "codigo": 5108857,
+      "nome": "Nova Marilândia"
+    },
+    {
+      "codigo": 5108907,
+      "nome": "Nova Maringá"
+    },
+    {
+      "codigo": 5108956,
+      "nome": "Nova Monte Verde"
+    },
+    {
+      "codigo": 5106224,
+      "nome": "Nova Mutum"
+    },
+    {
+      "codigo": 5106174,
+      "nome": "Nova Nazaré"
+    },
+    {
+      "codigo": 5106232,
+      "nome": "Nova Olímpia"
+    },
+    {
+      "codigo": 5106190,
+      "nome": "Nova Santa Helena"
+    },
+    {
+      "codigo": 5106240,
+      "nome": "Nova Ubiratã"
+    },
+    {
+      "codigo": 5106257,
+      "nome": "Nova Xavantina"
+    },
+    {
+      "codigo": 5106273,
+      "nome": "Novo Horizonte do Norte"
+    },
+    {
+      "codigo": 5106265,
+      "nome": "Novo Mundo"
+    },
+    {
+      "codigo": 5106315,
+      "nome": "Novo Santo Antônio"
+    },
+    {
+      "codigo": 5106281,
+      "nome": "Novo São Joaquim"
+    },
+    {
+      "codigo": 5106299,
+      "nome": "Paranaíta"
+    },
+    {
+      "codigo": 5106307,
+      "nome": "Paranatinga"
+    },
+    {
+      "codigo": 5106372,
+      "nome": "Pedra Preta"
+    },
+    {
+      "codigo": 5106422,
+      "nome": "Peixoto de Azevedo"
+    },
+    {
+      "codigo": 5106455,
+      "nome": "Planalto da Serra"
+    },
+    {
+      "codigo": 5106505,
+      "nome": "Poconé"
+    },
+    {
+      "codigo": 5106653,
+      "nome": "Pontal do Araguaia"
+    },
+    {
+      "codigo": 5106703,
+      "nome": "Ponte Branca"
+    },
+    {
+      "codigo": 5106752,
+      "nome": "Pontes e Lacerda"
+    },
+    {
+      "codigo": 5106778,
+      "nome": "Porto Alegre do Norte"
+    },
+    {
+      "codigo": 5106802,
+      "nome": "Porto dos Gaúchos"
+    },
+    {
+      "codigo": 5106828,
+      "nome": "Porto Esperidião"
+    },
+    {
+      "codigo": 5106851,
+      "nome": "Porto Estrela"
+    },
+    {
+      "codigo": 5107008,
+      "nome": "Poxoréu"
+    },
+    {
+      "codigo": 5107040,
+      "nome": "Primavera do Leste"
+    },
+    {
+      "codigo": 5107065,
+      "nome": "Querência"
+    },
+    {
+      "codigo": 5107156,
+      "nome": "Reserva do Cabaçal"
+    },
+    {
+      "codigo": 5107180,
+      "nome": "Ribeirão Cascalheira"
+    },
+    {
+      "codigo": 5107198,
+      "nome": "Ribeirãozinho"
+    },
+    {
+      "codigo": 5107206,
+      "nome": "Rio Branco"
+    },
+    {
+      "codigo": 5107578,
+      "nome": "Rondolândia"
+    },
+    {
+      "codigo": 5107602,
+      "nome": "Rondonópolis"
+    },
+    {
+      "codigo": 5107701,
+      "nome": "Rosário Oeste"
+    },
+    {
+      "codigo": 5107750,
+      "nome": "Salto do Céu"
+    },
+    {
+      "codigo": 5107248,
+      "nome": "Santa Carmem"
+    },
+    {
+      "codigo": 5107743,
+      "nome": "Santa Cruz do Xingu"
+    },
+    {
+      "codigo": 5107768,
+      "nome": "Santa Rita do Trivelato"
+    },
+    {
+      "codigo": 5107776,
+      "nome": "Santa Terezinha"
+    },
+    {
+      "codigo": 5107263,
+      "nome": "Santo Afonso"
+    },
+    {
+      "codigo": 5107800,
+      "nome": "Santo Antônio de Leverger"
+    },
+    {
+      "codigo": 5107792,
+      "nome": "Santo Antônio do Leste"
+    },
+    {
+      "codigo": 5107859,
+      "nome": "São Félix do Araguaia"
+    },
+    {
+      "codigo": 5107297,
+      "nome": "São José do Povo"
+    },
+    {
+      "codigo": 5107305,
+      "nome": "São José do Rio Claro"
+    },
+    {
+      "codigo": 5107354,
+      "nome": "São José do Xingu"
+    },
+    {
+      "codigo": 5107107,
+      "nome": "São José dos Quatro Marcos"
+    },
+    {
+      "codigo": 5107404,
+      "nome": "São Pedro da Cipa"
+    },
+    {
+      "codigo": 5107875,
+      "nome": "Sapezal"
+    },
+    {
+      "codigo": 5107883,
+      "nome": "Serra Nova Dourada"
+    },
+    {
+      "codigo": 5107909,
+      "nome": "Sinop"
+    },
+    {
+      "codigo": 5107925,
+      "nome": "Sorriso"
+    },
+    {
+      "codigo": 5107941,
+      "nome": "Tabaporã"
+    },
+    {
+      "codigo": 5107958,
+      "nome": "Tangará da Serra"
+    },
+    {
+      "codigo": 5108006,
+      "nome": "Tapurah"
+    },
+    {
+      "codigo": 5108055,
+      "nome": "Terra Nova do Norte"
+    },
+    {
+      "codigo": 5108105,
+      "nome": "Tesouro"
+    },
+    {
+      "codigo": 5108204,
+      "nome": "Torixoréu"
+    },
+    {
+      "codigo": 5108303,
+      "nome": "União do Sul"
+    },
+    {
+      "codigo": 5108352,
+      "nome": "Vale de São Domingos"
+    },
+    {
+      "codigo": 5108402,
+      "nome": "Várzea Grande"
+    },
+    {
+      "codigo": 5108501,
+      "nome": "Vera"
+    },
+    {
+      "codigo": 5105507,
+      "nome": "Vila Bela da Santíssima Trindade"
+    },
+    {
+      "codigo": 5108600,
+      "nome": "Vila Rica"
+    }
+  ]
+}
