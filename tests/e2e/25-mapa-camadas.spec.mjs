@@ -157,8 +157,19 @@ test.describe('mapa com camadas: OpenStreetMap e satélite', () => {
   test('o mapa mostra a coordenada em GMS sob o cursor e o clique fixa o ponto para copiar', async ({ page, context, isMobile }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write']);
     await abrirComCamada(page, 'OpenStreetMap');
+    await page.locator('#mapa-leaflet').evaluate((el) => el.scrollIntoView({ block: 'center' })); // o topo fixo não pode cobrir o ponto
     const caixa = await page.locator('#mapa-leaflet').boundingBox();
-    const ponto = { x: caixa.x + caixa.width / 2, y: caixa.y + 14 }; // no alto, longe dos marcadores e dos controles
+    // Um ponto livre do mapa: nem marcador, nem controle, nem o topo fixo.
+    let ponto = null;
+    for (const [fx, fy] of [[0.5, 0.5], [0.3, 0.45], [0.7, 0.4], [0.5, 0.3], [0.4, 0.6]]) {
+      const candidato = { x: caixa.x + caixa.width * fx, y: caixa.y + caixa.height * fy };
+      const livre = await page.evaluate(({ x, y }) => {
+        const el = document.elementFromPoint(x, y);
+        return Boolean(el) && Boolean(el.closest('#mapa-leaflet')) && !el.closest('.leaflet-marker-icon, .leaflet-control');
+      }, candidato);
+      if (livre) { ponto = candidato; break; }
+    }
+    expect(ponto, 'um ponto livre no mapa').not.toBeNull();
     const gms = /\d+° \d{2}' \d{2},\d{2}" [NS], \d+° \d{2}' \d{2},\d{2}" [LO]/;
     await expect(page.locator('#mapa-copiar')).toBeDisabled();
     if (!isMobile) {

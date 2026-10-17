@@ -19,8 +19,7 @@ for (const tela of TELAS) {
     await abrir(page);
     const topo = page.locator('header.topo');
     await expect(topo.getByRole('button', { name: 'Nova demanda' })).toBeVisible();
-    await expect(topo.getByLabel('Data de referência')).toBeVisible();
-    await expect(topo.getByRole('button', { name: /Usar data do exemplo/ })).toBeVisible();
+    await expect(page.locator('footer.rodape-pagina')).toContainText('Referência: 15/10/2026'); // a data de referência está no rodapé
     await expect(topo.getByRole('link')).toHaveCount(0); // nenhum link no cabeçalho
     await expect(page.locator('a[href*="kanban" i]')).toHaveCount(0); // nem em qualquer outro lugar da página
     await expect(page.getByText('Kanban de projetos')).toHaveCount(0);
@@ -32,11 +31,11 @@ for (const tela of TELAS) {
   });
 }
 
-test('o Quadro do painel continua: a aba existe e abre', async ({ page }) => {
+test('a aba Demandas (antes Quadro) continua: existe e abre', async ({ page }) => {
   await abrir(page);
   const abas = page.getByRole('navigation', { name: 'Seções do painel' });
-  await abas.getByRole('link', { name: 'Quadro', exact: true }).click();
-  await expect(abas.getByRole('link', { name: 'Quadro', exact: true })).toHaveAttribute('aria-current', 'page');
+  await abas.getByRole('link', { name: 'Demandas', exact: true }).click();
+  await expect(abas.getByRole('link', { name: 'Demandas', exact: true })).toHaveAttribute('aria-current', 'page');
 });
 
 test('kanban.html e os arquivos do Kanban respondem 404', async ({ page }) => {

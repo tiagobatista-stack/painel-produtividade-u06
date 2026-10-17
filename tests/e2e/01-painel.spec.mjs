@@ -1,4 +1,4 @@
-import { test, expect, abrir, abrirPainel, complementares, fecharPainel, indicadores, irParaAba, painel, resumo } from './apoio.mjs';
+import { test, expect, abrir, abrirPainel, complementares, fecharPainel, indicadores, irParaAba, painel, resumo, definirDataDeReferencia } from './apoio.mjs';
 
 test.describe('painel com o exemplo fictício', () => {
   test('abre com título, aviso de dados fictícios, indicadores, resumo da semana e agenda', async ({ page }) => {
@@ -52,11 +52,11 @@ test.describe('painel com o exemplo fictício', () => {
 
   test('mudar a data de referência recalcula tudo', async ({ page }) => {
     await abrir(page);
-    await page.getByLabel('Data de referência').fill('2026-10-30');
+    await definirDataDeReferencia(page, '2026-10-30');
     expect((await indicadores(page))[0]).toBe('9'); // vencidas
     await irParaAba(page, 'Agenda');
     await expect(page.locator('#agenda-7-dias')).toContainText('Início de férias'); // 03/11 entra na janela de 7 dias
-    await page.getByLabel('Data de referência').fill('2026-10-19');
+    await definirDataDeReferencia(page, '2026-10-19');
     await irParaAba(page, 'Relatórios');
     expect(await resumo(page)).toEqual(['0', '0', '0', '0']); // semana seguinte, nada concluído
     await expect(page.locator('#resumo-tipos')).toHaveText('Nenhuma demanda concluída nesta semana.');

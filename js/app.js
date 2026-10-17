@@ -11,7 +11,6 @@ import { desenharAfastamentos, desenharAgenda, desenharBanner, iniciarAfastament
 import { desenharResumo, iniciarExportacao } from './ui-exportacao.js';
 import { desenharCalendario, iniciarCalendario } from './ui-calendario.js';
 import { abrirAba, iniciarAbas } from './ui-abas.js';
-import { desenharFoco } from './ui-foco.js';
 import { desenharPontos, iniciarPontos } from './ui-pontos.js';
 import { abrirPainel, desenharPainel, fecharPainel, iniciarPainel } from './ui-painel.js';
 import { cartao } from './ui-cartao.js';
@@ -132,8 +131,8 @@ function desenharFila(hoje) {
 function atualizar() {
   const hoje = hojeAtual();
   $('limpar-filtros').disabled = !filtrosEmUso(filtrosAtuais());
+  $('referencia-texto').textContent = formatarData(hoje);
   desenharBanner(hoje);
-  desenharFoco(hoje);
   desenharIndicadores(calcularIndicadores(estado.dados.demandas, hoje));
   desenharResumo(hoje);
   desenharCalendario(hoje);
@@ -250,6 +249,13 @@ async function iniciar() {
     atualizar();
   });
   campoData.addEventListener('input', atualizar);
+  // A data de referência fica no rodapé ("Referência: dd/mm/aaaa · alterar"); os controles só aparecem ao pedir.
+  $('alterar-referencia').addEventListener('click', () => {
+    const abrir = $('referencia-controles').hidden;
+    $('referencia-controles').hidden = !abrir;
+    $('alterar-referencia').setAttribute('aria-expanded', String(abrir));
+    if (abrir) campoData.focus();
+  });
   for (const f of [filtroBusca, filtroTipo, filtroStatus, filtroPrioridade, filtroPrazo]) f.addEventListener('input', atualizar);
   $('filtros').addEventListener('submit', (e) => e.preventDefault());
   $('limpar-filtros').addEventListener('click', limparFiltros);

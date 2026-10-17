@@ -2,12 +2,12 @@ import { test, expect, abrir, irParaAba } from './apoio.mjs';
 
 const nav = (page) => page.getByRole('navigation', { name: 'Seções do painel' });
 const aba = (page, nome) => page.locator(`[data-aba-painel="${nome}"]`);
-const ROTULOS = { quadro: 'Quadro', pontos: 'Pontos', agenda: 'Agenda', afastamentos: 'Afastamentos', relatorios: 'Relatórios' };
+const ROTULOS = { quadro: 'Demandas', pontos: 'Pontos', agenda: 'Agenda', afastamentos: 'Afastamentos', relatorios: 'Relatórios' };
 
 test.describe('abas pelo endereço e topo fixo (RF15)', () => {
-  test('abre no Quadro e cada aba mostra só o seu conteúdo', async ({ page }) => {
+  test('abre em Demandas e cada aba mostra só o seu conteúdo', async ({ page }) => {
     await abrir(page);
-    await expect(nav(page).getByRole('link', { name: 'Quadro' })).toHaveAttribute('aria-current', 'page');
+    await expect(nav(page).getByRole('link', { name: 'Demandas' })).toHaveAttribute('aria-current', 'page');
     await expect(aba(page, 'quadro')).toBeVisible();
     for (const nome of ['pontos', 'agenda', 'afastamentos', 'relatorios']) await expect(aba(page, nome)).toBeHidden();
     // "Quadro" mostra a fila atual (o quadro Kanban é do M9)
@@ -45,12 +45,12 @@ test.describe('abas pelo endereço e topo fixo (RF15)', () => {
     await page.goto('/#nao-existe');
     await expect(aba(page, 'quadro')).toBeVisible();
     await expect(page).toHaveURL(/#quadro$/);
-    await expect(nav(page).getByRole('link', { name: 'Quadro' })).toHaveAttribute('aria-current', 'page');
+    await expect(nav(page).getByRole('link', { name: 'Demandas' })).toHaveAttribute('aria-current', 'page');
   });
 
   test('as abas se operam pelo teclado, com foco visível', async ({ page }) => {
     await abrir(page);
-    await nav(page).getByRole('link', { name: 'Quadro' }).focus();
+    await nav(page).getByRole('link', { name: 'Demandas' }).focus();
     await page.keyboard.press('Tab');
     await page.keyboard.press('Tab'); // Quadro, Pontos, Agenda
     const agenda = nav(page).getByRole('link', { name: 'Agenda' });
@@ -62,12 +62,11 @@ test.describe('abas pelo endereço e topo fixo (RF15)', () => {
     await expect(agenda).toBeFocused();
   });
 
-  test('o topo fica fixo ao rolar, com a data de referência e "Nova demanda"', async ({ page }) => {
+  test('o topo fica fixo ao rolar, com "Nova demanda"', async ({ page }) => {
     await abrir(page);
     await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
     await expect.poll(() => page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
     expect((await page.locator('header.topo').boundingBox()).y).toBe(0);
-    await expect(page.getByLabel('Data de referência')).toBeInViewport();
     await expect(page.getByRole('button', { name: 'Nova demanda' })).toBeInViewport();
 
     // e continua funcionando lá embaixo: "Nova demanda" abre o formulário

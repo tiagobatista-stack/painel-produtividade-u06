@@ -1,4 +1,4 @@
-import { test, expect, abrir, abrirPainel, importarExemplo, irParaAba } from './apoio.mjs';
+import { test, expect, abrir, abrirPainel, importarExemplo, irParaAba, definirDataDeReferencia } from './apoio.mjs';
 
 test.describe('férias, licenças e agenda', () => {
   test('mostra as férias do exemplo com aviso de prazo no período', async ({ page }) => {
@@ -66,7 +66,7 @@ test.describe('férias, licenças e agenda', () => {
     await expect(eventos.nth(1)).toContainText('Reunião de alinhamento com a coordenação');
     await expect(eventos.nth(1)).toContainText('09:00');
     await expect(eventos.nth(2)).toContainText('Palestra sobre prevenção de desmatamento');
-    await page.getByLabel('Data de referência').fill('2026-10-27');
+    await definirDataDeReferencia(page, '2026-10-27');
     await expect(page.locator('#agenda-7-dias')).toContainText('Reunião de planejamento da próxima operação');
     await expect(page.locator('#agenda-7-dias')).toContainText('Início de férias');
   });

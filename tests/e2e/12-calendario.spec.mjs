@@ -1,4 +1,4 @@
-import { test, expect, abrir, abrirPainel, irParaAba } from './apoio.mjs';
+import { test, expect, abrir, abrirPainel, irParaAba, definirDataDeReferencia } from './apoio.mjs';
 
 const secao = (page) => page.locator('section[aria-labelledby="titulo-calendario"]');
 const titulo = (page) => page.locator('#calendario-mes');
@@ -45,7 +45,7 @@ test.describe('Calendário mensal e compensação', () => {
     await expect(titulo(page)).toHaveText('Setembro de 2026');
 
     // Mudar a data de referência leva o calendário ao novo mês.
-    await page.getByLabel('Data de referência').fill('2027-01-04');
+    await definirDataDeReferencia(page, '2027-01-04');
     await expect(titulo(page)).toHaveText('Janeiro de 2027');
   });
 
@@ -66,7 +66,7 @@ test.describe('Calendário mensal e compensação', () => {
     await expect(secao(page).locator('.faixa-compensacao')).toHaveCount(3);
     await expect(dia(page, '27 de outubro de 2026: 1 compromisso, Compensação')).toBeVisible();
 
-    await irParaAba(page, 'Quadro');
+    await irParaAba(page, 'Demandas');
     const reuniao = await abrirPainel(page, 'Reunião de planejamento da próxima operação'); // prazo 27/10
     await expect(reuniao.locator('.prioridade')).toHaveText('Prioridade Média · 30 pontos');
     await expect(reuniao).toContainText('Prazo dentro de férias, licença-prêmio ou compensação (+20)');
