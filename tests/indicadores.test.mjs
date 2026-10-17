@@ -8,7 +8,7 @@ const HOJE = '2026-10-15';
 
 test('indicadores do seed em 2026-10-15 (DEM-0006 sobrestada fica fora das abertas)', () => {
   assert.deepEqual(calcularIndicadores(seed.demandas, HOJE), {
-    abertas: 10,
+    abertas: 11,
     vencidas: 2,
     proximos7: 5,
     relatoriosPendentes: 9,
@@ -77,7 +77,7 @@ test('itensDosIndicadores: cada caixa lista as demandas que formam o número exi
   assert.deepEqual(itens.autosALavrar.map((x) => [x.demanda.id, x.quantidade]), [['DEM-0002', 1], ['DEM-0001', 1]]);
   assert.deepEqual(ids('sobrestados'), ['DEM-0006']);
   assert.deepEqual(ids('concluidasSemana'), ['DEM-0012', 'DEM-0013']);
-  assert.equal(itens.abertas.length, 10);
+  assert.equal(itens.abertas.length, 11);
   // A soma das listas é exatamente o número das caixas, em qualquer data.
   for (const hoje of [HOJE, '2026-10-30', '2026-12-10']) {
     const numeros = calcularIndicadores(seed.demandas, hoje);

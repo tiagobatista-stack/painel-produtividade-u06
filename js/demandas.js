@@ -6,12 +6,12 @@ import { ErroValidacao, faixaManual, priorizar, priorizarFila } from './regras.j
 import { ETAPAS, ETAPA_ANTIGA, ORIGENS, PRIORIDADE_MANUAL, STATUS, TIPOS } from './rotulos.js';
 import { alternarAnotacao, eventosDeConclusao, normalizarAnotacoes } from './anotacoes.js';
 
-export const TIPOS_CADASTRAVEIS = ['processo', 'reuniao', 'palestra', 'outra'];
+export const TIPOS_CADASTRAVEIS = ['processo', 'licenciamento', 'reuniao', 'palestra', 'outra'];
 const ORIGENS_PROCESSO = Object.keys(ORIGENS);
 const ORIGENS_GERAIS = ['chefia', 'propria'];
 
 export function origensDoTipo(tipo) {
-  return tipo === 'processo' ? ORIGENS_PROCESSO : ORIGENS_GERAIS;
+  return tipo === 'processo' || tipo === 'licenciamento' ? ORIGENS_PROCESSO : ORIGENS_GERAIS;
 }
 
 export class ErroCadastro extends Error {
@@ -124,10 +124,10 @@ function normalizar(tipo, dados, hoje, contexto = {}) {
     else limpo.esforco_h = horas;
   }
 
-  if (tipo === 'processo') {
-    // O número do processo é o próprio protocolo/referência (normalizarComuns).
+  if (ETAPAS[tipo]) {
+    // Processo e licenciamento: o número do processo é o próprio protocolo/referência (normalizarComuns) e há etapa.
     if (!vazio(dados.etapa)) {
-      if (texto(dados.etapa) in ETAPAS.processo) limpo.etapa = texto(dados.etapa);
+      if (texto(dados.etapa) in ETAPAS[tipo]) limpo.etapa = texto(dados.etapa);
       else erros.etapa = 'Escolha uma etapa da lista.';
     }
   }
@@ -348,7 +348,7 @@ export function normalizarBusca(s) {
 }
 
 function textoPesquisavel(d) {
-  const partes = [d.id, d.titulo, d.descricao, d.responsavel, d.municipio, d.endereco, d.protocolo, ETAPAS.processo[d.etapa], d.local, d.equipe, TIPOS[d.tipo], ORIGENS[d.origem]];
+  const partes = [d.id, d.titulo, d.descricao, d.responsavel, d.municipio, d.endereco, d.protocolo, ETAPAS[d.tipo]?.[d.etapa], d.local, d.equipe, TIPOS[d.tipo], ORIGENS[d.origem]];
   if (d.anotacoes) partes.push(...d.anotacoes.map((a) => a.texto));
   if (d.pontos) partes.push(...d.pontos.map((p) => p.municipio));
   return normalizarBusca(partes.filter(Boolean).join(' '));

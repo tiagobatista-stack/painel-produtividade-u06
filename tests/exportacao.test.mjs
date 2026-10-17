@@ -46,13 +46,13 @@ test('número com vírgula decimal e data dd/mm/aaaa', () => {
   assert.equal(celulaData('15/10/2026'), '');
 });
 
-test('CSV de demandas: BOM, CRLF, cabeçalho, 13 linhas, ordenado por id, com endereço e coordenadas no fim', () => {
+test('CSV de demandas: BOM, CRLF, cabeçalho, 14 linhas, ordenado por id, com endereço e coordenadas no fim', () => {
   const csv = csvDemandas(seed.demandas, HOJE, ctx);
   assert.equal(csv.charCodeAt(0), 0xfeff);
   assert.ok(csv.endsWith('\r\n'));
   assert.equal(csv.includes('\n') && !csv.replaceAll('\r\n', '').includes('\n'), true); // só CRLF
   const linhas = linhasDe(csv);
-  assert.equal(linhas.length, 14);
+  assert.equal(linhas.length, 15);
   assert.equal(linhas[0], CABECALHO_DEMANDAS.join(';'));
   assert.ok(linhas.every((l) => celulas(l).length === CABECALHO_DEMANDAS.length));
   assert.deepEqual(linhas.slice(1).map((l) => celulas(l)[0]), seed.demandas.map((d) => d.id).sort());

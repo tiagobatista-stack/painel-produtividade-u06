@@ -19,7 +19,7 @@ const VERSAO = '0.1.0';
 const PROTOCOLOS = ['2025-06-18', '2025-03-26', '2024-11-05'];
 const TAMANHO_MAXIMO_LINHA = 1_000_000;
 
-const TIPOS = ['operacao', 'processo', 'reuniao', 'palestra', 'outra'];
+const TIPOS = ['operacao', 'processo', 'licenciamento', 'reuniao', 'palestra', 'outra'];
 const ORIGENS = ['mp', 'judiciario', 'procuradoria', 'ouvidoria', 'denuncia', 'chefia', 'propria'];
 const STATUS = ['a_fazer', 'em_andamento', 'aguardando', 'concluida'];
 const PADRAO_DATA = '^\\d{4}-\\d{2}-\\d{2}$';
@@ -124,6 +124,7 @@ function listarRegras() {
       { criterio: 'Prazo', condicao: 'vence em 3 a 7 dias', pontos: p.de3a7dias },
       { criterio: 'Tipo', condicao: 'operação de alertas', pontos: t.operacao },
       { criterio: 'Tipo', condicao: 'processo SIGADOC', pontos: t.processo },
+      { criterio: 'Tipo', condicao: 'licenciamento', pontos: t.licenciamento },
       { criterio: 'Tipo', condicao: 'reunião', pontos: t.reuniao },
       { criterio: 'Tipo', condicao: 'palestra', pontos: t.palestra },
       { criterio: 'Origem do processo', condicao: 'Ministério Público, Poder Judiciário ou Procuradoria de Justiça', pontos: o.mp },

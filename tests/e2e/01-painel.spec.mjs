@@ -8,15 +8,15 @@ test.describe('painel com o exemplo fictício', () => {
     await expect(page.getByText('Exemplo didático com dados fictícios.')).toBeVisible();
     expect(await indicadores(page)).toEqual(['2', '5', '1', '2']); // vencidas, próximos 7 dias, sobrestados, concluídas na semana
     await expect(page.locator('#aviso-afastamento')).toContainText('Férias começam em 19 dias');
-    await expect(page.locator('#contagem')).toHaveText('10 demandas');
+    await expect(page.locator('#contagem')).toHaveText('11 demandas');
     await irParaAba(page, 'Relatórios');
-    expect(await complementares(page)).toEqual(['10', '9', '2']); // abertas, relatórios pendentes, autos a lavrar
+    expect(await complementares(page)).toEqual(['11', '9', '2']); // abertas, relatórios pendentes, autos a lavrar
     expect(await resumo(page)).toEqual(['2', '5', '4', '2']);
     await irParaAba(page, 'Agenda');
     await expect(page.locator('#agenda-7-dias .evento')).toHaveCount(3);
   });
 
-  test('mostra os 5 tipos de demanda no exemplo', async ({ page }) => {
+  test('mostra os 6 tipos de demanda no exemplo', async ({ page }) => {
     await abrir(page);
     await page.getByRole('search').getByLabel('Status').selectOption({ label: 'Concluída' });
     const etiquetas = new Set();
@@ -24,24 +24,24 @@ test.describe('painel com o exemplo fictício', () => {
       await page.getByRole('search').getByLabel('Status').selectOption({ label: status });
       for (const t of await page.locator('#fila .etiqueta').allTextContents()) etiquetas.add(t);
     }
-    expect([...etiquetas].sort()).toEqual(['Operação de alertas', 'Outra', 'Palestra', 'Processo SIGADOC', 'Reunião']);
+    expect([...etiquetas].sort()).toEqual(['Licenciamento', 'Operação de alertas', 'Outra', 'Palestra', 'Processo SIGADOC', 'Reunião']);
   });
 
   test('a fila vem ordenada por prioridade, com score e motivos', async ({ page }) => {
     await abrir(page);
     // O card mostra só a faixa; o placar de cada demanda está no painel lateral.
     expect(await page.locator('#fila .demanda-abrir .status').allTextContents()).toEqual([
-      'Crítica', 'Crítica', 'Alta', 'Alta', 'Alta', 'Média', 'Média', 'Baixa', 'Baixa', 'Baixa',
+      'Crítica', 'Crítica', 'Alta', 'Alta', 'Alta', 'Média', 'Média', 'Média', 'Baixa', 'Baixa', 'Baixa',
     ]);
     const prioridades = [];
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 11; i++) {
       await page.locator('#fila .demanda-abrir').nth(i).click();
       prioridades.push(await painel(page).locator('.prioridade').textContent());
       await fecharPainel(page);
     }
     expect(prioridades).toEqual([
       'Prioridade Crítica · 90 pontos', 'Prioridade Crítica · 80 pontos', 'Prioridade Alta · 68 pontos', 'Prioridade Alta · 60 pontos',
-      'Prioridade Alta · 55 pontos', 'Prioridade Média · 40 pontos', 'Prioridade Média · 35 pontos', 'Prioridade Baixa · 20 pontos',
+      'Prioridade Alta · 55 pontos', 'Prioridade Média · 40 pontos', 'Prioridade Média · 35 pontos', 'Prioridade Média · 25 pontos', 'Prioridade Baixa · 20 pontos',
       'Prioridade Baixa · 10 pontos', 'Prioridade Baixa · 0 pontos',
     ]);
     const primeiro = await abrirPainel(page, 'Manifestação em procedimento');

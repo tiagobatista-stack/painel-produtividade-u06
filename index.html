@@ -275,7 +275,7 @@
             <span class="erro-campo" id="e-descricao"></span>
           </div>
 
-          <div class="campo" data-campo="status" data-tipos="processo reuniao palestra outra">
+          <div class="campo" data-campo="status" data-tipos="processo licenciamento reuniao palestra outra">
             <label for="f-status">Status</label>
             <select id="f-status" name="status"></select>
             <span class="erro-campo" id="e-status"></span>
@@ -297,7 +297,7 @@
             <input id="f-responsavel" name="responsavel" maxlength="120" autocomplete="off" placeholder="Nome ou equipe">
             <span class="erro-campo" id="e-responsavel"></span>
           </div>
-          <div class="campo" data-campo="prazo" data-tipos="processo reuniao palestra outra">
+          <div class="campo" data-campo="prazo" data-tipos="processo licenciamento reuniao palestra outra">
             <label for="f-prazo" class="obrig">Prazo</label>
             <input id="f-prazo" name="prazo" type="date" aria-required="true">
             <span class="erro-campo" id="e-prazo"></span>
@@ -313,7 +313,7 @@
           <div class="campo" data-campo="protocolo">
             <label for="f-protocolo">Protocolo/referência</label>
             <input id="f-protocolo" name="protocolo" maxlength="120" autocomplete="off" placeholder="SEMA-PRO-FICT-0000" aria-describedby="d-protocolo">
-            <span class="dica" id="d-protocolo">No processo, é o número do processo (fictício).</span>
+            <span class="dica" id="d-protocolo">No processo e no licenciamento, é o número do processo (fictício).</span>
             <span class="erro-campo" id="e-protocolo"></span>
           </div>
 
@@ -333,12 +333,12 @@
             <span class="erro-campo" id="e-publico"></span>
           </div>
 
-          <div class="campo" data-campo="etapa" data-tipos="processo">
+          <div class="campo" data-campo="etapa" data-tipos="processo licenciamento">
             <label for="f-etapa">Etapa</label>
             <select id="f-etapa" name="etapa"></select>
             <span class="erro-campo" id="e-etapa"></span>
           </div>
-          <div class="campo" data-campo="esforco_h" data-tipos="processo reuniao palestra outra">
+          <div class="campo" data-campo="esforco_h" data-tipos="processo licenciamento reuniao palestra outra">
             <label for="f-esforco_h">Esforço estimado (h)</label>
             <input id="f-esforco_h" name="esforco_h" type="number" min="0" step="0.5">
             <span class="erro-campo" id="e-esforco_h"></span>
@@ -355,7 +355,7 @@
             <span class="erro-campo" id="e-horas_ponto"></span>
           </div>
 
-          <div class="campo inteira" data-campo="endereco" data-tipos="processo reuniao palestra outra">
+          <div class="campo inteira" data-campo="endereco" data-tipos="processo licenciamento reuniao palestra outra">
             <label for="f-endereco">Endereço ou referência espacial</label>
             <div class="linha-localizar">
               <input id="f-endereco" name="endereco" maxlength="200" autocomplete="off" placeholder="Ex.: Estrada Fictícia, km 12, Fazenda Exemplo" aria-describedby="d-endereco">
@@ -364,14 +364,14 @@
             <span class="dica" id="d-endereco">"Localizar" abre o OpenStreetMap em outra aba; o texto vai para o serviço de mapas.</span>
             <span class="erro-campo" id="e-endereco"></span>
           </div>
-          <div class="campo" data-campo="latitude" data-tipos="processo reuniao palestra outra">
+          <div class="campo" data-campo="latitude" data-tipos="processo licenciamento reuniao palestra outra">
             <label for="f-latitude">Latitude</label>
             <input id="f-latitude" name="latitude" maxlength="40" autocomplete="off" placeholder="11° 25' 12&quot; S ou -11,42" aria-describedby="d-latitude">
             <span class="dica" id="d-latitude">Decimal ou graus, minutos e segundos. Sem hemisfério, vale S.</span>
             <span class="aviso-campo" id="a-latitude" aria-live="polite"></span>
             <span class="erro-campo" id="e-latitude"></span>
           </div>
-          <div class="campo" data-campo="longitude" data-tipos="processo reuniao palestra outra">
+          <div class="campo" data-campo="longitude" data-tipos="processo licenciamento reuniao palestra outra">
             <label for="f-longitude">Longitude</label>
             <input id="f-longitude" name="longitude" maxlength="40" autocomplete="off" placeholder="58° 45' 00&quot; O ou -58,75" aria-describedby="d-longitude">
             <span class="dica" id="d-longitude">Decimal ou graus, minutos e segundos. Sem hemisfério, vale O.</span>

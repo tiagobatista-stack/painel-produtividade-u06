@@ -45,14 +45,14 @@ test('tools/list: 3 ferramentas somente leitura, com esquema de entrada', async 
   }
   const priorizar = r.result.tools.find((t) => t.name === 'priorizar_demanda');
   assert.deepEqual(priorizar.inputSchema.required, ['tipo']);
-  assert.deepEqual(priorizar.inputSchema.properties.tipo.enum, ['operacao', 'processo', 'reuniao', 'palestra', 'outra']);
+  assert.deepEqual(priorizar.inputSchema.properties.tipo.enum, ['operacao', 'processo', 'licenciamento', 'reuniao', 'palestra', 'outra']);
 });
 
 test('listar_regras: tabela de pontos igual à do motor, faixas e regras complementares', async () => {
   const r = await chamar('listar_regras', {});
   assert.equal(r.isError, false);
   const pontos = r.dados.pontuacao;
-  assert.equal(pontos.length, 14);
+  assert.equal(pontos.length, 15);
   const de = (criterio, condicao) => pontos.find((p) => p.criterio === criterio && p.condicao.startsWith(condicao)).pontos;
   assert.equal(de('Prazo', 'vencido'), REGRAS.prazo.vencido);
   assert.equal(de('Prazo', 'vence em 0 a 2'), REGRAS.prazo.ate2dias);

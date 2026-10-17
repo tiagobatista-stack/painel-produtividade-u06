@@ -14,10 +14,10 @@ function storageFalso(inicial = {}) {
 test('primeira abertura carrega o exemplo (RF13), sem alterar o seed', () => {
   const { dados, origem } = carregar(storageFalso(), seed);
   assert.equal(origem, 'seed');
-  assert.equal(dados.demandas.length, 13);
+  assert.equal(dados.demandas.length, 14);
   assert.equal(dados.afastamentos.length, 2);
   dados.demandas.pop();
-  assert.equal(seed.demandas.length, 13);
+  assert.equal(seed.demandas.length, 14);
 });
 
 test('salvar e recarregar mantém as alterações', () => {
@@ -27,8 +27,8 @@ test('salvar e recarregar mantém as alterações', () => {
   assert.equal(salvar(storage, dados), true);
   const de_novo = carregar(storage, seed);
   assert.equal(de_novo.origem, 'armazenamento');
-  assert.equal(de_novo.dados.demandas.length, 14);
-  assert.equal(de_novo.dados.demandas.at(-1).id, 'DEM-0014');
+  assert.equal(de_novo.dados.demandas.length, 15);
+  assert.equal(de_novo.dados.demandas.at(-1).id, 'DEM-0015');
   assert.ok(storage.dados[CHAVE].includes('"versao":1'));
 });
 
@@ -36,7 +36,7 @@ test('JSON corrompido ou formato desconhecido cai no exemplo', () => {
   for (const ruim of ['{nao é json', '{"versao":2,"demandas":[],"afastamentos":[]}', '{"versao":1,"demandas":"x"}', 'null']) {
     const { origem, dados } = carregar(storageFalso({ [CHAVE]: ruim }), seed);
     assert.equal(origem, 'seed', ruim);
-    assert.equal(dados.demandas.length, 13);
+    assert.equal(dados.demandas.length, 14);
   }
 });
 

@@ -1,5 +1,5 @@
 // Rótulos de exibição compartilhados pela interface e pela busca.
-export const TIPOS = { operacao: 'Operação de alertas', processo: 'Processo SIGADOC', reuniao: 'Reunião', palestra: 'Palestra', outra: 'Outra' };
+export const TIPOS = { operacao: 'Operação de alertas', processo: 'Processo SIGADOC', licenciamento: 'Licenciamento', reuniao: 'Reunião', palestra: 'Palestra', outra: 'Outra' };
 export const ORIGENS = {
   mp: 'Ministério Público', judiciario: 'Poder Judiciário', procuradoria: 'Procuradoria de Justiça',
   ouvidoria: 'Ouvidoria', denuncia: 'Denúncia', chefia: 'Chefia', propria: 'Própria',
@@ -34,13 +34,15 @@ export const TIPOS_AFASTAMENTO = { ferias: 'Férias', licenca_premio: 'Licença-
 // Tipos de evento da agenda e do calendário.
 export const ROTULOS_EVENTO = {
   reuniao: 'Reunião', palestra: 'Palestra', saida_operacao: 'Saída de operação', retorno_operacao: 'Retorno de operação', prazo_relatorio: 'Prazo de relatórios',
-  prazo_processo: 'Prazo de processo', prazo_demanda: 'Prazo', afastamento: 'Afastamento',
+  prazo_processo: 'Prazo de processo', prazo_licenciamento: 'Prazo de licenciamento', prazo_demanda: 'Prazo', afastamento: 'Afastamento',
 };
 export const SITUACOES_AFASTAMENTO = { planejado: 'Planejado', solicitado: 'Solicitado', aprovado: 'Aprovado' };
 
 // Etapas por tipo (só o processo usa etapa). A chave é o valor gravado; o rótulo é o que a tela mostra.
+const ETAPAS_DE_PROCESSO = { triagem: 'Triagem', analise: 'Análise', parecer: 'Parecer', devolvido: 'Devolvido' };
 export const ETAPAS = {
-  processo: { triagem: 'Triagem', analise: 'Análise', parecer: 'Parecer', devolvido: 'Devolvido' },
+  processo: ETAPAS_DE_PROCESSO,
+  licenciamento: ETAPAS_DE_PROCESSO, // mesmo conjunto de etapas do processo
 };
 // Valores de etapa gravados antes da lista fixa → etapa equivalente.
 export const ETAPA_ANTIGA = { parecer: 'parecer', analise: 'analise', despacho: 'analise', aguardando_informacao: 'triagem', concluido: 'devolvido' };

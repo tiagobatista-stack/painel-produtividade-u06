@@ -33,8 +33,8 @@ test('início de afastamento aparece só no dia de início', () => {
 test('saída de operação e prazo dos relatórios da operação importada', () => {
   const op = criarOperacao(planilha, { prazo_dias: 3, horas_ponto: 3 }, seed.demandas, '2026-10-15'); // saída 09/11, prazo 16/11
   const todas = [...seed.demandas, op];
-  assert.deepEqual(ag('2026-11-02', todas), ['2026-11-03 afastamento AFA-0001', '2026-11-09 saida_operacao DEM-0014']);
-  assert.deepEqual(ag('2026-11-10', todas), ['2026-11-13 retorno_operacao DEM-0014', '2026-11-16 prazo_relatorio DEM-0014']);
+  assert.deepEqual(ag('2026-11-02', todas), ['2026-11-03 afastamento AFA-0001', '2026-11-09 saida_operacao DEM-0015']);
+  assert.deepEqual(ag('2026-11-10', todas), ['2026-11-13 retorno_operacao DEM-0015', '2026-11-16 prazo_relatorio DEM-0015']);
 });
 
 test('demandas concluídas não aparecem', () => {
@@ -84,6 +84,7 @@ test('calendário mostra prazos de processo e de outras demandas, além dos even
     '2026-10-22 palestra DEM-0010',
     '2026-10-25 prazo_demanda DEM-0011',
     '2026-10-27 reuniao DEM-0009',
+    '2026-10-30 prazo_licenciamento DEM-0014',
   ]);
   const processo = dia(semanas, '2026-10-13').eventos[0];
   assert.match(processo.titulo, /^SEMA-PRO-FICT-\d+ — /); // o número do processo vem no título
@@ -138,5 +139,5 @@ test('o retorno registrado de fato muda o período e o evento de retorno', async
   const adiada = registrarRetorno(op, '2026-11-16', '2026-11-16');
   const semanas = calendarioMes([adiada], [], '2026-11');
   assert.equal(dia(semanas, '2026-11-16').operacoes.length, 1);
-  assert.deepEqual(diasComEventos(semanas).filter((l) => l.includes('retorno')), ['2026-11-16 retorno_operacao DEM-0014']);
+  assert.deepEqual(diasComEventos(semanas).filter((l) => l.includes('retorno')), ['2026-11-16 retorno_operacao DEM-0015']);
 });

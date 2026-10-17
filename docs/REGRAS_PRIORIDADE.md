@@ -12,12 +12,13 @@ Função pura `priorizar(demanda, hoje)` em `js/regras.js` (M2), retornando `{sc
 | Prazo | mais de 7 dias | 0 |
 | Tipo | operação de alertas | +20 |
 | Tipo | processo SIGADOC | +15 |
+| Tipo | licenciamento | +15 |
 | Tipo | reunião | +10 |
 | Tipo | palestra | +5 |
 | Tipo | outra | 0 |
-| Origem do processo (só tipo processo) | Ministério Público, Poder Judiciário ou Procuradoria de Justiça | +25 |
-| Origem do processo (só tipo processo) | Ouvidoria | +15 |
-| Origem do processo (só tipo processo) | Denúncia | +10 |
+| Origem do processo (só tipo processo e licenciamento) | Ministério Público, Poder Judiciário ou Procuradoria de Justiça | +25 |
+| Origem do processo (só tipo processo e licenciamento) | Ouvidoria | +15 |
+| Origem do processo (só tipo processo e licenciamento) | Denúncia | +10 |
 | Origem (qualquer tipo) | Chefia ou coordenação | +10 |
 | Operação | 10 ou mais relatórios pendentes | +15 |
 | Operação | 5 a 9 relatórios pendentes | +8 |
@@ -52,18 +53,17 @@ Nenhum peso da tabela de pontuação muda. As regras abaixo só agrupam ou retir
 | T16 | Processo sobrestado (como T12) com `cobrar_em` = 2026-10-15 | fora da fila; listado em "Foco de hoje" como cobrança |
 | T17 | Reunião com prazo em 5 dias (como T6) | score 35, Média, classe Data fixa; fora de "Foco de hoje" |
 
-## Tipo Licenciamento (RF43, especificado, ainda não implementado)
+## Tipo Licenciamento (RF43, entregue)
 
-O tipo de demanda **"Licenciamento"** passa a existir ao lado de operação, processo, reunião, palestra e outra. Esta seção só registra o que está definido e o que falta decidir; **nenhum peso muda enquanto isso não for decidido**, e T1–T14 continuam valendo.
+O tipo de demanda **"Licenciamento"** (valor `licenciamento`) existe ao lado de operação, processo, reunião, palestra e outra. Decisões do responsável:
 
-- **Definido:** o tipo se chama "Licenciamento" (valor `licenciamento`); entra na lista de tipos do formulário de Nova demanda e da edição, no filtro por tipo e nos rótulos; tem prazo, status e histórico como as demais demandas; seu prazo aparece no calendário.
-- **A decidir (propostas entre parênteses):**
-  1. Campos próprios (proposta: número do processo e etapa, como o tipo processo, e origem entre chefia e própria mais as de processo).
-  2. Pontuação do tipo na tabela acima (proposta: o mesmo +15 do processo SIGADOC até a chefia definir outro valor; a origem do processo, +25, +15 e +10, valeria como no tipo processo se o licenciamento tiver essas origens).
-  3. Classe de serviço no quadro (proposta: Padrão, como processo).
-  4. Se o licenciamento aceita afastamento, anotações e coordenada como as demais demandas (proposta: sim).
-- **Casos de teste novos (a escrever depois da decisão):** licenciamento vencido, licenciamento com origem de chefia, licenciamento dentro de férias, e o exemplo fictício no seed. Nenhum caso existente muda.
-- **Fora do tipo:** o título "Resposta à chefia sobre processo de licenciamento (fictício)" do exemplo continua sendo um processo; não é o tipo Licenciamento.
+- **Pontuação:** +15, o mesmo do processo SIGADOC, **numa só tabela** (`REGRAS.tipo.licenciamento` em `js/regras.js`): o valor pode ser alterado no futuro mudando só esse número (e este documento). A origem do processo (+25, +15 e +10) vale como no processo; chefia continua +10.
+- **Campos:** os mesmos das demais demandas, todos opcionais além de título, prazo e origem válida: protocolo/referência (o número do processo), etapa (Triagem, Análise, Parecer, Devolvido), município, endereço e coordenadas, descrição, responsável, esforço, anotações e ajuste manual de prioridade.
+- **Origens:** as mesmas do processo (Ministério Público, Poder Judiciário, Procuradoria de Justiça, ouvidoria, denúncia, chefia e própria).
+- **Onde aparece:** lista de tipos do formulário (depois de Processo SIGADOC), filtro por tipo, rótulos, quadro (classe de serviço **Padrão**, como o processo; Urgente se vencido ou Crítico), calendário (evento "Prazo de licenciamento"), exportações, resumo semanal por tipo, busca (inclui a etapa por extenso e o protocolo) e MCP (`priorizar_demanda` e `listar_regras`).
+- **Afastamento:** o prazo dentro de férias, licença-prêmio ou compensação soma +20, como nas demais.
+- **Exemplo fictício:** DEM-0014, "Análise de pedido de licença de operação de empreendimento fictício" (chefia, etapa Análise, prazo 30/10, 25 pontos, Média). O processo "Resposta à chefia sobre processo de licenciamento (fictício)" (DEM-0005) **continua sendo um processo**; não é o tipo Licenciamento.
+- **Casos T19 a T22** (abaixo) e a equivalência com o processo (mesmas entradas, mesmo score) estão em `tests/licenciamento.test.mjs`. T1–T18 não mudam.
 
 ## Casos de teste (hoje = 2026-10-15)
 
@@ -85,6 +85,10 @@ O tipo de demanda **"Licenciamento"** passa a existir ao lado de operação, pro
 | T13 | O mesmo processo após voltar para "Em andamento" (prazo registrado mantido) | 90 | Crítica |
 | T14 | Processo, origem Denúncia, prazo em 12 dias, dentro de compensação de 2026-10-26 a 2026-10-28 | 45 | Alta |
 | T18 | Reunião do T6 (vence em 5 dias, chefia, 35 calculados) com ajuste manual Alta e motivo: faixa efetiva Alta (manual), calculada Média 35. Na fila: T5 (55) → T15 (35) → Média automática de 40 → processo de 90 com ajuste manual Baixa → Baixa automática | 35 (calculado) | Alta (manual) |
+| T19 | Licenciamento vencido (há 1 dia), origem própria | 65 | Alta |
+| T20 | Licenciamento vencido (há 1 dia), origem Ministério Público | 90 | Crítica |
+| T21 | Licenciamento da chefia, vence em 5 dias | 40 | Média |
+| T22 | Licenciamento, origem Poder Judiciário, prazo 2026-11-06 (22 dias), dentro das férias de 2026-11-03 a 2026-11-17 | 60 | Alta |
 
 ## Conferência do seed (hoje = 2026-10-15)
 
@@ -99,6 +103,7 @@ Os números abaixo, os casos T1–T14 e os indicadores de `docs/CRITERIOS_ACEITE
 | DEM-0005 | 1 dia 30 + processo 15 + chefia 10 | 55 | Alta |
 | DEM-0007 | 5 dias 15 + processo 15 + denúncia 10 | 40 | Média |
 | DEM-0008 | 5 dias 15 + reunião 10 + chefia 10 | 35 | Média |
+| DEM-0014 | licenciamento 15 + chefia 10 (prazo em 15 dias: 0) | 25 | Média |
 | DEM-0006 | status Aguardando: sobrestada, prazo suspenso | — | fora da fila |
 | DEM-0010 | 7 dias 15 + palestra 5 | 20 | Baixa |
 | DEM-0009 | reunião 10 | 10 | Baixa |
@@ -107,4 +112,4 @@ Os números abaixo, os casos T1–T14 e os indicadores de `docs/CRITERIOS_ACEITE
 
 ## Localização e vistoria não mudam a pontuação (RF49 a RF62, especificado)
 
-Município, município descentralizado, situação da vistoria, proximidade e ação de campo **não entram no cálculo da prioridade**: nenhum peso muda e T1–T18 continuam valendo. Os casos de teste T19 a T30 ficam reservados a esta linha de trabalho (por exemplo, "vizinha no raio não altera o score" e "município descentralizado não altera o score").
+Município, município descentralizado, situação da vistoria, proximidade e ação de campo **não entram no cálculo da prioridade**: nenhum peso muda e T1–T18 continuam valendo. T19 a T22 são do Licenciamento; os casos T23 a T30 ficam reservados ao resto desta linha de trabalho (por exemplo, "vizinha no raio não altera o score" e "município descentralizado não altera o score").

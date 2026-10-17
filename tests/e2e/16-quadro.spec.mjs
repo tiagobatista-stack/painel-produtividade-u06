@@ -26,7 +26,7 @@ test.describe('quadro Kanban (RF16 a RF21)', () => {
     await abrirQuadro(page);
     await expect(botaoVisao(page, 'Quadro')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('#fila > li')).toHaveCount(0); // a lista não repete os cartões
-    await expect(cabecalho(page, 'a_fazer').locator('.quadro-contagem')).toHaveText('7');
+    await expect(cabecalho(page, 'a_fazer').locator('.quadro-contagem')).toHaveText('8');
     await expect(cabecalho(page, 'em_andamento').locator('.quadro-contagem')).toHaveText('3/3');
     await expect(cabecalho(page, 'aguardando').locator('.quadro-contagem')).toHaveText('1');
     await expect(cabecalho(page, 'concluida').locator('.quadro-contagem')).toHaveText('2');
@@ -65,7 +65,7 @@ test.describe('quadro Kanban (RF16 a RF21)', () => {
     await abrirQuadro(page);
     await cartaoQuadro(page, T_PROCESSO).getByRole('button', { name: /^Iniciar/ }).click();
 
-    await expect(cabecalho(page, 'a_fazer').locator('.quadro-contagem')).toHaveText('6');
+    await expect(cabecalho(page, 'a_fazer').locator('.quadro-contagem')).toHaveText('7');
     await expect(cabecalho(page, 'em_andamento').locator('.quadro-contagem')).toHaveText('4/3');
     await expect(cabecalho(page, 'em_andamento')).toHaveClass(/acima-do-limite/);
     await expect(cabecalho(page, 'em_andamento')).toContainText('Acima do limite: 4 em andamento (limite 3).');
@@ -118,7 +118,7 @@ test.describe('quadro Kanban (RF16 a RF21)', () => {
     await expect(card).toHaveAttribute('draggable', 'true');
     await card.dragTo(celula(page, 'Em andamento', 'Padrão')); // mesma faixa: origem e destino cabem na tela
     await expect(cabecalho(page, 'em_andamento').locator('.quadro-contagem')).toHaveText('4/3');
-    await expect(cabecalho(page, 'a_fazer').locator('.quadro-contagem')).toHaveText('6');
+    await expect(cabecalho(page, 'a_fazer').locator('.quadro-contagem')).toHaveText('7');
     await expect(page.locator('#quadro-anuncio')).toHaveText('DEM-0004 movida para Em andamento.');
     await expect(cartaoQuadro(page, T_CONCLUIDA)).not.toHaveAttribute('draggable', 'true'); // concluída não arrasta
   });

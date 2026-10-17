@@ -1,6 +1,6 @@
 import { test, expect, abrir, abrirPainel, cartao, complementares, fecharPainel, filtros, importarExemplo, painel } from './apoio.mjs';
 
-const OPERACAO = 'Equipe Fictícia Leste'; // DEM-0014 depois de importar a planilha de exemplo (13 pontos)
+const OPERACAO = 'Equipe Fictícia Leste'; // DEM-0015 depois de importar a planilha de exemplo (13 pontos)
 const PROCESSO = 'Informação técnica para ofício do Poder Judiciário'; // DEM-0004
 
 // Importa a planilha de exemplo, registra o retorno (13 pontos vistoriados) e deixa o painel da operação aberto.
@@ -15,7 +15,7 @@ async function operacaoVistoriada(page) {
 }
 const ponto = (p, n) => p.locator('li.ponto', { hasText: `Ponto ${n} ·` });
 const marcar = (p, n) => p.getByRole('checkbox', { name: `Marcar o ponto ${n} para agrupar` });
-const guardada = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('painel-demandas:v1')).demandas.find((d) => d.id === 'DEM-0014'));
+const guardada = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('painel-demandas:v1')).demandas.find((d) => d.id === 'DEM-0015'));
 const pendentes = async (page) => Number((await complementares(page))[1]);
 const aLavrar = async (page) => Number((await complementares(page))[2]);
 
@@ -23,7 +23,7 @@ async function agrupar(p, numeros) {
   for (const n of numeros) await marcar(p, n).check();
   await p.getByRole('button', { name: new RegExp(`^Agrupar ${numeros.length} pontos marcados em um relatório`) }).click();
 }
-const situacaoDoRelatorio = (p, id = 'R1') => p.locator(`#relatorio-DEM-0014-${id}`);
+const situacaoDoRelatorio = (p, id = 'R1') => p.locator(`#relatorio-DEM-0015-${id}`);
 
 test.describe('relatório agrupado e autos de cada ponto', () => {
   test('somar 3 pontos no mesmo relatório conta 1 relatório pendente, e o botão só habilita com 2 ou mais pontos', async ({ page }) => {

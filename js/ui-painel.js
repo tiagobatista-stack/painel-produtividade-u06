@@ -36,7 +36,7 @@ function blocoDados(item, hoje) {
   if (d.descricao) bloco.append(linha(d.descricao, 'demanda-descricao-painel'));
   const etapa = ETAPAS[d.tipo]?.[d.etapa];
   if (d.protocolo || etapa) {
-    const rotulo = d.tipo === 'processo' ? 'Processo' : 'Protocolo';
+    const rotulo = d.tipo === 'processo' || d.tipo === 'licenciamento' ? 'Processo' : 'Protocolo';
     bloco.append(linha([d.protocolo && `${rotulo} ${d.protocolo}`, etapa && `etapa: ${etapa}`].filter(Boolean).join(' · ')));
   }
   if (d.responsavel) bloco.append(linha(`Responsável: ${d.responsavel}`));

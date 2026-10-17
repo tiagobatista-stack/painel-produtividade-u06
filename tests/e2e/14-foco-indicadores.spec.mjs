@@ -90,7 +90,7 @@ test.describe('Indicadores em destaque (RF15)', () => {
     expect(await titulos(page)).toEqual([DEM_0003, DEM_0002]);
     await caixa(page, 'Vencidas').click();
     await expect(caixa(page, 'Vencidas')).toHaveAttribute('aria-pressed', 'false');
-    await expect(page.locator('#contagem')).toHaveText('10 demandas');
+    await expect(page.locator('#contagem')).toHaveText('11 demandas');
     await expect(filtros(page).getByRole('button', { name: 'Limpar filtros' })).toBeDisabled();
   });
 
@@ -116,7 +116,7 @@ test.describe('Indicadores em destaque (RF15)', () => {
     await expect(page.locator('#contagem')).toHaveText('0 demandas');
     await expect(caixa(page, 'Vencidas')).toHaveAttribute('aria-pressed', 'false');
     await f.getByRole('button', { name: 'Limpar filtros' }).click();
-    await expect(page.locator('#contagem')).toHaveText('10 demandas');
+    await expect(page.locator('#contagem')).toHaveText('11 demandas');
     await expect(f.getByLabel('Prazo')).toHaveValue('');
     await expect(page.locator('#indicadores [aria-pressed="true"]')).toHaveCount(0);
   });

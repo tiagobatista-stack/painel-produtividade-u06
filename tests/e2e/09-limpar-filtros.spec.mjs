@@ -42,7 +42,7 @@ test.describe('Limpar filtros (RF12)', () => {
   test('limpa busca, tipo, status e prioridade de uma vez', async ({ page }) => {
     await abrir(page);
     const original = await titulos(page);
-    expect(original).toHaveLength(10);
+    expect(original).toHaveLength(11);
 
     await aplicar(page, 'Buscar', 'reunião');
     await aplicar(page, 'Tipo', 'Reunião');
@@ -59,7 +59,7 @@ test.describe('Limpar filtros (RF12)', () => {
     await expect(f.getByLabel('Status')).toHaveValue('abertas');
     await expect(f.getByLabel('Prioridade')).toHaveValue('');
     await expect(page.locator('#fila-vazia')).toBeHidden();
-    await expect(page.locator('#contagem')).toHaveText('10 demandas');
+    await expect(page.locator('#contagem')).toHaveText('11 demandas');
     expect(await titulos(page)).toEqual(original); // a mesma fila, na mesma ordem
     await expect(botao(page)).toBeDisabled();
   });
@@ -67,7 +67,7 @@ test.describe('Limpar filtros (RF12)', () => {
   test('não apaga demandas nem mexe na data de referência, nos indicadores ou nos dados guardados', async ({ page }) => {
     await abrir(page);
     const antes = { indicadores: await indicadores(page), guardadas: await demandasGuardadas(page) };
-    expect(antes.guardadas).toBe(13);
+    expect(antes.guardadas).toBe(14);
 
     await aplicar(page, 'Status', 'Concluída');
     await expect(page.locator('#contagem')).toHaveText('2 demandas');
@@ -75,7 +75,7 @@ test.describe('Limpar filtros (RF12)', () => {
 
     await expect(page.getByLabel('Data de referência')).toHaveValue('2026-10-15');
     expect(await indicadores(page)).toEqual(antes.indicadores);
-    expect(await demandasGuardadas(page)).toBe(13);
+    expect(await demandasGuardadas(page)).toBe(14);
     // as concluídas continuam existindo: basta filtrar por elas de novo
     await aplicar(page, 'Status', 'Concluída');
     await expect(page.locator('#contagem')).toHaveText('2 demandas');
@@ -85,9 +85,9 @@ test.describe('Limpar filtros (RF12)', () => {
     test(`limpa um filtro isolado: ${campo}`, async ({ page }) => {
       await abrir(page);
       await aplicar(page, campo, valor);
-      await expect(page.locator('#contagem')).not.toHaveText('10 demandas');
+      await expect(page.locator('#contagem')).not.toHaveText('11 demandas');
       await botao(page).click();
-      await expect(page.locator('#contagem')).toHaveText('10 demandas');
+      await expect(page.locator('#contagem')).toHaveText('11 demandas');
       await expect(botao(page)).toBeDisabled();
     });
   }
@@ -97,13 +97,13 @@ test.describe('Limpar filtros (RF12)', () => {
     await aplicar(page, 'Tipo', 'Reunião');
     await botao(page).focus();
     await page.keyboard.press('Enter');
-    await expect(page.locator('#contagem')).toHaveText('10 demandas');
+    await expect(page.locator('#contagem')).toHaveText('11 demandas');
     await expect(filtros(page).getByLabel('Buscar')).toBeFocused(); // o foco não se perde ao desabilitar o botão
 
     await aplicar(page, 'Prioridade', 'Baixa');
     await botao(page).focus();
     await page.keyboard.press('Space');
-    await expect(page.locator('#contagem')).toHaveText('10 demandas');
+    await expect(page.locator('#contagem')).toHaveText('11 demandas');
     await expect(filtros(page).getByLabel('Buscar')).toBeFocused();
   });
 

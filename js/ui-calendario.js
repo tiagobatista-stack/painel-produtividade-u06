@@ -8,7 +8,7 @@ const DIAS_SEMANA = [
   ['sex', 'sexta-feira'], ['sáb', 'sábado'], ['dom', 'domingo'],
 ];
 const MAX_NO_DIA = 3; // eventos visíveis na célula; o restante vira "+N"
-const PRAZOS = ['prazo_processo', 'prazo_demanda', 'prazo_relatorio'];
+const PRAZOS = ['prazo_processo', 'prazo_licenciamento', 'prazo_demanda', 'prazo_relatorio'];
 const SITUACAO_OPERACAO = { aberta: 'em andamento', sobrestada: 'sobrestada', concluida: 'concluída' };
 
 let mesDaReferencia = null; // mês (AAAA-MM) da data de referência

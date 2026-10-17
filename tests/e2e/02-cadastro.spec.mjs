@@ -4,7 +4,7 @@ test.describe('cadastro, edição e status', () => {
   test('cadastra uma demanda e ela aparece com a prioridade calculada, e persiste ao recarregar', async ({ page }) => {
     await abrir(page);
     await cadastrarProcesso(page, { titulo: 'Processo novo de teste' });
-    await expect(page.locator('#contagem')).toHaveText('11 demandas');
+    await expect(page.locator('#contagem')).toHaveText('12 demandas');
     const nova = cartao(page, 'Processo novo de teste');
     await expect(nova.locator('.status')).toHaveText('Crítica');
     const painelNova = await abrirPainel(page, 'Processo novo de teste');
@@ -14,7 +14,7 @@ test.describe('cadastro, edição e status', () => {
 
     await page.reload();
     await usarDataDoExemplo(page);
-    await expect(page.locator('#contagem')).toHaveText('11 demandas');
+    await expect(page.locator('#contagem')).toHaveText('12 demandas');
     await expect(cartao(page, 'Processo novo de teste')).toBeVisible();
   });
 
@@ -29,7 +29,7 @@ test.describe('cadastro, edição e status', () => {
     await expect(dialogo.getByLabel('Título')).toBeFocused();
     await dialogo.getByRole('button', { name: 'Cancelar' }).click();
     await expect(dialogo).toBeHidden();
-    await expect(page.locator('#contagem')).toHaveText('10 demandas');
+    await expect(page.locator('#contagem')).toHaveText('11 demandas');
   });
 
   test('prazo impossível (31/02) é recusado', async ({ page }) => {
@@ -82,7 +82,7 @@ test.describe('cadastro, edição e status', () => {
     await p.getByText(/Histórico/).click();
     await expect(p).toContainText('Status: A fazer → Em andamento');
     await p.getByLabel('Status').selectOption({ label: 'Concluída' });
-    await expect(page.locator('#contagem')).toHaveText('9 demandas');
+    await expect(page.locator('#contagem')).toHaveText('10 demandas');
     await expect(p.getByLabel('Status')).toBeFocused(); // o foco não se perde: o painel segue aberto na demanda concluída
     await expect(p.locator('.prioridade')).toContainText('Concluída em');
     await fecharPainel(page);
@@ -95,7 +95,7 @@ test.describe('cadastro, edição e status', () => {
     const p = await abrirPainel(page, 'Resposta à chefia sobre processo');
     await p.getByLabel('Status').selectOption({ label: 'Sobrestado (aguardando)' });
     await fecharPainel(page);
-    await expect(page.locator('#contagem')).toHaveText('9 demandas'); // abertas
+    await expect(page.locator('#contagem')).toHaveText('10 demandas'); // abertas
     expect((await indicadores(page))[2]).toBe('2'); // sobrestados
     await page.getByRole('search').getByLabel('Status').selectOption({ label: 'Sobrestado (aguardando)' });
     await expect(page.locator('#contagem')).toHaveText('2 demandas');
@@ -106,7 +106,7 @@ test.describe('cadastro, edição e status', () => {
     await sobrestada.getByLabel('Status').selectOption({ label: 'Em andamento' });
     await fecharPainel(page);
     await page.getByRole('search').getByLabel('Status').selectOption({ label: 'Abertas (ativas)' });
-    await expect(page.locator('#contagem')).toHaveText('10 demandas');
+    await expect(page.locator('#contagem')).toHaveText('11 demandas');
     await expect(cartao(page, 'Resposta à chefia sobre processo')).toContainText('Prazo: 16/10/2026');
   });
 });

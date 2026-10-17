@@ -57,8 +57,8 @@ test('aviso de prazos que caem no período (seed: DEM-0004 em 06/11)', () => {
 test('aviso de viagem de operação que coincide com o período', () => {
   const op = criarOperacao(planilha, { prazo_dias: 10, horas_ponto: 3 }, seed.demandas, HOJE); // saída 09/11, retorno 13/11
   const { viagens, prazos } = avisosAfastamento(ferias, [...seed.demandas, op], HOJE);
-  assert.deepEqual(viagens.map((v) => [v.demanda.id, v.saida, v.retorno]), [['DEM-0014', '2026-11-09', '2026-11-13']]);
-  assert.equal(prazos.some((x) => x.demanda.id === 'DEM-0014'), false); // prazo 23/11 fora do período
+  assert.deepEqual(viagens.map((v) => [v.demanda.id, v.saida, v.retorno]), [['DEM-0015', '2026-11-09', '2026-11-13']]);
+  assert.equal(prazos.some((x) => x.demanda.id === 'DEM-0015'), false); // prazo 23/11 fora do período
   const curto = criarOperacao(planilha, { prazo_dias: 3, horas_ponto: 3 }, seed.demandas, HOJE); // prazo 16/11, dentro
   assert.equal(avisosAfastamento(ferias, [curto], HOJE).prazos.length, 1);
 });

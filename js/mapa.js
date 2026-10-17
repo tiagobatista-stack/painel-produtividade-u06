@@ -193,7 +193,7 @@ export function marcadoresDeDemandas(itens) {
       subtitulo: d.municipio ?? '',
       faixa: faixa ?? null,
       prazo: prazo ?? null,
-      etapa: d.tipo === 'processo' && d.etapa && ETAPAS.processo?.[d.etapa] ? ETAPAS.processo[d.etapa] : STATUS[d.status] ?? d.status,
+      etapa: ETAPAS[d.tipo]?.[d.etapa] ?? STATUS[d.status] ?? d.status,
       painelId: d.id,
     }));
 }
