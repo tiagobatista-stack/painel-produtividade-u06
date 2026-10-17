@@ -67,7 +67,7 @@ Data de referência dos testes: 2026-10-15. Cada critério gera uma evidência l
 | RF61 | **Especificado:** CSV, KML e GPX abrem sem erro e têm as mesmas coordenadas do roteiro; célula do CSV não vira fórmula | `tests/exportacao.test.mjs` (casos novos) | Localização |
 | RF62 | **Especificado:** os três indicadores batem com os do exemplo | `tests/indicadores.test.mjs` (casos novos) | Localização |
 | RF63 | **Especificado:** clicar no mapa preenche latitude e longitude (e o texto) no formulário | e2e com servidores de mapa bloqueados (a escrever) | Mapa |
-| RF64 | **Especificado:** GeoJSON, KML e GPX do mapa têm um item por marcador visível | teste unitário (a escrever) | Mapa |
+| RF64 | **Especificado:** GeoJSON, KML e GPX do mapa têm um item por marcador visível, com ponto decimal nas coordenadas; o botão "copiar coordenada" copia `-11.053889, -58.847500` (latitude, longitude, ponto decimal, 6 casas) | teste unitário (a escrever) | Mapa |
 | RF65 | **Especificado:** com a chave ausente ou o servidor da SEMA bloqueado, o mapa abre sem as camadas e avisa; a chave real nunca está no repositório | e2e e varredura do repositório (a escrever) | Mapa |
 | RNF01 | Legível a 360 px | Print mobile | M1 |
 | RNF02 | Seed sem dado real | Revisão no M0 | M0 |
