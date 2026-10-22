@@ -5,6 +5,7 @@ import { coordenadaDecimal, coordenadaEmGms } from './coordenadas.js';
 import { autosALavrar, relatoriosPendentes } from './indicadores.js';
 import { itemDaDemanda } from './demandas.js';
 import { blocoAnotacoes } from './ui-anotacoes.js';
+import { blocoMiniMapa, destruirMiniMapa, montarMiniMapa } from './ui-mini-mapa.js';
 import { esforcoHoras } from './operacoes.js';
 import { ETAPAS, ORIGENS, STATUS, TIPOS } from './rotulos.js';
 import { $, abrirEmNovaAba, elemento, estado, formatarData, hojeAtual, opcoes, textoPrazo } from './ui-comum.js';
@@ -133,8 +134,9 @@ export function desenharPainel(hoje) {
   const topo = elemento('p', 'demanda-topo');
   topo.append(elemento('span', 'etiqueta', TIPOS[d.tipo]), elemento('span', 'status', STATUS[d.status]));
   $('painel-corpo').replaceChildren(
-    ...[topo, blocoDados(item, hoje), blocoMotivos(item), blocoAnotacoes(d), d.tipo === 'operacao' ? blocoPontos(d) : null, blocoHistorico(d), blocoAcoes(item)].filter(Boolean)
+    ...[topo, blocoDados(item, hoje), blocoMotivos(item), blocoAnotacoes(d), d.tipo === 'operacao' ? blocoPontos(d) : null, blocoHistorico(d), blocoAcoes(item), blocoMiniMapa(item)].filter(Boolean)
   );
+  montarMiniMapa(item);
   painel.scrollTop = rolagem;
 }
 
@@ -162,6 +164,7 @@ export function iniciarPainel(funcoes) {
   });
   painel.addEventListener('close', () => {
     const retorno = focoDeRetorno;
+    destruirMiniMapa();
     idAberto = null;
     focoDeRetorno = null;
     if (!semFoco) (retorno && document.querySelector(`[data-foco="${retorno}"]`) ? document.querySelector(`[data-foco="${retorno}"]`) : $('titulo-fila')).focus();
