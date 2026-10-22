@@ -179,6 +179,13 @@ export function marcadoresDePontos(linhas, faixas = new Map()) {
   }));
 }
 
+// Posição [latitude, longitude] da demanda no mini-mapa do painel, ou null se ela não tem coordenada válida
+// (operação nunca tem: os pontos dela têm a coordenada própria).
+export function pontoDaDemanda(d) {
+  if (d.tipo === 'operacao' || !Number.isFinite(d.coord_y) || !Number.isFinite(d.coord_x)) return null;
+  return [d.coord_y, d.coord_x];
+}
+
 // Um marcador por demanda aberta (que não seja operação: os pontos já são os marcadores dela) com coordenada.
 export function marcadoresDeDemandas(itens) {
   return itens

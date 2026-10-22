@@ -2,7 +2,7 @@
 // ponto em cor e forma. O usuário pode escolher uma camada (OpenStreetMap ou satélite), que usa o Leaflet local e mostra também
 // as demandas com coordenada. Usa a mesma lista filtrada da visão "Lista". Estado visual por classe CSS (a política de
 // conteúdo não permite estilo embutido).
-import { CAMADA_PADRAO, CAMADAS_EXTERNAS, ROTULOS_CAMADA, camadaValida } from './camadas-mapa.js';
+import { CAMADA_PADRAO, CAMADAS_EXTERNAS, CHAVE_CAMADA, ROTULOS_CAMADA, camadaSalva, camadaValida } from './camadas-mapa.js';
 import { contarPorSituacao, demandasDoMapa, faixasDasDemandas, marcadoresDePontos, montarMapa, separarPorCoordenada } from './mapa.js';
 import { SITUACOES_PONTO } from './rotulos.js';
 import { $, elemento, estado, formatarData, hojeAtual, mostrarAviso } from './ui-comum.js';
@@ -10,7 +10,6 @@ import { desenharComCamadas, iniciarCopiaDaCoordenada, leafletDisponivel, pararC
 
 const SVG = 'http://www.w3.org/2000/svg';
 const CHAVE_VISAO = 'painel-demandas:visao-pontos';
-const CHAVE_CAMADA = 'painel-demandas:camada-mapa';
 const SITUACOES = Object.keys(SITUACOES_PONTO);
 let visao = 'lista';
 let camada = CAMADA_PADRAO; // escolha do usuário (fica salva)
@@ -21,14 +20,6 @@ function lerVisao() {
     return estado.storage?.getItem(CHAVE_VISAO) === 'mapa' ? 'mapa' : 'lista';
   } catch {
     return 'lista';
-  }
-}
-
-function lerCamada() {
-  try {
-    return camadaValida(estado.storage?.getItem(CHAVE_CAMADA));
-  } catch {
-    return CAMADA_PADRAO;
   }
 }
 
@@ -203,7 +194,7 @@ export function desenharMapa(linhas, filtros = {}) {
 
 export function iniciarMapa() {
   visao = lerVisao();
-  camada = lerCamada();
+  camada = camadaSalva(estado.storage);
   iniciarCopiaDaCoordenada();
   for (const botao of document.querySelectorAll('#mapa-camadas button')) {
     botao.addEventListener('click', () => {

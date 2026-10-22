@@ -60,6 +60,9 @@ function icone(m, formaDoPonto) {
   return window.L.divIcon({ html: svg, className: 'marcador-leaflet', iconSize: [28, 28], iconAnchor: [14, 14], popupAnchor: [0, -14] });
 }
 
+// Marcador de uma demanda (forma de losango com a letra da faixa), igual ao do mapa da aba Pontos.
+export const iconeDaDemanda = (faixa) => icone({ tipo: 'demanda', faixa }, null);
+
 function linhaDoPopup(rotulo, valor) {
   const linha = elemento('p', 'popup-linha');
   linha.append(elemento('span', 'popup-rotulo', `${rotulo}: `), document.createTextNode(valor));
@@ -149,28 +152,35 @@ function criarMapa() {
   ligarCursor();
 }
 
-function trocarCamada(chave, aoFalhar) {
-  if (base) mapa.removeLayer(base);
-  base = null;
-  baseChave = chave;
-  if (!chave) return;
+// Camada de blocos (OpenStreetMap ou satélite) ainda fora do mapa. `aoFalhar` roda uma vez, se os primeiros blocos todos falharem.
+// Compartilhada com o mini-mapa da demanda (js/ui-mini-mapa.js).
+export function criarCamadaBase(chave, aoFalhar) {
   const L = window.L;
   const c = CAMADAS_EXTERNAS[chave];
   const opcoes = { ...c.opcoes, attribution: atribuicao(c.atribuicao) };
-  base = c.tipo === 'wms' ? L.tileLayer.wms(c.url, opcoes) : L.tileLayer(c.url, opcoes);
+  const camada = c.tipo === 'wms' ? L.tileLayer.wms(c.url, opcoes) : L.tileLayer(c.url, opcoes);
   let carregados = 0;
   let erros = 0;
   let desistiu = false;
-  base.on('tileload', () => {
+  camada.on('tileload', () => {
     carregados += 1;
   });
-  base.on('tileerror', () => {
+  camada.on('tileerror', () => {
     erros += 1;
     if (!desistiu && carregados === 0 && erros >= ERROS_ATE_DESISTIR) {
       desistiu = true;
       aoFalhar();
     }
   });
+  return camada;
+}
+
+function trocarCamada(chave, aoFalhar) {
+  if (base) mapa.removeLayer(base);
+  base = null;
+  baseChave = chave;
+  if (!chave) return;
+  base = criarCamadaBase(chave, aoFalhar);
   base.addTo(mapa);
   mapa.getContainer().setAttribute('aria-label', `Mapa dos pontos e das demandas, camada ${ROTULOS_CAMADA[chave]}. Use as setas para mover e + e - para aproximar.`);
 }

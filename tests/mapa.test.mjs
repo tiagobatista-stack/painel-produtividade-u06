@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
   LARGURA_MAXIMA, MARGEM, chaveDoConjunto, contarPorSituacao, demandasDoMapa, faixasDasDemandas, limitesDosMarcadores, marcadoresDeDemandas, marcadoresDePontos,
-  montarMapa, separarPorCoordenada, temCoordenada,
+  montarMapa, pontoDaDemanda, separarPorCoordenada, temCoordenada,
 } from '../js/mapa.js';
 import { listarDemandas } from '../js/demandas.js';
 import { listarPontos, pontosDasOperacoes } from '../js/pontos.js';
@@ -246,4 +246,14 @@ test('limites e identificação do conjunto de marcadores', () => {
   assert.equal(chaveDoConjunto(ms), 'a|b|c');
   assert.equal(chaveDoConjunto([ms[2], ms[0], ms[1]]), chaveDoConjunto(ms), 'a ordem não muda a identificação');
   assert.notEqual(chaveDoConjunto(ms.slice(1)), chaveDoConjunto(ms));
+});
+
+test('pontoDaDemanda: [lat, lon] com coordenada válida; null sem coordenada, com valor inválido ou na operação', () => {
+  assert.deepEqual(pontoDaDemanda({ tipo: 'outra', coord_y: -15.2, coord_x: -20.2 }), [-15.2, -20.2]);
+  assert.deepEqual(pontoDaDemanda({ tipo: 'processo', coord_y: 0, coord_x: 0 }), [0, 0]); // zero é coordenada válida
+  assert.equal(pontoDaDemanda({ tipo: 'outra' }), null);
+  assert.equal(pontoDaDemanda({ tipo: 'outra', coord_y: -15.2 }), null);
+  assert.equal(pontoDaDemanda({ tipo: 'outra', coord_y: '-15.2', coord_x: -20.2 }), null);
+  assert.equal(pontoDaDemanda({ tipo: 'outra', coord_y: NaN, coord_x: -20.2 }), null);
+  assert.equal(pontoDaDemanda({ tipo: 'operacao', coord_y: -15.2, coord_x: -20.2 }), null);
 });

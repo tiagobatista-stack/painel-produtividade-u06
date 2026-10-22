@@ -62,7 +62,7 @@ O M8 (RF15 e RF20) e o M9 (RF16 a RF19 e RF21) foram entregues e passaram para a
 | RF47 | Anotações em lista com caixa de seleção: adicionar por Enter ou botão (colar várias linhas cria um item por linha), marcar como feita, editar, remover com "Desfazer"; marcar direto no painel lateral da demanda; contador "Anotações n/m" (também no cartão); conclusão registrada no histórico | Evolução · PR A |
 | RF48 | Endereço ou referência espacial e botão **"Localizar"**: abre o OpenStreetMap em nova aba (o ponto, se houver coordenada; a busca do endereço, se só houver endereço), **sem requisição de rede feita pela página** e sem geocodificação. As coordenadas são do RF42 | Evolução · PR B (entregue) |
 
-## Linha Localização e Vistoria (RF42, RF43 e RF49 a RF65)
+## Linha Localização e Vistoria (RF42, RF43 e RF49 a RF66)
 
 O fluxo da demanda que exige vistoria é: **análise → decisão de vistoria → planejamento → vistoria → providências** (RF53). Saída de referência: `docs/modelos/roteiro-fiscalizacao-previa.html` (dados fictícios).
 
@@ -87,6 +87,7 @@ O fluxo da demanda que exige vistoria é: **análise → decisão de vistoria �
 | RF63 | **Clicar no mapa** preenche a coordenada da demanda | Mapa |
 | RF64 | **Exportar do mapa** em GeoJSON, KML e GPX, sempre com **ponto decimal**; e o botão "copiar coordenada" do mapa passa a copiar `-11.053889, -58.847500` (latitude, longitude, ponto decimal, 6 casas), pronto para QGIS, GPS e planilha | Mapa |
 | RF65 | **Camadas da SEMA via WMS** (UC, TI, embargos, CAR), sem WFS no navegador | Mapa |
+| RF66 | **Mini-mapa da demanda no painel lateral** (**entregue**): quando a demanda tem coordenada (RF42), o painel mostra, logo abaixo dos botões (Editar), um mapa só com o ponto dela, com zoom e escala. Começa em "Sem mapa-base", sem pedir nada à rede (RNF15); o usuário escolhe OpenStreetMap ou satélite ali mesmo, ou o mapa já abre com a camada escolhida na aba Pontos. A escolha vale só enquanto o painel está aberto. Se os blocos falharem, volta a "Sem mapa-base" com aviso. Operação não tem (os pontos têm a coordenada própria) | Mapa |
 
 ## Não funcionais
 

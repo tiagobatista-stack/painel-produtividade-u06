@@ -55,6 +55,17 @@ export function camadaValida(valor) {
   return CAMADAS_VALIDAS.includes(valor) ? valor : CAMADA_PADRAO;
 }
 
+// Camada que o usuário escolheu na aba Pontos, salva no navegador. Sem armazenamento ou valor inválido: "Sem mapa-base".
+export const CHAVE_CAMADA = 'painel-demandas:camada-mapa';
+
+export function camadaSalva(storage) {
+  try {
+    return camadaValida(storage?.getItem(CHAVE_CAMADA));
+  } catch {
+    return CAMADA_PADRAO;
+  }
+}
+
 // "Localizar": endereço do OpenStreetMap que o usuário abre em nova aba. A página não faz requisição: só monta o link.
 // Com coordenadas, aponta o ponto; sem elas e com endereço, abre a busca do endereço; sem nada, devolve null.
 const OPENSTREETMAP = 'https://www.openstreetmap.org';

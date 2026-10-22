@@ -1,4 +1,4 @@
-# Mapa — roteiro e condições (RF41, RF63 a RF65)
+# Mapa — roteiro e condições (RF41, RF63 a RF66)
 
 **Produto principal do painel:** ver no mapa os pontos das operações e as demandas. A localização é central porque as demandas exigem vistoria e definem viagens, equipe e relatórios. Tudo aqui usa dados fictícios; coordenadas reais nunca vão ao repositório (RNF11).
 
@@ -13,6 +13,7 @@ Estado: o SVG local da aba Pontos e o **mapa v1** (Leaflet local, OpenStreetMap,
 | 3 | Clicar no mapa para preencher a coordenada | RF63 |
 | 4 | Exportar GeoJSON, KML e GPX | RF64 |
 | 5 | Camadas da SEMA via WMS (UC, TI, embargos, CAR) | RF65 |
+| (entregue) | Mini-mapa do ponto da demanda no painel lateral, sob o botão Editar: só o ponto, começa sem mapa-base (RNF15), com seletor de camada | RF66 |
 
 ## Camadas
 

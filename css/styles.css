@@ -528,3 +528,10 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
   .filtros { grid-template-columns: 1fr 1fr; }
   .filtros .campo:first-child, .filtros .campo-acao { grid-column: 1 / -1; }
 }
+
+/* Mini-mapa do ponto da demanda, no painel lateral (RF66). */
+.painel-mini-mapa { display: grid; gap: 6px; }
+.painel-mini-mapa h3 { margin: 0; font-size: var(--t14); }
+.mini-mapa-camadas { display: flex; flex-wrap: wrap; gap: 6px; }
+.mini-mapa-camadas button[aria-pressed="true"] { background: var(--azul); color: #fff; font-weight: 600; }
+.mini-mapa { height: 220px; border: 1px solid var(--borda); border-radius: 10px; font: inherit; z-index: 0; }
