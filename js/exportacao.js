@@ -8,7 +8,7 @@ import { autosALavrar, autosDoPonto, estaConcluida, estaSobrestada, prazoDemanda
 import { faixaManual, priorizar } from './regras.js';
 import { anotacoesEmTexto } from './anotacoes.js';
 import { esforcoHoras } from './operacoes.js';
-import { ETAPAS_PONTO, ORIGENS, ROTULO_AUTO_SEM_TIPO, STATUS, TIPOS, TIPOS_AUTO } from './rotulos.js';
+import { ETAPAS_PONTO, ORIGENS, ROTULO_AUTO_SEM_TIPO, STATUS, TIPOS, TIPOS_AUTO, VISTORIA } from './rotulos.js';
 
 const BOM = '﻿';
 const SEPARADOR = ';';
@@ -51,8 +51,14 @@ export const CABECALHO_DEMANDAS = [
   'PROTOCOLO', 'ETAPA', 'DATA_HORA', 'LOCAL', 'PUBLICO', 'EQUIPE', 'SAIDA', 'RETORNO', 'PONTOS',
   'RELATORIOS_PENDENTES', 'AUTOS_A_LAVRAR', 'SOBRESTADA',
   'DESCRICAO', 'RESPONSAVEL', 'MUNICIPIO', 'PRIORIDADE_MODO', 'MOTIVO_AJUSTE', 'ANOTACOES',
-  'ENDERECO', 'COORD_X', 'COORD_Y',
+  'ENDERECO', 'COORD_X', 'COORD_Y', 'VISTORIA',
 ];
+
+// Situação da vistoria (RF50) em texto, com a data quando vistoriada; vazio em quem não requer vistoria (e na operação).
+function rotuloDaVistoria(d) {
+  if (!d.vistoria || d.vistoria === 'nao_requer') return '';
+  return d.vistoriada_em ? `${VISTORIA[d.vistoria]} (${celulaData(d.vistoriada_em)})` : VISTORIA[d.vistoria];
+}
 
 // Todas as demandas (inclusive concluídas e sobrestadas). ENDERECO, COORD_X (longitude) e COORD_Y (latitude) ficam no fim e só existem
 // nas demandas que têm localização (a operação tem coordenada nos pontos). Faixa e score só existem para as ativas:
@@ -100,6 +106,7 @@ export function csvDemandas(demandas, hoje, contexto = {}) {
       celulaTexto(d.endereco),
       celulaCoordenada(d.coord_x),
       celulaCoordenada(d.coord_y),
+      celulaTexto(rotuloDaVistoria(d)),
     ];
   });
   return montarCsv(CABECALHO_DEMANDAS, linhas);

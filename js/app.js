@@ -2,7 +2,7 @@ import { calcularIndicadores, estaConcluida, estaSobrestada } from './indicadore
 import { ErroCadastro, FILTROS_PADRAO, alterarStatus, filtrosEmUso, listarDemandas, removerDemanda, restaurarDemanda } from './demandas.js';
 import { carregar } from './armazenamento.js';
 import { criarIndiceDeMunicipios } from './municipios.js';
-import { FILTRO_PRAZO, STATUS, TIPOS } from './rotulos.js';
+import { FILTRO_PRAZO, FILTRO_VISTORIA, STATUS, TIPOS } from './rotulos.js';
 import {
   $, elemento, estado, formatarData, hojeAtual, hojeLocal, mostrarAviso, mostrarMensagem, opcoes, persistir, restaurarFoco,
 } from './ui-comum.js';
@@ -42,6 +42,7 @@ const filtroTipo = $('filtro-tipo');
 const filtroStatus = $('filtro-status');
 const filtroPrioridade = $('filtro-prioridade');
 const filtroPrazo = $('filtro-prazo');
+const filtroVistoria = $('filtro-vistoria');
 // ---------- Indicadores e fila ----------
 
 // Os 4 indicadores em destaque são botões: cada um filtra a fila (e zera busca, tipo e prioridade, para a lista bater com o número).
@@ -75,16 +76,17 @@ function desenharIndicadores(valores) {
 // Qual indicador está aplicado agora? Só conta quando os filtros são exatamente os dele.
 function indicadorAtivo() {
   const f = filtrosAtuais();
-  if (f.busca.trim() !== '' || f.tipo !== '' || f.prioridade !== '') return null;
+  if (f.busca.trim() !== '' || f.tipo !== '' || f.prioridade !== '' || f.vistoria !== '') return null;
   return INDICADORES.map(([chave]) => chave).find((chave) => FILTRO_DO_INDICADOR[chave].status === f.status && FILTRO_DO_INDICADOR[chave].prazo === f.prazo) ?? null;
 }
 
-function aplicarFiltros({ busca = '', tipo = '', status = FILTROS_PADRAO.status, prioridade = '', prazo = '' }) {
+function aplicarFiltros({ busca = '', tipo = '', status = FILTROS_PADRAO.status, prioridade = '', prazo = '', vistoria = '' }) {
   filtroBusca.value = busca;
   filtroTipo.value = tipo;
   filtroStatus.value = status;
   filtroPrioridade.value = prioridade;
   filtroPrazo.value = prazo;
+  filtroVistoria.value = vistoria;
 }
 
 // Clicar no indicador aplica o filtro; clicar de novo volta ao padrão.
@@ -115,7 +117,7 @@ function irParaDemanda(id) {
 }
 
 function filtrosAtuais() {
-  return { busca: filtroBusca.value, tipo: filtroTipo.value, status: filtroStatus.value, prioridade: filtroPrioridade.value, prazo: filtroPrazo.value };
+  return { busca: filtroBusca.value, tipo: filtroTipo.value, status: filtroStatus.value, prioridade: filtroPrioridade.value, prazo: filtroPrazo.value, vistoria: filtroVistoria.value };
 }
 
 function desenharFila(hoje) {
@@ -152,6 +154,7 @@ function limparFiltros() {
   filtroStatus.value = FILTROS_PADRAO.status;
   filtroPrioridade.value = FILTROS_PADRAO.prioridade;
   filtroPrazo.value = FILTROS_PADRAO.prazo;
+  filtroVistoria.value = FILTROS_PADRAO.vistoria;
   filtroBusca.focus(); // antes de desabilitar o botão, para o foco não se perder
   atualizar();
 }
@@ -242,6 +245,7 @@ async function iniciar() {
   opcoes(filtroStatus, [['abertas', 'Abertas (ativas)'], ...Object.entries(STATUS)], 'abertas');
   opcoes(filtroPrioridade, [['', 'Todas'], ...FAIXAS.map((f) => [f, f])], '');
   opcoes(filtroPrazo, Object.entries(FILTRO_PRAZO), '');
+  opcoes(filtroVistoria, Object.entries(FILTRO_VISTORIA), '');
 
   $('usar-data-seed').textContent = `Usar data do exemplo (${formatarData(estado.seed.hoje_referencia)})`;
   $('usar-data-seed').addEventListener('click', () => {
@@ -256,7 +260,7 @@ async function iniciar() {
     $('alterar-referencia').setAttribute('aria-expanded', String(abrir));
     if (abrir) campoData.focus();
   });
-  for (const f of [filtroBusca, filtroTipo, filtroStatus, filtroPrioridade, filtroPrazo]) f.addEventListener('input', atualizar);
+  for (const f of [filtroBusca, filtroTipo, filtroStatus, filtroPrioridade, filtroPrazo, filtroVistoria]) f.addEventListener('input', atualizar);
   $('filtros').addEventListener('submit', (e) => e.preventDefault());
   $('limpar-filtros').addEventListener('click', limparFiltros);
 

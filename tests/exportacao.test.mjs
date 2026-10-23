@@ -56,14 +56,18 @@ test('CSV de demandas: BOM, CRLF, cabeçalho, 14 linhas, ordenado por id, com en
   assert.equal(linhas[0], CABECALHO_DEMANDAS.join(';'));
   assert.ok(linhas.every((l) => celulas(l).length === CABECALHO_DEMANDAS.length));
   assert.deepEqual(linhas.slice(1).map((l) => celulas(l)[0]), seed.demandas.map((d) => d.id).sort());
-  assert.deepEqual(CABECALHO_DEMANDAS.slice(-3), ['ENDERECO', 'COORD_X', 'COORD_Y']);
+  assert.deepEqual(CABECALHO_DEMANDAS.slice(-4), ['ENDERECO', 'COORD_X', 'COORD_Y', 'VISTORIA']);
   const col = (id, nome) => celulas(linhaDoId(csv, id))[CABECALHO_DEMANDAS.indexOf(nome)];
   // Demanda com localização no exemplo (fictícia, no Atlântico): endereço e coordenada com ponto decimal; longitude é X e latitude é Y.
   assert.equal(col('DEM-0003', 'ENDERECO'), 'Rodovia Fictícia, km 40 (referência fictícia)');
   assert.equal(col('DEM-0003', 'COORD_X'), '-27.2');
   assert.equal(col('DEM-0003', 'COORD_Y'), '-12.5');
   // Sem localização, e a operação (que tem coordenada nos pontos), ficam vazias.
-  for (const id of ['DEM-0011', 'DEM-0001']) for (const nome of ['ENDERECO', 'COORD_X', 'COORD_Y']) assert.equal(col(id, nome), '', `${id} ${nome}`);
+  for (const id of ['DEM-0011', 'DEM-0001']) for (const nome of ['ENDERECO', 'COORD_X', 'COORD_Y', 'VISTORIA']) assert.equal(col(id, nome), '', `${id} ${nome}`);
+  // Situação da vistoria (RF50): rótulo, com a data quando vistoriada; vazio em quem não requer.
+  assert.equal(col('DEM-0003', 'VISTORIA'), 'Vistoriada (10/10/2026)');
+  assert.equal(col('DEM-0004', 'VISTORIA'), 'Vistoria pendente');
+  assert.equal(col('DEM-0007', 'VISTORIA'), 'Vistoria programada');
 });
 
 test('CSV de demandas: operação, processo, sobrestada, concluída e reunião', () => {
