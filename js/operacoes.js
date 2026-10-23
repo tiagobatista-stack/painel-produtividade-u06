@@ -1,8 +1,9 @@
 // Operações de alertas: importação, etapas por ponto, retorno e status derivado. Funções puras e imutáveis.
 import { autosDoPonto, dataValida, estaConcluida, relatorioDoPonto, relatoriosPendentes } from './indicadores.js';
 import { ErroCadastro, proximoId, validarParametros } from './demandas.js';
-import { lerParDeCoordenadas } from './coordenadas.js';
+import { foraDeMatoGrosso, lerParDeCoordenadas, pareceInvertida } from './coordenadas.js';
 import { normalizarMunicipio } from './municipios.js';
+import { vistoriaCoerente, vistoriaDoPonto, vistoriasPermitidas } from './vistoria-ponto.js';
 import { ETAPAS_PONTO, TIPOS_AUTO, VISTORIA_PONTO } from './rotulos.js';
 
 // Etapas que um relatório (grupo de pontos) percorre junto; o auto e o encerramento são de cada ponto.
@@ -73,9 +74,9 @@ function transicaoInvalida(atual, nova, ponto) {
   return null;
 }
 
-// O ponto na nova etapa, com datas e autos coerentes com ela. Não valida a transição.
-function pontoNaEtapa(ponto, novaEtapa, hoje) {
-  const novo = { ...ponto, etapa: novaEtapa };
+// O ponto na nova etapa, com datas, autos e a vistoria coerentes com ela. Não valida a transição.
+function pontoNaEtapa(ponto, novaEtapa, hoje, retorno) {
+  const novo = vistoriaCoerente({ ...ponto, etapa: novaEtapa }, retorno);
   if (novaEtapa === 'vistoriado' || novaEtapa === 'relatorio_elaboracao') {
     novo.data_relatorio = null;
     novo.data_auto = null;
@@ -120,7 +121,7 @@ export function alterarEtapaPonto(operacao, numero, novaEtapa, hoje) {
   const voltaSoDoPonto = novaEtapa === 'relatorio_concluido' && ETAPAS_ENCERRADAS.includes(ponto.etapa);
   if (grupo && ETAPAS_DO_RELATORIO.includes(novaEtapa) && !voltaSoDoPonto) return alterarEtapaRelatorio(operacao, grupo.id, novaEtapa, hoje);
 
-  const pontos = operacao.pontos.map((p, j) => (j === i ? pontoNaEtapa(ponto, novaEtapa, hoje) : p));
+  const pontos = operacao.pontos.map((p, j) => (j === i ? pontoNaEtapa(ponto, novaEtapa, hoje, operacao.retorno) : p));
   const evento = `Ponto ${numero}: ${ETAPAS_PONTO[ponto.etapa]} → ${ETAPAS_PONTO[novaEtapa]}`;
   return recalcular({ ...operacao, pontos, historico: [...(operacao.historico || []), { data: hoje, evento }] }, hoje);
 }
@@ -184,7 +185,7 @@ export function alterarEtapaRelatorio(operacao, id, etapa, hoje) {
   const afetados = membros.filter((p) => !ETAPAS_ENCERRADAS.includes(p.etapa) && p.etapa !== etapa);
   if (afetados.length === 0) return operacao;
   const numeros = new Set(afetados.map((p) => p.n));
-  const pontos = operacao.pontos.map((p) => (numeros.has(p.n) ? pontoNaEtapa(p, etapa, hoje) : p));
+  const pontos = operacao.pontos.map((p) => (numeros.has(p.n) ? pontoNaEtapa(p, etapa, hoje, operacao.retorno) : p));
   const evento = `Relatório ${id}: ${ETAPAS_PONTO[etapa]} (${afetados.length} ${afetados.length === 1 ? 'ponto' : 'pontos'})`;
   return recalcular({ ...operacao, pontos, historico: [...(operacao.historico || []), { data: hoje, evento }] }, hoje);
 }
@@ -211,15 +212,15 @@ export function salvarObservacaoPonto(operacao, numero, texto, hoje) {
 // ---------- Dados e vistoria do ponto (RF67 e RF68) ----------
 
 // Limites de tamanho dos campos de texto do ponto (a nota do planejamento é a da planilha: 200).
+export { vistoriaDoPonto, vistoriasPermitidas };
 export const LIMITES_DO_PONTO = { municipio: 120, nota: 200, endereco: 200, processo: 60, codigo: 60, imovel: 120, responsavel: 120 };
 export const AREA_HA_MAX = 10000000;
 
 // A data cai dentro do período previsto da operação (saída a retorno)? Fora dele só há aviso: reagendar é normal.
 export const dentroDaJanela = (operacao, data) => Boolean(data) && data >= operacao.saida && data <= operacao.retorno;
 
-// Situação da vistoria do ponto: sem o campo, "a programar".
-export const vistoriaDoPonto = (ponto) => ponto.vistoria ?? 'pendente';
 
+const confirmou = (v) => v === true || v === 'on' || v === '1' || v === 'true';
 const textoDoPonto = (v) => (typeof v === 'string' ? v.trim() : '');
 
 // Edita um ponto: município, endereço, coordenadas, assunto (nota), processo, código, imóvel, área, responsável, anotação, vistoria
@@ -258,6 +259,13 @@ export function editarPonto(operacao, numero, dados, hoje, contexto = {}) {
     if (par.vazio) {
       for (const c of ['coord_x', 'coord_y', 'coord_x_texto', 'coord_y_texto']) delete ponto[c];
     } else if (Object.keys(par.erros).length === 0) {
+      // Coordenada que muda para fora de Mato Grosso só grava com a confirmação (a que já estava assim não pede de novo).
+      const mudou = !(Math.abs((original.coord_y ?? NaN) - par.latitude) < 1e-6 && Math.abs((original.coord_x ?? NaN) - par.longitude) < 1e-6);
+      if (mudou && foraDeMatoGrosso(par.latitude, par.longitude) && !confirmou(dados.confirmar_fora_mt)) {
+        erros.latitude = pareceInvertida(par.latitude, par.longitude)
+          ? 'Latitude e longitude parecem invertidas (fora de Mato Grosso). Use "Trocar latitude e longitude" ou confirme a coordenada.'
+          : 'Coordenada fora de Mato Grosso: marque a confirmação para salvar.';
+      }
       Object.assign(ponto, { coord_y: par.latitude, coord_x: par.longitude, coord_y_texto: par.latitudeTexto, coord_x_texto: par.longitudeTexto });
     }
   }
@@ -281,6 +289,20 @@ export function editarPonto(operacao, numero, dados, hoje, contexto = {}) {
     if (limpo.length > OBSERVACAO_PONTO_MAX) erros.observacoes = `Use no máximo ${OBSERVACAO_PONTO_MAX} caracteres na anotação do ponto.`;
     else if (limpo) ponto.observacoes = limpo;
     else delete ponto.observacoes;
+  }
+
+  // "Auto lavrado" só pelo "Registrar auto", que pede o tipo do auto.
+  if (tem('etapa') && dados.etapa === 'auto_lavrado' && original.etapa !== 'auto_lavrado') {
+    erros.etapa = 'O auto é registrado em "Registrar auto", com o tipo do auto.';
+  }
+  // Vistoria e etapa não podem se contradizer (por exemplo, "Planejado" com "Vistoriada"). Só vale quando a vistoria veio no formulário;
+  // quem muda só a etapa tem a vistoria ajustada junto (`pontoNaEtapa`).
+  if (tem('vistoria') && !erros.vistoria) {
+    const etapaFinal = tem('etapa') ? dados.etapa : original.etapa;
+    const permitidas = vistoriasPermitidas(etapaFinal);
+    if (etapaFinal in ETAPAS_PONTO && !permitidas.includes(vistoriaDoPonto(ponto))) {
+      erros.vistoria = `Com a etapa "${ETAPAS_PONTO[etapaFinal]}", a vistoria só pode ser: ${permitidas.map((v) => VISTORIA_PONTO[v]).join(' ou ')}.`;
+    }
   }
 
   // A etapa segue as regras de sempre (relatório agrupado, autos, retorno). O erro dela entra junto com os demais.

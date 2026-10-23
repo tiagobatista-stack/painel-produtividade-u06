@@ -5,6 +5,7 @@ import { dataValida, estaConcluida, estaSobrestada, itensDosIndicadores, prazoDe
 import { ErroValidacao, faixaManual, priorizar, priorizarFila } from './regras.js';
 import { ETAPAS, ETAPA_ANTIGA, ORIGENS, PRIORIDADE_MANUAL, STATUS, TIPOS, VISTORIA } from './rotulos.js';
 import { alternarAnotacao, eventosDeConclusao, normalizarAnotacoes } from './anotacoes.js';
+import { vistoriaCoerente } from './vistoria-ponto.js';
 
 export const TIPOS_CADASTRAVEIS = ['processo', 'licenciamento', 'reuniao', 'palestra', 'outra'];
 const ORIGENS_PROCESSO = Object.keys(ORIGENS);
@@ -318,6 +319,10 @@ export function migrarDemanda(demanda, contexto) {
   if ('vistoriada_em' in d) {
     if (d.vistoria_em === undefined) d.vistoria_em = d.vistoriada_em;
     delete d.vistoriada_em;
+  }
+  // Pontos de operação: a vistoria acompanha a etapa (um ponto vistoriado não fica "a programar", nem um planejado "vistoriado").
+  if (d.tipo === 'operacao' && Array.isArray(d.pontos)) {
+    d.pontos = d.pontos.map((p) => (p && typeof p === 'object' && typeof p.etapa === 'string' ? vistoriaCoerente(p, d.retorno) : p));
   }
   if ('processo' in d) {
     if (!d.protocolo && typeof d.processo === 'string' && d.processo.trim()) d.protocolo = d.processo.trim();

@@ -548,10 +548,16 @@
             <span class="aviso-campo" id="pt-a-longitude" aria-live="polite"></span>
             <span class="erro-campo" id="pt-e-longitude"></span>
           </div>
+          <div class="campo inteira" id="pt-bloco-coordenada" hidden>
+            <p id="pt-aviso-coordenada" class="aviso-forte" aria-live="polite"></p>
+            <button type="button" id="pt-trocar" hidden>Trocar latitude e longitude</button>
+            <label id="pt-confirmar" class="confirmar-fora-mt" hidden><input type="checkbox" id="pt-confirmar-fora-mt" name="confirmar_fora_mt"> Confirmo a coordenada fora de Mato Grosso</label>
+          </div>
           <div class="campo" data-campo="vistoria">
             <label for="pt-vistoria">Situação da vistoria</label>
             <select id="pt-vistoria" name="vistoria" aria-describedby="pt-d-vistoria"></select>
-            <span class="dica" id="pt-d-vistoria">Se não ocorrer, marque "Não realizada" e reagende com a nova data.</span>
+            <span class="dica" id="pt-d-vistoria">Segue a etapa do ponto. Se não ocorrer, marque "Não realizada" e reagende com a nova data.</span>
+            <span class="aviso-campo" id="pt-a-vistoria" aria-live="polite"></span>
             <span class="erro-campo" id="pt-e-vistoria"></span>
           </div>
           <div class="campo" data-campo="data_vistoria" id="pt-campo-data_vistoria" hidden>

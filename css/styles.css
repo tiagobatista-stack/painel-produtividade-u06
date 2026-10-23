@@ -540,3 +540,10 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 .rotulo-grupo { font-size: var(--t12); font-weight: 600; }
 .ponto-card-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
 .lista-pontos .ponto-editar { margin-top: 4px; }
+/* Aviso forte (coordenada fora de Mato Grosso ou invertida) e a confirmação exigida ao salvar. */
+.aviso-forte { margin: 0; color: var(--alerta); font-size: var(--t14); font-weight: 600; overflow-wrap: anywhere; }
+.aviso-forte:empty { display: none; }
+.confirmar-fora-mt { display: flex; align-items: center; gap: 6px; font-size: var(--t14); font-weight: 600; }
+.confirmar-fora-mt input { width: auto; }
+.confirmar-fora-mt[hidden], #pt-trocar[hidden], #pt-bloco-coordenada[hidden] { display: none; }
+#pt-bloco-coordenada { gap: 8px; align-items: flex-start; }

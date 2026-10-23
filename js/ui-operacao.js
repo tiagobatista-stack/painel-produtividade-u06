@@ -197,7 +197,7 @@ export function abrirAuto(operacao, ponto, gatilho) {
   gatilhoAuto = gatilho;
   gestorAuto.limpar();
   $('auto-resumo').textContent = `${operacao.titulo} · ponto ${ponto.n} (${ponto.municipio})`;
-  opcoes($('auto-tipo'), Object.entries(TIPOS_AUTO), 'auto_infracao');
+  opcoes($('auto-tipo'), [['', 'Escolha o tipo do auto'], ...Object.entries(TIPOS_AUTO)], ''); // o tipo é obrigatório: nenhum vem marcado
   const hoje = hojeAtual();
   $('auto-data').value = ponto.data_relatorio && hoje < ponto.data_relatorio ? ponto.data_relatorio : hoje;
   dlgAuto.showModal();
@@ -230,10 +230,13 @@ function listaDeAutos(operacao, ponto) {
     for (const a of autos) {
       const rotulo = a.tipo ? TIPOS_AUTO[a.tipo] : ROTULO_AUTO_SEM_TIPO;
       const li = elemento('li', 'auto', `${rotulo} · ${a.data ? formatarData(a.data) : 'sem data'}`);
-      const remover = elemento('button', 'perigo', 'Remover');
+      const remover = elemento('button', 'perigo', 'Remover auto');
       remover.type = 'button';
-      remover.setAttribute('aria-label', `Remover ${rotulo} do ponto ${ponto.n}`);
-      remover.addEventListener('click', () => aplicar(operacao.id, (op) => removerAuto(op, ponto.n, a.id, hojeAtual()), { foco: `ponto-${operacao.id}-${ponto.n}` }));
+      remover.setAttribute('aria-label', `Remover auto ${rotulo} do ponto ${ponto.n}`);
+      remover.addEventListener('click', () => {
+        if (!window.confirm(`Remover o auto "${rotulo}" (${a.data ? formatarData(a.data) : 'sem data'}) do ponto ${ponto.n}?`)) return;
+        aplicar(operacao.id, (op) => removerAuto(op, ponto.n, a.id, hojeAtual()), { foco: `ponto-${operacao.id}-${ponto.n}` });
+      });
       li.append(' ', remover);
       lista.append(li);
     }
@@ -346,7 +349,8 @@ export function blocoPontos(d) {
       opcoes(select, [['planejado', 'Planejado (registre o retorno)']], 'planejado');
       select.disabled = true;
     } else {
-      opcoes(select, Object.entries(ETAPAS_PONTO).filter(([chave]) => chave !== 'planejado'), p.etapa);
+      // "Auto lavrado" só pelo "Registrar auto" (com o tipo do auto); aparece aqui apenas para quem já tem auto.
+      opcoes(select, Object.entries(ETAPAS_PONTO).filter(([chave]) => chave !== 'planejado' && (chave !== 'auto_lavrado' || p.etapa === 'auto_lavrado')), p.etapa);
       select.addEventListener('change', () => mudarEtapa(d.id, p.n, select.value));
       if (grupo) select.setAttribute('aria-describedby', `dica-${d.id}-${p.n}`);
     }

@@ -75,6 +75,9 @@ export const foraDeMatoGrosso = (latitude, longitude) =>
   latitude < CAIXA_DE_MATO_GROSSO.latitude[0] || latitude > CAIXA_DE_MATO_GROSSO.latitude[1] ||
   longitude < CAIXA_DE_MATO_GROSSO.longitude[0] || longitude > CAIXA_DE_MATO_GROSSO.longitude[1];
 
+// Latitude e longitude parecem trocadas? Fora de Mato Grosso como estão, mas dentro dele se invertidas.
+export const pareceInvertida = (latitude, longitude) => foraDeMatoGrosso(latitude, longitude) && !foraDeMatoGrosso(longitude, latitude);
+
 // Um eixo só, para a linha sob cada campo do formulário: "= -11,053889 · hemisfério assumido: S · fora de MT".
 // null se o campo está vazio ou o valor não é válido (os erros aparecem só ao salvar).
 export function descreverEixo(digitado, eixo) {
