@@ -40,7 +40,7 @@ export const SITUACOES_PONTO = {
 export const TIPOS_AFASTAMENTO = { ferias: 'Férias', licenca_premio: 'Licença-prêmio', compensacao: 'Compensação' };
 // Tipos de evento da agenda e do calendário.
 export const ROTULOS_EVENTO = {
-  reuniao: 'Reunião', palestra: 'Palestra', saida_operacao: 'Saída de operação', retorno_operacao: 'Retorno de operação', prazo_relatorio: 'Prazo de relatórios',
+  reuniao: 'Reunião', palestra: 'Palestra', vistoria_programada: 'Vistoria programada', saida_operacao: 'Saída de operação', retorno_operacao: 'Retorno de operação', prazo_relatorio: 'Prazo de relatórios',
   prazo_processo: 'Prazo de processo', prazo_licenciamento: 'Prazo de licenciamento', prazo_demanda: 'Prazo', afastamento: 'Afastamento',
 };
 export const SITUACOES_AFASTAMENTO = { planejado: 'Planejado', solicitado: 'Solicitado', aprovado: 'Aprovado' };

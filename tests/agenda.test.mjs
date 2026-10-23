@@ -14,6 +14,7 @@ test('seed em 2026-10-15: prazo de relatório, reunião e palestra, em ordem', (
   assert.deepEqual(ag('2026-10-15'), [
     '2026-10-17 prazo_relatorio DEM-0001',
     '2026-10-20 09:00 reuniao DEM-0008',
+    '2026-10-20 vistoria_programada DEM-0007', // vistoria programada (RF50): compromisso na data marcada
     '2026-10-22 10:00 palestra DEM-0010',
   ]);
 });
@@ -21,7 +22,7 @@ test('seed em 2026-10-15: prazo de relatório, reunião e palestra, em ordem', (
 test('prazo vencido não entra; fronteiras de 0 e 7 dias entram', () => {
   assert.equal(ag('2026-10-15').some((e) => e.includes('DEM-0002')), false); // prazo 06/10 já venceu
   assert.deepEqual(ag('2026-10-22'), ['2026-10-22 10:00 palestra DEM-0010', '2026-10-27 14:00 reuniao DEM-0009'].slice(0, 1).concat(['2026-10-27 14:00 reuniao DEM-0009']));
-  assert.deepEqual(ag('2026-10-20'), ['2026-10-20 09:00 reuniao DEM-0008', '2026-10-22 10:00 palestra DEM-0010', '2026-10-27 14:00 reuniao DEM-0009']);
+  assert.deepEqual(ag('2026-10-20'), ['2026-10-20 09:00 reuniao DEM-0008', '2026-10-20 vistoria_programada DEM-0007', '2026-10-22 10:00 palestra DEM-0010', '2026-10-27 14:00 reuniao DEM-0009']);
   assert.deepEqual(ag('2026-10-28'), ['2026-11-03 afastamento AFA-0001']); // 7 dias adiante, inclusive
 });
 
@@ -80,7 +81,7 @@ test('calendário mostra prazos de processo e de outras demandas, além dos even
     '2026-10-13 prazo_processo DEM-0003',
     '2026-10-16 prazo_processo DEM-0005',
     '2026-10-17 prazo_relatorio DEM-0001',
-    '2026-10-20 reuniao DEM-0008, prazo_processo DEM-0007',
+    '2026-10-20 reuniao DEM-0008, prazo_processo DEM-0007, vistoria_programada DEM-0007',
     '2026-10-22 palestra DEM-0010',
     '2026-10-25 prazo_demanda DEM-0011',
     '2026-10-27 reuniao DEM-0009',
@@ -140,4 +141,42 @@ test('o retorno registrado de fato muda o período e o evento de retorno', async
   const semanas = calendarioMes([adiada], [], '2026-11');
   assert.equal(dia(semanas, '2026-11-16').operacoes.length, 1);
   assert.deepEqual(diasComEventos(semanas).filter((l) => l.includes('retorno')), ['2026-11-16 retorno_operacao DEM-0015']);
+});
+
+// ---------- Vistoria programada e programação da operação no calendário ----------
+
+const demandaComVistoria = (vistoria, extra = {}) => ({
+  id: 'V1', tipo: 'outra', status: 'a_fazer', titulo: 'Vistoria de teste', prazo: '2026-10-30', vistoria, ...extra,
+});
+
+test('vistoria programada vira compromisso na data marcada, na agenda e no calendário', () => {
+  const d = demandaComVistoria('programada', { vistoria_em: '2026-10-18' });
+  assert.deepEqual(resumo(agenda([d], [], '2026-10-15')), ['2026-10-18 vistoria_programada V1']);
+  const evento = agenda([d], [], '2026-10-15')[0];
+  assert.equal(evento.titulo, 'Vistoria: Vistoria de teste');
+  const dias = calendarioMes([d], [], '2026-10').flat().filter((x) => x.eventos.some((e) => e.tipo === 'vistoria_programada'));
+  assert.deepEqual(dias.map((x) => x.data), ['2026-10-18']);
+});
+
+test('vistoriada, pendente, não acessada e sem data não geram evento; programada concluída ou sobrestada também não', () => {
+  for (const [vistoria, extra] of [['vistoriada', { vistoria_em: '2026-10-18' }], ['pendente', {}], ['nao_acessada', {}], ['programada', {}], ['nao_requer', { vistoria_em: '2026-10-18' }]]) {
+    const eventos = calendarioMes([demandaComVistoria(vistoria, extra)], [], '2026-10').flat().flatMap((x) => x.eventos).filter((e) => e.tipo === 'vistoria_programada');
+    assert.deepEqual(eventos, [], vistoria);
+  }
+  for (const status of ['concluida', 'aguardando']) {
+    const d = demandaComVistoria('programada', { vistoria_em: '2026-10-18', status });
+    assert.deepEqual(resumo(agenda([d], [], '2026-10-15')), [], status);
+  }
+});
+
+test('mudar a saída e o retorno da operação muda o calendário (período, saída, retorno e prazo dos relatórios)', () => {
+  const op = criarOperacao(planilha, { prazo_dias: 3, horas_ponto: 3 }, seed.demandas, '2026-10-15'); // saída 09/11, retorno 13/11
+  const antes = calendarioMes([op], [], '2026-11').flat().flatMap((x) => x.eventos).map((e) => `${e.data} ${e.tipo}`);
+  assert.deepEqual(antes, ['2026-11-09 saida_operacao', '2026-11-13 retorno_operacao', '2026-11-16 prazo_relatorio']);
+  const alterada = { ...op, saida: '2026-11-11', retorno: '2026-11-18' };
+  const depois = calendarioMes([alterada], [], '2026-11').flat().flatMap((x) => x.eventos).map((e) => `${e.data} ${e.tipo}`);
+  assert.deepEqual(depois, ['2026-11-11 saida_operacao', '2026-11-18 retorno_operacao', '2026-11-21 prazo_relatorio']);
+  const periodo = calendarioMes([alterada], [], '2026-11').flat().filter((x) => x.operacoes.length).map((x) => x.data);
+  assert.equal(periodo[0], '2026-11-11');
+  assert.equal(periodo.at(-1), '2026-11-18');
 });

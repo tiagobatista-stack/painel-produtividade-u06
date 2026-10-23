@@ -351,6 +351,18 @@
             <input id="f-prazo_dias" name="prazo_dias" type="number" min="0" max="365" step="1">
             <span class="erro-campo" id="e-prazo_dias"></span>
           </div>
+          <div class="campo" data-campo="saida" data-tipos="operacao">
+            <label for="f-saida" class="obrig">Saída</label>
+            <input id="f-saida" name="saida" type="date" aria-required="true" aria-describedby="d-saida">
+            <span class="dica" id="d-saida">Programação da operação: aparece no calendário. Altere se a saída mudar.</span>
+            <span class="erro-campo" id="e-saida"></span>
+          </div>
+          <div class="campo" data-campo="retorno" data-tipos="operacao">
+            <label for="f-retorno" class="obrig">Retorno</label>
+            <input id="f-retorno" name="retorno" type="date" aria-required="true" aria-describedby="d-retorno">
+            <span class="dica" id="d-retorno">O prazo dos relatórios conta a partir desta data.</span>
+            <span class="erro-campo" id="e-retorno"></span>
+          </div>
           <div class="campo" data-campo="horas_ponto" data-tipos="operacao">
             <label for="f-horas_ponto">Horas por relatório</label>
             <input id="f-horas_ponto" name="horas_ponto" type="number" min="0" max="24" step="0.5">
@@ -389,7 +401,8 @@
           </div>
           <div class="campo" data-campo="data_vistoria" id="campo-data-vistoria" hidden>
             <label for="f-data_vistoria" class="obrig">Data da vistoria</label>
-            <input id="f-data_vistoria" name="data_vistoria" type="date" aria-required="true">
+            <input id="f-data_vistoria" name="data_vistoria" type="date" aria-required="true" aria-describedby="d-data_vistoria">
+            <span class="dica" id="d-data_vistoria">Programada: o dia marcado (vai para o calendário). Vistoriada: o dia em que ocorreu.</span>
             <span class="erro-campo" id="e-data_vistoria"></span>
           </div>
 

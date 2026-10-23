@@ -10,10 +10,10 @@ import { criarEditorAnotacoes } from './ui-anotacoes.js';
 
 const CAMPOS = [
   'tipo', 'origem', 'titulo', 'descricao', 'status', 'prioridade_manual', 'motivo_ajuste', 'responsavel', 'prazo', 'municipio', 'protocolo',
-  'data_hora', 'local', 'publico', 'etapa', 'esforco_h', 'prazo_dias', 'horas_ponto', 'endereco', 'latitude', 'longitude', 'vistoria', 'data_vistoria', 'anotacoes',
+  'data_hora', 'local', 'publico', 'etapa', 'esforco_h', 'prazo_dias', 'horas_ponto', 'endereco', 'latitude', 'longitude', 'vistoria', 'data_vistoria', 'saida', 'retorno', 'anotacoes',
 ];
 const CAMPOS_DE_TEXTO = [
-  'titulo', 'descricao', 'responsavel', 'municipio', 'protocolo', 'data_hora', 'local', 'publico', 'prazo', 'esforco_h', 'prazo_dias', 'horas_ponto', 'motivo_ajuste', 'endereco',
+  'titulo', 'descricao', 'responsavel', 'municipio', 'protocolo', 'data_hora', 'local', 'publico', 'prazo', 'esforco_h', 'prazo_dias', 'horas_ponto', 'saida', 'retorno', 'motivo_ajuste', 'endereco',
 ];
 
 const dialogo = $('dialogo');
@@ -38,7 +38,7 @@ function rascunho() {
   const tipo = $('f-tipo').value;
   if (editando?.tipo === 'operacao') {
     const dias = $('f-prazo_dias').value.trim();
-    return { ...editando, origem: $('f-origem').value, prazo_dias: dias === '' ? NaN : Number(dias) };
+    return { ...editando, origem: $('f-origem').value, prazo_dias: dias === '' ? NaN : Number(dias), retorno: $('f-retorno').value || editando.retorno };
   }
   return { id: 'previa', tipo, origem: $('f-origem').value, prazo: $('f-prazo').value, status: $('f-status').value };
 }
@@ -134,9 +134,9 @@ function localizar() {
   abrirEmNovaAba(url);
 }
 
-// A data da vistoria só aparece (e só é exigida) quando a situação é "Vistoriada" e o tipo tem o campo.
+// A data da vistoria só aparece (e só é exigida) quando a situação é "Programada" ou "Vistoriada" e o tipo tem o campo.
 function atualizarDataDaVistoria() {
-  $('campo-data-vistoria').hidden = $('campo-vistoria').hidden || $('f-vistoria').value !== 'vistoriada';
+  $('campo-data-vistoria').hidden = $('campo-vistoria').hidden || !['programada', 'vistoriada'].includes($('f-vistoria').value);
 }
 
 // O motivo só é pedido quando o ajuste manual muda a faixa: se repete a calculada, não há o que justificar.
@@ -168,7 +168,7 @@ export function abrirFormulario(demanda, origemDoClique) {
     }
     if (demanda.etapa) $('f-etapa').value = demanda.etapa;
     $('f-prioridade_manual').value = demanda.prioridade_manual ?? '';
-    $('f-data_vistoria').value = demanda.vistoriada_em ?? '';
+    $('f-data_vistoria').value = demanda.vistoria_em ?? '';
   }
   atualizarDataDaVistoria();
   // Demanda nova começa sem prazo: a data de referência não é um padrão.

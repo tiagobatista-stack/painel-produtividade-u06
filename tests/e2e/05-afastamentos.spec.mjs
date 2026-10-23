@@ -61,11 +61,12 @@ test.describe('férias, licenças e agenda', () => {
     await abrir(page);
     await irParaAba(page, 'Agenda');
     const eventos = page.locator('#agenda-7-dias .evento');
-    await expect(eventos).toHaveCount(3);
+    await expect(eventos).toHaveCount(4);
     await expect(eventos.nth(0)).toContainText('Prazo de relatórios');
     await expect(eventos.nth(1)).toContainText('Reunião de alinhamento com a coordenação');
     await expect(eventos.nth(1)).toContainText('09:00');
-    await expect(eventos.nth(2)).toContainText('Palestra sobre prevenção de desmatamento');
+    await expect(eventos.nth(2)).toContainText('Vistoria: Análise de denúncia sobre supressão vegetal'); // vistoria programada (RF50)
+    await expect(eventos.nth(3)).toContainText('Palestra sobre prevenção de desmatamento');
     await definirDataDeReferencia(page, '2026-10-27');
     await expect(page.locator('#agenda-7-dias')).toContainText('Reunião de planejamento da próxima operação');
     await expect(page.locator('#agenda-7-dias')).toContainText('Início de férias');

@@ -57,7 +57,7 @@
       "protocolo": "SEMA-PRO-FICT-0042", "etapa": "parecer",
       "descricao": "Manifestação técnica solicitada em procedimento fictício, com documentos a reunir e resposta no prazo.",
       "responsavel": "Equipe Jurídica Fictícia", "municipio": "Cidade Fictícia Alfa",
-      "vistoria": "vistoriada", "vistoriada_em": "2026-10-10",
+      "vistoria": "vistoriada", "vistoria_em": "2026-10-10",
       "anotacoes": [
         { "id": "A-1", "texto": "Conferir os anexos do processo", "feita": true, "criada_em": "2026-10-02", "concluida_em": "2026-10-08" },
         { "id": "A-2", "texto": "Redigir a minuta da manifestação", "feita": false, "criada_em": "2026-10-02", "concluida_em": null },
@@ -90,7 +90,7 @@
       "origem": "denuncia", "status": "a_fazer", "prazo": "2026-10-20", "criada_em": "2026-10-13", "esforco_h": 5,
       "protocolo": "SEMA-PRO-FICT-0088", "etapa": "analise",
       "descricao": "Denúncia fictícia sobre supressão vegetal, com histórico de alertas da área.",
-      "vistoria": "programada",
+      "vistoria": "programada", "vistoria_em": "2026-10-20",
       "anotacoes": [
         { "id": "A-1", "texto": "Consultar alertas anteriores da área", "feita": false, "criada_em": "2026-10-06", "concluida_em": null },
         { "id": "A-2", "texto": "Pedir imagem de satélite recente", "feita": false, "criada_em": "2026-10-06", "concluida_em": null }

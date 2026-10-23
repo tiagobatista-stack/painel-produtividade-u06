@@ -54,10 +54,10 @@ export const CABECALHO_DEMANDAS = [
   'ENDERECO', 'COORD_X', 'COORD_Y', 'VISTORIA',
 ];
 
-// Situação da vistoria (RF50) em texto, com a data quando vistoriada; vazio em quem não requer vistoria (e na operação).
+// Situação da vistoria (RF50) em texto, com a data (da programada ou da realizada); vazio em quem não requer vistoria (e na operação).
 function rotuloDaVistoria(d) {
   if (!d.vistoria || d.vistoria === 'nao_requer') return '';
-  return d.vistoriada_em ? `${VISTORIA[d.vistoria]} (${celulaData(d.vistoriada_em)})` : VISTORIA[d.vistoria];
+  return d.vistoria_em ? `${VISTORIA[d.vistoria]} (${celulaData(d.vistoria_em)})` : VISTORIA[d.vistoria];
 }
 
 // Todas as demandas (inclusive concluídas e sobrestadas). ENDERECO, COORD_X (longitude) e COORD_Y (latitude) ficam no fim e só existem
