@@ -181,10 +181,14 @@ test.describe('mapa com camadas: OpenStreetMap e satélite', () => {
     await expect(page.locator('#mapa-copiar')).toBeEnabled();
     const marcado = (await page.locator('#mapa-coordenada').textContent()).match(gms)[0];
     await page.locator('#mapa-copiar').click();
-    await expect(page.locator('#mensagem')).toContainText(`Coordenada copiada: ${marcado}`);
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(marcado);
-    // No exemplo (Mato Grosso fictício, hemisfério sul e oeste) a coordenada é S e O.
+    // A cópia sai em decimal com ponto ("-11.053889, -58.847500"), que cola direto no QGIS, no GPS e em planilha.
+    const copiado = /^-?\d+\.\d{6}, -?\d+\.\d{6}$/;
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toMatch(copiado);
+    const texto = await page.evaluate(() => navigator.clipboard.readText());
+    await expect(page.locator('#mensagem')).toContainText(`Coordenada copiada: ${texto}`);
+    // No exemplo (Mato Grosso fictício, hemisfério sul e oeste) a coordenada é S e O: os dois números são negativos.
     expect(marcado).toMatch(/ S, .* O$/);
+    expect(texto.split(', ').every((n) => Number(n) < 0)).toBe(true);
   });
 
   test('sem conseguir carregar a camada, o mapa avisa e volta para "Sem mapa-base", sem perder os marcadores', async ({ page }) => {

@@ -1,6 +1,7 @@
 // Exportações: CSV de demandas e de pontos, JSON completo. Funções puras (devolvem texto; o download é feito pela interface).
 //
 // CSV pensado para o Excel em português: separador ";", UTF-8 com BOM, datas dd/mm/aaaa, vírgula decimal, linhas CRLF.
+// Exceção: as coordenadas (COORD_X e COORD_Y) saem com ponto decimal, que é o que QGIS, GPS e os formatos de SIG esperam.
 // Células de texto que começam com = + - @ ou tabulação ganham um apóstrofo, para não virarem fórmula (injeção de CSV),
 // já que títulos, municípios e notas podem vir de planilhas coladas.
 import { autosALavrar, autosDoPonto, estaConcluida, estaSobrestada, prazoDemanda, relatorioDoPonto, relatoriosPendentes } from './indicadores.js';
@@ -22,6 +23,11 @@ export function celulaTexto(valor) {
 
 export function celulaNumero(valor) {
   return typeof valor === 'number' && Number.isFinite(valor) ? String(valor).replace('.', ',') : '';
+}
+
+// Coordenada com ponto decimal, como está guardada (ex.: -27.2). Vazio se não houver número.
+export function celulaCoordenada(valor) {
+  return typeof valor === 'number' && Number.isFinite(valor) ? String(valor) : '';
 }
 
 export function celulaData(iso) {
@@ -92,8 +98,8 @@ export function csvDemandas(demandas, hoje, contexto = {}) {
       celulaTexto(d.motivo_ajuste),
       celulaTexto(anotacoesEmTexto(d.anotacoes)),
       celulaTexto(d.endereco),
-      celulaNumero(d.coord_x),
-      celulaNumero(d.coord_y),
+      celulaCoordenada(d.coord_x),
+      celulaCoordenada(d.coord_y),
     ];
   });
   return montarCsv(CABECALHO_DEMANDAS, linhas);
@@ -121,8 +127,8 @@ export function csvPontos(demandas) {
         .map((p) => [
           String(p.n),
           celulaTexto(d.equipe),
-          celulaNumero(p.coord_x),
-          celulaNumero(p.coord_y),
+          celulaCoordenada(p.coord_x),
+          celulaCoordenada(p.coord_y),
           celulaTexto(p.municipio),
           celulaData(d.saida),
           celulaData(d.retorno),

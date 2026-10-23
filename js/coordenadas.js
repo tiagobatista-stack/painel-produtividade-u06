@@ -155,6 +155,12 @@ export function coordenadaEmGms(latitude, longitude, casasDosSegundos = 2) {
   return `${latitudeEmGms(latitude, casasDosSegundos)}, ${longitudeEmGms(longitude, casasDosSegundos)}`;
 }
 
+// Para copiar e colar em QGIS, GPS e planilha: latitude, vírgula e espaço, longitude, 6 casas, ponto decimal: "-11.053889, -58.847500"
+export function coordenadaParaCopiar(latitude, longitude) {
+  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return '';
+  return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+}
+
 // Decimal com 6 casas e vírgula, como o painel mostra: "-11,420000, -58,750000"
 export function coordenadaDecimal(latitude, longitude) {
   if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return '';

@@ -1,7 +1,7 @@
 // Formatação de coordenadas em GMS. Valores inventados (a maioria no Atlântico ou sem relação com lugar real).
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { coordenadaDecimal, coordenadaEmGms, latitudeEmGms, longitudeEmGms } from '../js/coordenadas.js';
+import { coordenadaDecimal, coordenadaEmGms, coordenadaParaCopiar, latitudeEmGms, longitudeEmGms } from '../js/coordenadas.js';
 
 test('decimal vira graus, minutos e segundos com o hemisfério do eixo', () => {
   assert.equal(latitudeEmGms(-11.42), `11° 25' 12,00" S`);
@@ -54,4 +54,13 @@ test('valor que não é número finito devolve texto vazio', () => {
 test('o par em GMS e em decimal, como aparece sob o cursor e na cópia', () => {
   assert.equal(coordenadaEmGms(-11.42, -58.75), `11° 25' 12,00" S, 58° 45' 00,00" O`);
   assert.equal(coordenadaDecimal(-11.42, -58.75), '-11,420000, -58,750000');
+});
+
+test('coordenadaParaCopiar: latitude, vírgula e espaço, longitude, 6 casas e ponto decimal', () => {
+  assert.equal(coordenadaParaCopiar(-11.053889, -58.8475), '-11.053889, -58.847500');
+  assert.equal(coordenadaParaCopiar(-15.2, -20.2), '-15.200000, -20.200000');
+  assert.equal(coordenadaParaCopiar(0, 0), '0.000000, 0.000000');
+  assert.equal(coordenadaParaCopiar(10.1234567, 5), '10.123457, 5.000000'); // arredonda em 6 casas
+  assert.equal(coordenadaParaCopiar(NaN, -58), '');
+  assert.equal(coordenadaParaCopiar(-11, undefined), '');
 });
