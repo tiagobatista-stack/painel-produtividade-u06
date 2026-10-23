@@ -13,6 +13,7 @@ import { desenharCalendario, iniciarCalendario } from './ui-calendario.js';
 import { abrirAba, iniciarAbas } from './ui-abas.js';
 import { desenharPontos, iniciarPontos } from './ui-pontos.js';
 import { abrirPainel, desenharPainel, fecharPainel, iniciarPainel } from './ui-painel.js';
+import { abrirFormularioDoPonto, atualizarPontoAberto, iniciarFormularioDoPonto } from './ui-ponto.js';
 import { cartao } from './ui-cartao.js';
 import { abrirFormulario, iniciarFormulario } from './ui-formulario.js';
 import { definirVisao, desenharQuadro, iniciarQuadro, visaoAtual } from './ui-quadro.js';
@@ -144,6 +145,7 @@ function atualizar() {
   desenharQuadro(hoje);
   desenharAfastamentos(hoje);
   desenharPainel(hoje);
+  atualizarPontoAberto();
   restaurarFoco();
 }
 
@@ -219,6 +221,7 @@ async function iniciar() {
   estado.atualizar = atualizar;
   estado.irParaDemanda = irParaDemanda;
   estado.abrirPainel = abrirPainel;
+  estado.editarPonto = abrirFormularioDoPonto;
   try {
     const resposta = await fetch('data/seed.json');
     if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
@@ -265,6 +268,7 @@ async function iniciar() {
   $('limpar-filtros').addEventListener('click', limparFiltros);
 
   iniciarFormulario();
+  iniciarFormularioDoPonto();
   iniciarOperacoes();
   iniciarAfastamentos();
   iniciarCalendario();

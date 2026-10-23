@@ -89,8 +89,8 @@ test.describe('aba Pontos: relatório e autos de cada ponto', () => {
   test('a aba acompanha as mudanças: relatório agrupado, autos e anotação aparecem na lista', async ({ page }) => {
     await irParaPontos(page);
     await page.getByRole('button', { name: 'Abrir a operação Equipe Fictícia Norte, ponto 10' }).click();
-    const p = painel(page);
-    await p.locator('details.pontos > summary').click();
+    const p = painel(page); // a lista de pontos já abre, no ponto escolhido
+    await expect(p.locator('details.pontos')).toHaveJSProperty('open', true);
     for (const n of [10, 11, 12]) await p.getByRole('checkbox', { name: `Marcar o ponto ${n} para agrupar` }).check();
     await p.getByRole('button', { name: /^Agrupar 3 pontos marcados/ }).click();
     await p.locator('#relatorio-DEM-0001-R1').selectOption({ label: 'Relatório concluído' });

@@ -1,7 +1,9 @@
 // Operações de alertas: importação, etapas por ponto, retorno e status derivado. Funções puras e imutáveis.
 import { autosDoPonto, dataValida, estaConcluida, relatorioDoPonto, relatoriosPendentes } from './indicadores.js';
 import { ErroCadastro, proximoId, validarParametros } from './demandas.js';
-import { ETAPAS_PONTO, TIPOS_AUTO } from './rotulos.js';
+import { lerParDeCoordenadas } from './coordenadas.js';
+import { normalizarMunicipio } from './municipios.js';
+import { ETAPAS_PONTO, TIPOS_AUTO, VISTORIA_PONTO } from './rotulos.js';
 
 // Etapas que um relatório (grupo de pontos) percorre junto; o auto e o encerramento são de cada ponto.
 const ETAPAS_DO_RELATORIO = ['vistoriado', 'relatorio_elaboracao', 'relatorio_concluido'];
@@ -206,6 +208,125 @@ export function salvarObservacaoPonto(operacao, numero, texto, hoje) {
   return { ...operacao, pontos, historico: [...(operacao.historico || []), { data: hoje, evento }] };
 }
 
+// ---------- Dados e vistoria do ponto (RF67 e RF68) ----------
+
+// Limites de tamanho dos campos de texto do ponto (a nota do planejamento é a da planilha: 200).
+export const LIMITES_DO_PONTO = { municipio: 120, nota: 200, endereco: 200, processo: 60, codigo: 60, imovel: 120, responsavel: 120 };
+export const AREA_HA_MAX = 10000000;
+
+// A data cai dentro do período previsto da operação (saída a retorno)? Fora dele só há aviso: reagendar é normal.
+export const dentroDaJanela = (operacao, data) => Boolean(data) && data >= operacao.saida && data <= operacao.retorno;
+
+// Situação da vistoria do ponto: sem o campo, "a programar".
+export const vistoriaDoPonto = (ponto) => ponto.vistoria ?? 'pendente';
+
+const textoDoPonto = (v) => (typeof v === 'string' ? v.trim() : '');
+
+// Edita um ponto: município, endereço, coordenadas, assunto (nota), processo, código, imóvel, área, responsável, anotação, vistoria
+// (situação e data) e etapa. Os campos que não vierem em `dados` ficam como estão (quem muda só a etapa não apaga o resto).
+// Lança ErroCadastro com um erro por campo. Não altera a operação recebida.
+export function editarPonto(operacao, numero, dados, hoje, contexto = {}) {
+  exigirOperacao(operacao);
+  const i = acharPonto(operacao, numero);
+  const original = operacao.pontos[i];
+  const erros = {};
+  const ponto = { ...original };
+  const tem = (campo) => dados[campo] !== undefined;
+
+  if (tem('municipio')) {
+    const municipio = normalizarMunicipio(dados.municipio, contexto.municipios).valor;
+    if (!municipio) erros.municipio = 'Informe o município.';
+    else if (municipio.length > LIMITES_DO_PONTO.municipio) erros.municipio = `Use no máximo ${LIMITES_DO_PONTO.municipio} caracteres.`;
+    else ponto.municipio = municipio;
+  }
+  for (const campo of ['nota', 'endereco', 'processo', 'codigo', 'imovel', 'responsavel']) {
+    if (!tem(campo)) continue;
+    const valor = textoDoPonto(dados[campo]);
+    if (valor.length > LIMITES_DO_PONTO[campo]) erros[campo] = `Use no máximo ${LIMITES_DO_PONTO[campo]} caracteres.`;
+    else if (valor) ponto[campo] = valor;
+    else delete ponto[campo];
+  }
+  if (tem('area_ha')) {
+    const bruto = textoDoPonto(String(dados.area_ha ?? '')).replace(',', '.');
+    if (bruto === '') delete ponto.area_ha;
+    else if (!Number.isFinite(Number(bruto)) || Number(bruto) < 0 || Number(bruto) > AREA_HA_MAX) erros.area_ha = 'Informe a área em hectares (número igual ou maior que zero).';
+    else ponto.area_ha = Number(bruto);
+  }
+  if (tem('latitude') || tem('longitude')) {
+    const par = lerParDeCoordenadas(dados.latitude, dados.longitude);
+    Object.assign(erros, par.erros);
+    if (par.vazio) {
+      for (const c of ['coord_x', 'coord_y', 'coord_x_texto', 'coord_y_texto']) delete ponto[c];
+    } else if (Object.keys(par.erros).length === 0) {
+      Object.assign(ponto, { coord_y: par.latitude, coord_x: par.longitude, coord_y_texto: par.latitudeTexto, coord_x_texto: par.longitudeTexto });
+    }
+  }
+  if (tem('vistoria')) {
+    const situacao = textoDoPonto(dados.vistoria) || 'pendente';
+    if (!(situacao in VISTORIA_PONTO)) {
+      erros.vistoria = 'Escolha uma situação da vistoria da lista.';
+    } else {
+      if (situacao === 'pendente') delete ponto.vistoria;
+      else ponto.vistoria = situacao;
+      delete ponto.vistoria_em;
+      if (situacao === 'programada' || situacao === 'vistoriada') {
+        const data = textoDoPonto(dados.data_vistoria);
+        if (!dataValida(data)) erros.data_vistoria = situacao === 'programada' ? 'Informe a data da vistoria programada.' : 'Informe a data da vistoria.';
+        else ponto.vistoria_em = data;
+      }
+    }
+  }
+  if (tem('observacoes')) {
+    const limpo = textoDoPonto(dados.observacoes).replaceAll('\r\n', '\n');
+    if (limpo.length > OBSERVACAO_PONTO_MAX) erros.observacoes = `Use no máximo ${OBSERVACAO_PONTO_MAX} caracteres na anotação do ponto.`;
+    else if (limpo) ponto.observacoes = limpo;
+    else delete ponto.observacoes;
+  }
+
+  // A etapa segue as regras de sempre (relatório agrupado, autos, retorno). O erro dela entra junto com os demais.
+  let resultado = { ...operacao, pontos: operacao.pontos.map((p, j) => (j === i ? ponto : p)) };
+  if (tem('etapa') && dados.etapa !== original.etapa && Object.keys(erros).length === 0) {
+    try {
+      resultado = alterarEtapaPonto(resultado, numero, dados.etapa, hoje);
+    } catch (e) {
+      if (!(e instanceof ErroCadastro)) throw e;
+      Object.assign(erros, e.erros);
+    }
+  } else if (tem('etapa') && dados.etapa !== original.etapa) {
+    try {
+      alterarEtapaPonto(resultado, numero, dados.etapa, hoje);
+    } catch (e) {
+      if (!(e instanceof ErroCadastro)) throw e;
+      Object.assign(erros, e.erros);
+    }
+  }
+  if (Object.keys(erros).length) throw new ErroCadastro(erros);
+
+  const eventos = eventosDoPonto(original, ponto, numero);
+  if (eventos.length === 0) return JSON.stringify(resultado.pontos) === JSON.stringify(operacao.pontos) ? operacao : resultado;
+  return { ...resultado, historico: [...(resultado.historico ?? operacao.historico ?? []), ...eventos.map((evento) => ({ data: hoje, evento }))] };
+}
+
+// Eventos de histórico das mudanças do ponto, no mesmo estilo dos demais ("Ponto 5: ...").
+function eventosDoPonto(antes, depois, numero) {
+  const eventos = [];
+  const local = (p) => [p.endereco ?? '', p.coord_y ?? '', p.coord_x ?? ''].join('|');
+  const dados = (p) => [p.municipio, p.nota ?? '', p.processo ?? '', p.codigo ?? '', p.imovel ?? '', p.area_ha ?? '', p.responsavel ?? '', local(p)].join('|');
+  if (dados(antes) !== dados(depois)) eventos.push(`Ponto ${numero}: dados editados`);
+  const sAntes = vistoriaDoPonto(antes);
+  const sDepois = vistoriaDoPonto(depois);
+  if (sAntes !== sDepois) {
+    const para = sDepois === 'programada' || sDepois === 'vistoriada' ? ` em ${dataBr(depois.vistoria_em)}` : '';
+    eventos.push(`Ponto ${numero}: vistoria ${VISTORIA_PONTO[sAntes].toLowerCase()} → ${VISTORIA_PONTO[sDepois].toLowerCase()}${para}`);
+  } else if (sDepois !== 'pendente' && sDepois !== 'nao_acessada' && antes.vistoria_em !== depois.vistoria_em) {
+    eventos.push(`Ponto ${numero}: vistoria ${sDepois === 'programada' ? 'reprogramada' : 'com nova data'} ${dataBr(antes.vistoria_em)} → ${dataBr(depois.vistoria_em)}`);
+  }
+  if ((antes.observacoes ?? '') !== (depois.observacoes ?? '')) {
+    eventos.push(`Ponto ${numero}: ${depois.observacoes ? (antes.observacoes ? 'anotação atualizada' : 'anotação iniciada') : 'anotação apagada'}`);
+  }
+  return eventos;
+}
+
 // ---------- Autos de um ponto ----------
 
 const dataDoPrimeiroAuto = (autos) => autos.map((a) => a.data).filter(Boolean).sort()[0] ?? null;
@@ -251,17 +372,27 @@ export function removerAuto(operacao, numero, idAuto, hoje) {
   return recalcular({ ...operacao, pontos, historico: [...(operacao.historico || []), { data: hoje, evento }] }, hoje);
 }
 
-// Ação em lote: pontos planejados passam a vistoriados. A data efetiva de retorno recalcula o prazo.
+// Ação em lote: pontos planejados passam a vistoriados (menos os reagendados para depois do retorno). A data efetiva de retorno recalcula o prazo.
 export function registrarRetorno(operacao, hoje, dataEfetiva = operacao.retorno) {
   if (operacao.tipo !== 'operacao') throw new ErroCadastro({ retorno: 'A demanda não é uma operação.' });
   if (!dataValida(dataEfetiva)) throw new ErroCadastro({ retorno: 'Informe uma data de retorno válida.' });
   if (dataEfetiva < operacao.saida) throw new ErroCadastro({ retorno: 'O retorno não pode ser anterior à saída.' });
-  const planejados = operacao.pontos.filter((p) => p.etapa === 'planejado').length;
-  if (planejados === 0) throw new ErroCadastro({ retorno: 'Não há pontos planejados.' });
-  const pontos = operacao.pontos.map((p) => (p.etapa === 'planejado' ? { ...p, etapa: 'vistoriado' } : p));
+  const planejados = operacao.pontos.filter((p) => p.etapa === 'planejado');
+  if (planejados.length === 0) throw new ErroCadastro({ retorno: 'Não há pontos planejados.' });
+  // Pontos com a vistoria programada para depois do retorno foram reagendados: continuam planejados.
+  const ficam = planejados.filter((p) => vistoriaDoPonto(p) === 'programada' && p.vistoria_em > dataEfetiva);
+  const vistoriados = planejados.length - ficam.length;
+  if (vistoriados === 0) throw new ErroCadastro({ retorno: 'Todos os pontos planejados têm a vistoria programada para depois desta data de retorno.' });
+  const pontos = operacao.pontos.map((p) => {
+    if (p.etapa !== 'planejado' || ficam.includes(p)) return p;
+    // A vistoria do ponto fica "vistoriada" na data programada (ou, sem ela, na do retorno); o analista pode ajustar depois.
+    const data = vistoriaDoPonto(p) === 'programada' && p.vistoria_em ? p.vistoria_em : dataEfetiva;
+    return { ...p, etapa: 'vistoriado', vistoria: 'vistoriada', vistoria_em: data };
+  });
   const diferente = dataEfetiva !== operacao.retorno;
   const evento =
-    `Retorno registrado em ${dataBr(dataEfetiva)}: ${planejados} ${planejados === 1 ? 'ponto vistoriado' : 'pontos vistoriados'}` +
+    `Retorno registrado em ${dataBr(dataEfetiva)}: ${vistoriados} ${vistoriados === 1 ? 'ponto vistoriado' : 'pontos vistoriados'}` +
+    (ficam.length ? `; ${ficam.length} ${ficam.length === 1 ? 'ficou planejado' : 'ficaram planejados'} (vistoria reagendada para depois)` : '') +
     (diferente ? ` (planejado: ${dataBr(operacao.retorno)})` : '');
   return recalcular({ ...operacao, retorno: dataEfetiva, pontos, historico: [...(operacao.historico || []), { data: hoje, evento }] }, hoje);
 }

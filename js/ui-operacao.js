@@ -111,8 +111,12 @@ function confirmarImportacao(evento) {
 export function abrirRetorno(operacao, gatilho) {
   operacaoDoRetorno = operacao;
   gatilhoRetorno = gatilho;
-  const planejados = operacao.pontos.filter((p) => p.etapa === 'planejado').length;
-  $('ret-resumo').textContent = `${operacao.titulo}: ${planejados} ${planejados === 1 ? 'ponto passa' : 'pontos passam'} de "Planejado" para "Vistoriado (relatório pendente)".`;
+  const planejados = operacao.pontos.filter((p) => p.etapa === 'planejado');
+  const ficam = planejados.filter((p) => p.vistoria === 'programada' && p.vistoria_em > operacao.retorno).length;
+  const passam = planejados.length - ficam;
+  $('ret-resumo').textContent =
+    `${operacao.titulo}: ${passam} ${passam === 1 ? 'ponto passa' : 'pontos passam'} de "Planejado" para "Vistoriado (relatório pendente)".` +
+    (ficam ? ` ${ficam} ${ficam === 1 ? 'ponto fica planejado' : 'pontos ficam planejados'}: a vistoria foi reagendada para depois do retorno.` : '');
   $('ret-data').value = operacao.retorno;
   $('ret-erro').textContent = '';
   $('ret-data').removeAttribute('aria-invalid');
@@ -135,7 +139,12 @@ function confirmarRetorno(evento) {
   persistir();
   registrou = true;
   dlgRetorno.close();
-  mostrarMensagem('Retorno registrado: os pontos foram marcados como vistoriados.');
+  const restam = estado.dados.demandas[i].pontos.filter((p) => p.etapa === 'planejado').length;
+  mostrarMensagem(
+    restam
+      ? `Retorno registrado: os pontos foram marcados como vistoriados; ${restam} ${restam === 1 ? 'continua planejado' : 'continuam planejados'} (vistoria reagendada).`
+      : 'Retorno registrado: os pontos foram marcados como vistoriados.'
+  );
   estado.pontosAbertos.add(operacaoDoRetorno.id);
   estado.focoApos = `editar-${operacaoDoRetorno.id}`;
   estado.atualizar();
@@ -182,7 +191,7 @@ function mudarEtapa(idOperacao, numero, novaEtapa) {
 
 // ---------- Autos ----------
 
-function abrirAuto(operacao, ponto, gatilho) {
+export function abrirAuto(operacao, ponto, gatilho) {
   operacaoDoAuto = operacao;
   pontoDoAuto = ponto;
   gatilhoAuto = gatilho;
@@ -342,6 +351,14 @@ export function blocoPontos(d) {
       if (grupo) select.setAttribute('aria-describedby', `dica-${d.id}-${p.n}`);
     }
     li.append(info, rotulo, select);
+    li.dataset.ponto = `${d.id}-${p.n}`;
+    const editar = elemento('button', 'ponto-editar', 'Editar ponto');
+    editar.type = 'button';
+    editar.dataset.foco = `editar-ponto-${d.id}-${p.n}`;
+    editar.setAttribute('aria-haspopup', 'dialog');
+    editar.setAttribute('aria-label', `Editar o ponto ${p.n} (${p.municipio})`);
+    editar.addEventListener('click', () => estado.editarPonto(d.id, p.n, editar));
+    li.append(editar);
     if (grupo) {
       const dica = elemento('p', 'nota ponto-dica', `As etapas do relatório valem para todo o relatório ${grupo.id}; o auto é de cada ponto.`);
       dica.id = `dica-${d.id}-${p.n}`;

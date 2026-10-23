@@ -1,7 +1,7 @@
 // Aba Pontos: cada ponto de cada operação como uma demanda, com a situação do relatório e dos autos, filtros e contadores.
 // Não mostra coordenadas (o mapa, quando existe, é outra visão da mesma lista).
 import { descricaoDoRelatorio, filtrosPontosEmUso, FILTROS_PONTOS_PADRAO, listarPontos, pontosDasOperacoes, resumoDosPontos } from './pontos.js';
-import { ROTULO_AUTO_SEM_TIPO, SITUACOES_PONTO, TIPOS_AUTO } from './rotulos.js';
+import { ROTULO_AUTO_SEM_TIPO, SITUACOES_PONTO, TIPOS_AUTO, VISTORIA_PONTO } from './rotulos.js';
 import { $, elemento, estado, formatarData, opcoes } from './ui-comum.js';
 import { desenharMapa, iniciarMapa } from './ui-mapa.js';
 
@@ -27,6 +27,12 @@ export function aplicarFiltrosDosPontos(f) {
   filtroSituacao.value = f.situacao;
 }
 
+// Vistoria do ponto (RF68): só aparece quando há o que dizer (programada, vistoriada ou não realizada).
+function textoVistoria(l) {
+  if (l.vistoria === 'pendente') return '';
+  return `Vistoria: ${VISTORIA_PONTO[l.vistoria]}${l.vistoriaEm ? ` · ${formatarData(l.vistoriaEm)}` : ''}`;
+}
+
 function textoAutos(autos) {
   if (autos.length === 0) return 'Autos: nenhum';
   const itens = autos.map((a) => `${a.tipo ? TIPOS_AUTO[a.tipo] : ROTULO_AUTO_SEM_TIPO}${a.data ? ` (${formatarData(a.data)})` : ''}`);
@@ -41,14 +47,24 @@ function linhaDoPonto(l) {
   const relatorio = elemento('p', 'ponto-card-linha', `Relatório: ${descricaoDoRelatorio(l, formatarData)}`);
   const autos = elemento('p', 'ponto-card-linha', textoAutos(l.autos));
   li.append(topo, op, relatorio, autos);
+  const vistoria = textoVistoria(l);
+  if (vistoria) li.append(elemento('p', 'ponto-card-linha', vistoria));
   if (l.observacoes) li.append(elemento('p', 'ponto-card-obs', `Anotação: ${l.observacoes}`));
+  const editar = elemento('button', 'primario', 'Editar ponto');
+  editar.type = 'button';
+  editar.dataset.foco = `card-editar-ponto-${l.operacaoId}-${l.n}`;
+  editar.setAttribute('aria-haspopup', 'dialog');
+  editar.setAttribute('aria-label', `Editar o ponto ${l.n} (${l.municipio}) da operação ${l.equipe}`);
+  editar.addEventListener('click', () => estado.editarPonto(l.operacaoId, l.n, editar));
   const abrir = elemento('button', '', 'Abrir operação');
   abrir.type = 'button';
   abrir.dataset.foco = `abrir-ponto-${l.operacaoId}-${l.n}`;
   abrir.setAttribute('aria-haspopup', 'dialog');
   abrir.setAttribute('aria-label', `Abrir a operação ${l.equipe}, ponto ${l.n}`);
-  abrir.addEventListener('click', () => estado.abrirPainel(l.operacaoId, abrir));
-  li.append(abrir);
+  abrir.addEventListener('click', () => estado.abrirPainel(l.operacaoId, abrir, { ponto: l.n }));
+  const acoes = elemento('div', 'ponto-card-acoes');
+  acoes.append(editar, abrir);
+  li.append(acoes);
   return li;
 }
 

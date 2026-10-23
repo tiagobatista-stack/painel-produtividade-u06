@@ -144,12 +144,24 @@ export function desenharPainel(hoje) {
   painel.scrollTop = rolagem;
 }
 
-export function abrirPainel(id, gatilho) {
+// Com `{ ponto }`, a lista de pontos da operação abre, rola até o ponto, destaca a linha e põe o foco no "Editar ponto" dele.
+export function abrirPainel(id, gatilho, { ponto } = {}) {
   if (!estado.dados.demandas.some((d) => d.id === id)) return;
   idAberto = id;
   focoDeRetorno = gatilho?.dataset.foco ?? null;
+  if (ponto !== undefined) estado.pontosAbertos.add(id);
   if (!painel.open) painel.showModal();
   desenharPainel(hojeAtual());
+  if (ponto !== undefined) irParaPonto(id, ponto);
+}
+
+function irParaPonto(id, numero) {
+  const linha = painel.querySelector(`[data-ponto="${id}-${numero}"]`);
+  if (!linha) return;
+  linha.scrollIntoView({ block: 'center' });
+  linha.classList.add('destaque');
+  setTimeout(() => linha.classList.remove('destaque'), 2500);
+  linha.querySelector('[data-foco^="editar-ponto-"]')?.focus();
 }
 
 export function fecharPainel(devolverFoco = true) {

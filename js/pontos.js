@@ -2,7 +2,7 @@
 // Funções puras (sem DOM nem armazenamento). Nada aqui altera as operações recebidas.
 import { autosDoPonto, prazoDemanda, relatorioDoPonto } from './indicadores.js';
 import { normalizarBusca } from './demandas.js';
-import { SITUACOES_PONTO, TIPOS_AUTO } from './rotulos.js';
+import { SITUACOES_PONTO, TIPOS_AUTO, VISTORIA_PONTO } from './rotulos.js';
 
 // Da mais urgente para a menos: o que falta primeiro.
 export const ORDEM_SITUACOES = ['aguardando_relatorio', 'a_lavrar', 'planejado', 'com_auto', 'encerrado_sem_auto'];
@@ -52,6 +52,14 @@ export function pontosDasOperacoes(demandas) {
           autos: autosDoPonto(p),
           coordX: p.coord_x ?? null,
           coordY: p.coord_y ?? null,
+          endereco: p.endereco ?? '',
+          processo: p.processo ?? '',
+          codigo: p.codigo ?? '',
+          imovel: p.imovel ?? '',
+          areaHa: p.area_ha ?? null,
+          responsavel: p.responsavel ?? '',
+          vistoria: p.vistoria ?? 'pendente',
+          vistoriaEm: p.vistoria_em ?? null,
         };
       })
     );
@@ -59,7 +67,7 @@ export function pontosDasOperacoes(demandas) {
 
 function textoPesquisavel(l) {
   const autos = l.autos.map((a) => (a.tipo ? TIPOS_AUTO[a.tipo] : 'auto')).join(' ');
-  return normalizarBusca([l.operacaoId, l.operacao, l.equipe, `ponto ${l.n}`, l.municipio, l.nota, l.observacoes, l.relatorio?.id, autos].filter(Boolean).join(' '));
+  return normalizarBusca([l.operacaoId, l.operacao, l.equipe, `ponto ${l.n}`, l.municipio, l.nota, l.observacoes, l.endereco, l.processo, l.codigo, l.imovel, l.responsavel, VISTORIA_PONTO[l.vistoria], l.relatorio?.id, autos].filter(Boolean).join(' '));
 }
 
 export function filtrosPontosEmUso(filtros) {

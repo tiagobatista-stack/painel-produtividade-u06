@@ -15,7 +15,8 @@ export const estado = {
   anotacoesAbertas: new Set(), // demandas com a lista de anotações aberta no cartão
   atualizar: () => {},
   irParaDemanda: () => {}, // leva ao cartão da demanda na fila; definido por app.js
-  abrirPainel: () => {}, // abre o painel lateral da demanda; definido por app.js
+  abrirPainel: () => {}, // abre o painel lateral da demanda (e, com { ponto }, leva até o ponto); definido por app.js
+  editarPonto: () => {}, // abre o formulário "Editar ponto" (idOperacao, numero, botão); definido por app.js
 };
 
 export function hojeLocal() {

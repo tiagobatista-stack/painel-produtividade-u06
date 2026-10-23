@@ -27,6 +27,11 @@ Substitui o antigo "Viagem". Campos: período, municípios, unidade, demandas e 
 - **Equipe planejada** na ação de campo.
 - **Equipe presente na vistoria**, em cada demanda e ponto: começa igual à planejada e é editável; serve ao relatório e à lavratura do auto.
 
+## Ponto de operação: formulário e vistoria (RF67 e RF68, entregues)
+
+- **"Editar ponto"** (aba Pontos e lista de pontos do painel da operação): município, assunto, processo, código do alerta, imóvel, área (ha), responsável, endereço, coordenadas, vistoria, etapa, autos e anotações. Parte dos campos do RF58 (os "antes"); o resto (CAR, responsáveis 0..n, equipe presente, resultado e providências) segue especificado.
+- **Vistoria do ponto:** a operação prevê a vistoria **entre a saída e o retorno**; o analista define a data de cada uma. Fora desse período há só aviso. Se a vistoria não ocorrer, marca-se "não realizada" e reagenda-se; **registrar retorno** não passa a vistoriado o ponto programado para depois do retorno.
+
 ## Campos de vistoria por demanda e ponto (RF58 e RF59)
 
 | Momento | Campos |
