@@ -4,6 +4,7 @@ Formato: `- [ ]` pendente, `- [x]` concluída com o hash do commit de merge. Atu
 
 ## Em andamento
 
+- [ ] Abrir o PR da correção `0e31416` (branch `feature/editar-ponto`): coerência vistoria×etapa, coordenada fora de MT, "Remover auto", tipo do auto (o PR #27 foi mesclado sem ela)
 - [ ] Seed no noroeste de MT (caixa 9°–12° S, 57°–60° O)
 
 ## Fila

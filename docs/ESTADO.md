@@ -2,20 +2,22 @@
 
 > Atualize ao encerrar a sessão (`/encerrar`). `/retomar` confere este arquivo com o `git log`.
 
-**Atualizado em:** 2026-10-23 · **main:** `3eed4cb` · **PR aberto:** nenhum (além do de documentação de retomada, se ainda não mesclado) · **Árvore local:** limpa
+**Atualizado em:** 2026-10-23 · **main:** `3eed4cb` · **PR aberto:** o de documentação de retomada (`docs/retomada-entre-sessoes`) · **Árvore local:** limpa
 
 ## Último marco
 
-PR #27 mesclado: formulário "Editar ponto", vistoria por ponto (data escolhida pelo analista na janela saída–retorno, com reagendamento), coerência entre vistoria e etapa, coordenada fora de MT com confirmação, "Remover auto" com confirmação e tipo do auto obrigatório.
+PR #27 mesclado: formulário "Editar ponto" e vistoria por ponto (data escolhida pelo analista na janela saída–retorno, com reagendamento). Testes na `main`: 383 unitários, 509 e2e (7 ignorados).
 
-Testes na entrega: 390 unitários, 527 e2e (7 ignorados), build sem erro.
+**Atenção: o PR #27 foi mesclado sem o commit de correção `0e31416`**, que está só na branch remota `feature/editar-ponto`: coerência vistoria×etapa, coordenada fora de MT com confirmação, "Remover auto" com confirmação e tipo do auto obrigatório (390 unitários, 527 e2e quando testado). Falta abrir um PR dessa branch contra a `main`.
 
 ## Próxima ação
 
-Seed no noroeste de MT: coordenadas fictícias na caixa 9°–12° S e 57°–60° O, nomes e situações fictícios. Plano aprovado; **não iniciado**. Mexe em `data/seed.json`, nos testes e docs que citam o Atlântico e na regra de dados do `CLAUDE.md` (a regra só muda nesse PR).
+1. Abrir o PR da correção `0e31416` (branch `feature/editar-ponto`) e mesclar, antes de qualquer outra coisa.
+2. Seed no noroeste de MT: coordenadas fictícias na caixa 9°–12° S e 57°–60° O, nomes e situações fictícios. Plano aprovado; **não iniciado**. Mexe em `data/seed.json`, nos testes e docs que citam o Atlântico e na regra de dados do `CLAUDE.md` (a regra só muda nesse PR).
 
 ## Fila (ordem decidida)
 
+0. PR da correção `0e31416`
 1. Seed no noroeste de MT
 2. Mini-mapa dos pontos da operação
 3. Melhorias da lista de pontos (prioridade calculada e explicável, "Organizar por")
