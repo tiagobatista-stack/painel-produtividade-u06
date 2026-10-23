@@ -44,7 +44,8 @@ function blocoDados(item, hoje) {
   if (d.municipio) bloco.append(linha(`Município: ${d.municipio}`));
   if (d.endereco) bloco.append(linha(`Endereço: ${d.endereco}`));
   if (d.vistoria && d.vistoria !== 'nao_requer') {
-    bloco.append(linha(`Vistoria: ${VISTORIA[d.vistoria]}${d.vistoriada_em ? ` em ${formatarData(d.vistoriada_em)}` : ''}`));
+    const quando = d.vistoria_em ? (d.vistoria === 'programada' ? ` para ${formatarData(d.vistoria_em)}` : ` em ${formatarData(d.vistoria_em)}`) : '';
+    bloco.append(linha(`Vistoria: ${VISTORIA[d.vistoria]}${quando}`));
   }
   if (Number.isFinite(d.coord_y) && Number.isFinite(d.coord_x)) {
     bloco.append(linha(`Coordenadas: ${coordenadaEmGms(d.coord_y, d.coord_x)} (${coordenadaDecimal(d.coord_y, d.coord_x)})`, 'demanda-detalhe painel-coordenada'));

@@ -11,14 +11,15 @@ test.describe('Calendário mensal e compensação', () => {
     await irParaAba(page, 'Agenda');
     await expect(titulo(page)).toHaveText('Outubro de 2026');
     await expect(secao(page).locator('td.hoje')).toHaveText(/^15/);
-    await expect(dia(page, '^terça-feira, 20 de outubro de 2026: 2 compromissos$')).toBeVisible();
+    await expect(dia(page, '^terça-feira, 20 de outubro de 2026: 3 compromissos$')).toBeVisible(); // reunião, prazo do processo e vistoria programada
     await expect(secao(page).locator('.chip-atrasado')).toHaveCount(2); // prazos vencidos de 06/10 e 13/10
 
     await dia(page, '20 de outubro de 2026').click();
     await expect(dia(page, '20 de outubro de 2026')).toHaveAttribute('aria-pressed', 'true');
     await expect(detalhe(page)).toBeVisible();
-    await expect(detalhe(page).locator('.evento')).toHaveCount(2);
+    await expect(detalhe(page).locator('.evento')).toHaveCount(3);
     await expect(detalhe(page)).toContainText('Prazo de processo');
+    await expect(detalhe(page)).toContainText('Vistoria programada');
 
     // O processo do dia leva ao cartão na fila.
     await detalhe(page).getByRole('button', { name: /SEMA-PRO-FICT-\d+ — Análise de denúncia/ }).click();

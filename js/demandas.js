@@ -31,10 +31,11 @@ const CURTO_MAX = 120;
 // Campos opcionais: quando ficam vazios na edição, o valor antigo é removido em vez de ficar para trás.
 const OPCIONAIS = [
   'descricao', 'responsavel', 'municipio', 'protocolo', 'etapa', 'prioridade_manual', 'motivo_ajuste',
-  'endereco', 'coord_x', 'coord_y', 'coord_x_texto', 'coord_y_texto', 'vistoria', 'vistoriada_em',
+  'endereco', 'coord_x', 'coord_y', 'coord_x_texto', 'coord_y_texto', 'vistoria', 'vistoria_em',
 ];
 const ENDERECO_MAX = 200;
 
+const dataBr = (iso) => (typeof iso === 'string' ? iso.split('-').reverse().join('/') : '—');
 const texto = (v) => (typeof v === 'string' ? v.trim() : '');
 const vazio = (v) => v === undefined || v === null || String(v).trim() === '';
 
@@ -88,7 +89,8 @@ function normalizarLocalizacao(dados, limpo, erros) {
 }
 
 // Situação da vistoria (RF50), em todas as demandas menos a operação (os pontos dela têm a etapa deles). Vazio ou "não requer" não grava
-// nada. "Vistoriada" pede a data da vistoria. Não tem efeito na prioridade.
+// nada. "Programada" e "vistoriada" pedem a data da vistoria (a marcada ou a realizada). Só a programada vai para o calendário.
+// Não tem efeito na prioridade.
 function normalizarVistoria(dados, limpo, erros) {
   const situacao = texto(dados.vistoria);
   if (!situacao || situacao === 'nao_requer') return;
@@ -97,10 +99,10 @@ function normalizarVistoria(dados, limpo, erros) {
     return;
   }
   limpo.vistoria = situacao;
-  if (situacao === 'vistoriada') {
+  if (situacao === 'programada' || situacao === 'vistoriada') {
     const data = texto(dados.data_vistoria);
-    if (!dataValida(data)) erros.data_vistoria = 'Informe a data da vistoria.';
-    else limpo.vistoriada_em = data;
+    if (!dataValida(data)) erros.data_vistoria = situacao === 'programada' ? 'Informe a data da vistoria programada.' : 'Informe a data da vistoria.';
+    else limpo.vistoria_em = data;
   }
 }
 
@@ -189,7 +191,7 @@ function editarOperacao(original, dados, hoje, contexto = {}) {
   const erros = {};
   const limpo = {};
   const completos = semAnotacoesOmitidas(original, dados);
-  const rascunho = { ...original, origem: dados.origem, prazo_dias: Number(dados.prazo_dias) };
+  const rascunho = { ...original, origem: dados.origem, prazo_dias: Number(dados.prazo_dias), retorno: dataValida(texto(dados.retorno)) ? texto(dados.retorno) : original.retorno };
   normalizarComuns(completos, limpo, erros, hoje, { municipios: contexto.municipios, igualCalculada: manualIgualACalculada(rascunho, completos, hoje, contexto) });
   if (!ORIGENS_GERAIS.includes(dados.origem)) erros.origem = 'Escolha uma origem válida para este tipo.';
   let parametros = {};
@@ -199,9 +201,19 @@ function editarOperacao(original, dados, hoje, contexto = {}) {
     if (!(e instanceof ErroCadastro)) throw e;
     Object.assign(erros, e.erros);
   }
+  // Saída e retorno (a programação da operação) podem mudar; quem não informa as datas mantém as que existem.
+  const saida = dados.saida === undefined ? original.saida : texto(dados.saida);
+  const retorno = dados.retorno === undefined ? original.retorno : texto(dados.retorno);
+  if (!dataValida(saida)) erros.saida = 'Informe a data de saída.';
+  if (!dataValida(retorno)) erros.retorno = 'Informe a data de retorno.';
+  else if (dataValida(saida) && retorno < saida) erros.retorno = 'O retorno não pode ser antes da saída.';
   if (Object.keys(erros).length) throw new ErroCadastro(erros);
-  const historico = [...(original.historico || []), { data: hoje, evento: 'Editada' }, ...eventosEdicao(original, limpo, hoje)];
-  return { ...semOpcionais(original), ...limpo, origem: dados.origem, ...parametros, historico };
+  const eventos = eventosEdicao(original, limpo, hoje);
+  if (saida !== original.saida || retorno !== original.retorno) {
+    eventos.push({ data: hoje, evento: `Programação alterada: saída ${dataBr(original.saida)} → ${dataBr(saida)}, retorno ${dataBr(original.retorno)} → ${dataBr(retorno)}` });
+  }
+  const historico = [...(original.historico || []), { data: hoje, evento: 'Editada' }, ...eventos];
+  return { ...semOpcionais(original), ...limpo, origem: dados.origem, ...parametros, saida, retorno, historico };
 }
 
 // Quem edita sem informar `anotacoes` (por exemplo, outro módulo) não apaga a lista existente.
@@ -212,7 +224,7 @@ function semAnotacoesOmitidas(original, dados) {
     const decimal = (v) => (Number.isFinite(v) ? String(v) : undefined);
     completo = { ...completo, endereco: original.endereco, latitude: original.coord_y_texto ?? decimal(original.coord_y), longitude: original.coord_x_texto ?? decimal(original.coord_x) };
   }
-  if (completo.vistoria === undefined) completo = { ...completo, vistoria: original.vistoria, data_vistoria: original.vistoriada_em };
+  if (completo.vistoria === undefined) completo = { ...completo, vistoria: original.vistoria, data_vistoria: original.vistoria_em };
   return completo;
 }
 
@@ -234,6 +246,8 @@ function eventosEdicao(original, limpo, hoje) {
   if (local(original) !== local(limpo)) eventos.push({ data: hoje, evento: 'Localização alterada' });
   if ((original.vistoria ?? 'nao_requer') !== (limpo.vistoria ?? 'nao_requer')) {
     eventos.push({ data: hoje, evento: `Vistoria: ${VISTORIA[original.vistoria ?? 'nao_requer']} → ${VISTORIA[limpo.vistoria ?? 'nao_requer']}` });
+  } else if (limpo.vistoria && original.vistoria_em !== limpo.vistoria_em) {
+    eventos.push({ data: hoje, evento: `Vistoria ${limpo.vistoria === 'programada' ? 'reprogramada' : 'com nova data'}: ${dataBr(original.vistoria_em)} → ${dataBr(limpo.vistoria_em)}` });
   }
   for (const evento of eventosDeConclusao(original.anotacoes, limpo.anotacoes)) eventos.push({ data: hoje, evento });
   return eventos;
@@ -300,6 +314,11 @@ export function alternarAnotacaoDaDemanda(demanda, idAnotacao, hoje) {
 export function migrarDemanda(demanda, contexto) {
   const municipios = contexto && typeof contexto === 'object' ? contexto.municipios : undefined;
   const d = { ...demanda };
+  // A data da vistoria era `vistoriada_em` (só da vistoriada); agora é `vistoria_em`, também da programada.
+  if ('vistoriada_em' in d) {
+    if (d.vistoria_em === undefined) d.vistoria_em = d.vistoriada_em;
+    delete d.vistoriada_em;
+  }
   if ('processo' in d) {
     if (!d.protocolo && typeof d.processo === 'string' && d.processo.trim()) d.protocolo = d.processo.trim();
     delete d.processo;

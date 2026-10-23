@@ -6,7 +6,7 @@ Especificado, **não implementado**. Dados fictícios. Referência visual: `docs
 
 análise → decisão de vistoria → planejamento → vistoria → providências.
 
-- **Situação da vistoria** (RF50, **entregue**, todas as demandas menos a operação): não requer, pendente, programada, vistoriada (com data), não acessada. Campo no cadastro e na edição, filtro "Vistoria" na lista e coluna `VISTORIA` no CSV.
+- **Situação da vistoria** (RF50, **entregue**, todas as demandas menos a operação): não requer, pendente, programada, vistoriada (com data), não acessada. Programada e vistoriada têm a **data da vistoria** (uma só); só a programada aparece no calendário. Campo no cadastro e na edição, filtro "Vistoria" na lista e coluna `VISTORIA` no CSV.
 - **Coordenada só quando há local a vistoriar** (RF51). **Denúncia: nunca registrar o denunciante**; o roteiro mostra "Não informado na denúncia" e que o denunciante fica sob sigilo.
 - **Município** (RF49): automático pela coordenada, senão informado. Os limites vêm de `Geoportal:LIM_MUNICIPIOS_MT`, simplificados em GeoJSON em `data/`, gerados por um script local documentado. **Município descentralizado** (RF52, `Geoportal:MUNICIPIOS_DESCENTRALIZADOS`): indicador só para triagem. Esses dados geográficos são públicos (RNF11); os termos de uso do Geoportal ficam **a confirmar**.
 - **Nada disso altera a prioridade:** proximidade, município e situação da vistoria não têm peso no motor. T1 a T18 continuam valendo.

@@ -13,7 +13,7 @@ test.describe('painel com o exemplo fictício', () => {
     expect(await complementares(page)).toEqual(['11', '9', '2']); // abertas, relatórios pendentes, autos a lavrar
     expect(await resumo(page)).toEqual(['2', '5', '4', '2']);
     await irParaAba(page, 'Agenda');
-    await expect(page.locator('#agenda-7-dias .evento')).toHaveCount(3);
+    await expect(page.locator('#agenda-7-dias .evento')).toHaveCount(4);
   });
 
   test('mostra os 6 tipos de demanda no exemplo', async ({ page }) => {

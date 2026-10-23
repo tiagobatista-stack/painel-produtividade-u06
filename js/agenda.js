@@ -18,6 +18,10 @@ function eventosDaDemanda(d, { prazos = false } = {}) {
     const [data, hora] = String(d.data_hora ?? '').split('T');
     if (data) eventos.push({ data, hora: hora ?? null, tipo: d.tipo, titulo: d.titulo, id: d.id });
   }
+  // Vistoria programada (RF50): um compromisso na data marcada. A vistoriada não entra: a data realizada fica no formulário.
+  if (d.tipo !== 'operacao' && d.vistoria === 'programada' && d.vistoria_em) {
+    eventos.push({ data: d.vistoria_em, hora: null, tipo: 'vistoria_programada', titulo: `Vistoria: ${d.titulo}`, id: d.id });
+  }
   if (d.tipo === 'operacao') {
     if (d.saida) eventos.push({ data: d.saida, hora: null, tipo: 'saida_operacao', titulo: `Saída: ${d.equipe}`, id: d.id });
     if (d.retorno) eventos.push({ data: d.retorno, hora: null, tipo: 'retorno_operacao', titulo: `Retorno: ${d.equipe}`, id: d.id });

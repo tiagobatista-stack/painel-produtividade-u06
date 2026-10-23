@@ -67,7 +67,7 @@ test('CSV de demandas: BOM, CRLF, cabeçalho, 14 linhas, ordenado por id, com en
   // Situação da vistoria (RF50): rótulo, com a data quando vistoriada; vazio em quem não requer.
   assert.equal(col('DEM-0003', 'VISTORIA'), 'Vistoriada (10/10/2026)');
   assert.equal(col('DEM-0004', 'VISTORIA'), 'Vistoria pendente');
-  assert.equal(col('DEM-0007', 'VISTORIA'), 'Vistoria programada');
+  assert.equal(col('DEM-0007', 'VISTORIA'), 'Vistoria programada (20/10/2026)');
 });
 
 test('CSV de demandas: operação, processo, sobrestada, concluída e reunião', () => {
