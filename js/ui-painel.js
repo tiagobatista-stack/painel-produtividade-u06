@@ -7,7 +7,7 @@ import { itemDaDemanda } from './demandas.js';
 import { blocoAnotacoes } from './ui-anotacoes.js';
 import { blocoMiniMapa, destruirMiniMapa, montarMiniMapa } from './ui-mini-mapa.js';
 import { esforcoHoras } from './operacoes.js';
-import { ETAPAS, ORIGENS, STATUS, TIPOS } from './rotulos.js';
+import { ETAPAS, ORIGENS, STATUS, TIPOS, VISTORIA } from './rotulos.js';
 import { $, abrirEmNovaAba, elemento, estado, formatarData, hojeAtual, opcoes, textoPrazo } from './ui-comum.js';
 import { abrirRetorno, blocoPontos, botaoSobrestamento, temPlanejados } from './ui-operacao.js';
 
@@ -43,6 +43,9 @@ function blocoDados(item, hoje) {
   if (d.responsavel) bloco.append(linha(`Responsável: ${d.responsavel}`));
   if (d.municipio) bloco.append(linha(`Município: ${d.municipio}`));
   if (d.endereco) bloco.append(linha(`Endereço: ${d.endereco}`));
+  if (d.vistoria && d.vistoria !== 'nao_requer') {
+    bloco.append(linha(`Vistoria: ${VISTORIA[d.vistoria]}${d.vistoriada_em ? ` em ${formatarData(d.vistoriada_em)}` : ''}`));
+  }
   if (Number.isFinite(d.coord_y) && Number.isFinite(d.coord_x)) {
     bloco.append(linha(`Coordenadas: ${coordenadaEmGms(d.coord_y, d.coord_x)} (${coordenadaDecimal(d.coord_y, d.coord_x)})`, 'demanda-detalhe painel-coordenada'));
   }

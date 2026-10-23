@@ -4,13 +4,13 @@ import { descreverEixo, lerParDeCoordenadas } from './coordenadas.js';
 import { ErroCadastro, TIPOS_CADASTRAVEIS, criarDemanda, editarDemanda, manualIgualACalculada, origensDoTipo } from './demandas.js';
 import { normalizarMunicipio } from './municipios.js';
 import { ErroValidacao, priorizar } from './regras.js';
-import { ETAPAS, ORIGENS, PRIORIDADE_MANUAL, STATUS, TIPOS } from './rotulos.js';
+import { ETAPAS, ORIGENS, PRIORIDADE_MANUAL, STATUS, TIPOS, VISTORIA } from './rotulos.js';
 import { $, abrirEmNovaAba, criarGestorErros, estado, hojeAtual, mostrarMensagem, opcoes, persistir } from './ui-comum.js';
 import { criarEditorAnotacoes } from './ui-anotacoes.js';
 
 const CAMPOS = [
   'tipo', 'origem', 'titulo', 'descricao', 'status', 'prioridade_manual', 'motivo_ajuste', 'responsavel', 'prazo', 'municipio', 'protocolo',
-  'data_hora', 'local', 'publico', 'etapa', 'esforco_h', 'prazo_dias', 'horas_ponto', 'endereco', 'latitude', 'longitude', 'anotacoes',
+  'data_hora', 'local', 'publico', 'etapa', 'esforco_h', 'prazo_dias', 'horas_ponto', 'endereco', 'latitude', 'longitude', 'vistoria', 'data_vistoria', 'anotacoes',
 ];
 const CAMPOS_DE_TEXTO = [
   'titulo', 'descricao', 'responsavel', 'municipio', 'protocolo', 'data_hora', 'local', 'publico', 'prazo', 'esforco_h', 'prazo_dias', 'horas_ponto', 'motivo_ajuste', 'endereco',
@@ -89,6 +89,7 @@ function atualizarCamposDoTipo(tipo) {
   opcoes($('f-origem'), validas.map((o) => [o, ORIGENS[o]]), validas.includes(atual) ? atual : validas[0]);
   const etapas = ETAPAS[tipo];
   if (etapas) opcoes($('f-etapa'), [['', 'Sem etapa'], ...Object.entries(etapas)], '');
+  atualizarDataDaVistoria();
 }
 
 // Sob cada campo de coordenada, em tempo real: o valor convertido (copiável para QGIS, GPS ou planilha), o hemisfério assumido e
@@ -133,6 +134,11 @@ function localizar() {
   abrirEmNovaAba(url);
 }
 
+// A data da vistoria só aparece (e só é exigida) quando a situação é "Vistoriada" e o tipo tem o campo.
+function atualizarDataDaVistoria() {
+  $('campo-data-vistoria').hidden = $('campo-vistoria').hidden || $('f-vistoria').value !== 'vistoriada';
+}
+
 // O motivo só é pedido quando o ajuste manual muda a faixa: se repete a calculada, não há o que justificar.
 function atualizarMotivo() {
   $('campo-motivo').hidden = $('f-prioridade_manual').value === '' || ajusteIgualACalculada();
@@ -149,6 +155,7 @@ export function abrirFormulario(demanda, origemDoClique) {
   tipoSelect.disabled = Boolean(demanda);
   opcoes($('f-status'), Object.entries(STATUS), demanda ? demanda.status : 'a_fazer');
   opcoes($('f-prioridade_manual'), [['', 'Automática (calculada)'], ...Object.entries(PRIORIDADE_MANUAL)], '');
+  opcoes($('f-vistoria'), Object.entries(VISTORIA), demanda?.vistoria ?? 'nao_requer');
   atualizarCamposDoTipo(tipoSelect.value);
   if (demanda) {
     // Latitude e longitude voltam como foram digitadas; sem o texto, o decimal gravado.
@@ -161,7 +168,9 @@ export function abrirFormulario(demanda, origemDoClique) {
     }
     if (demanda.etapa) $('f-etapa').value = demanda.etapa;
     $('f-prioridade_manual').value = demanda.prioridade_manual ?? '';
+    $('f-data_vistoria').value = demanda.vistoriada_em ?? '';
   }
+  atualizarDataDaVistoria();
   // Demanda nova começa sem prazo: a data de referência não é um padrão.
   preencherSugestoesDeMunicipio();
   atualizarAvisoDeMunicipio();
@@ -233,6 +242,10 @@ export function iniciarFormulario() {
     atualizarAvisoDeMunicipio();
   });
   $('f-localizar').addEventListener('click', localizar);
+  $('f-vistoria').addEventListener('change', () => {
+    atualizarDataDaVistoria();
+    if (!$('campo-data-vistoria').hidden) $('f-data_vistoria').focus();
+  });
   formulario.addEventListener('change', atualizarPrevia);
   formulario.addEventListener('submit', enviarFormulario);
   $('cancelar').addEventListener('click', () => dialogo.close());

@@ -3,7 +3,7 @@ import { lerParDeCoordenadas } from './coordenadas.js';
 import { normalizarMunicipio } from './municipios.js';
 import { dataValida, estaConcluida, estaSobrestada, itensDosIndicadores, prazoDemanda } from './indicadores.js';
 import { ErroValidacao, faixaManual, priorizar, priorizarFila } from './regras.js';
-import { ETAPAS, ETAPA_ANTIGA, ORIGENS, PRIORIDADE_MANUAL, STATUS, TIPOS } from './rotulos.js';
+import { ETAPAS, ETAPA_ANTIGA, ORIGENS, PRIORIDADE_MANUAL, STATUS, TIPOS, VISTORIA } from './rotulos.js';
 import { alternarAnotacao, eventosDeConclusao, normalizarAnotacoes } from './anotacoes.js';
 
 export const TIPOS_CADASTRAVEIS = ['processo', 'licenciamento', 'reuniao', 'palestra', 'outra'];
@@ -31,7 +31,7 @@ const CURTO_MAX = 120;
 // Campos opcionais: quando ficam vazios na edição, o valor antigo é removido em vez de ficar para trás.
 const OPCIONAIS = [
   'descricao', 'responsavel', 'municipio', 'protocolo', 'etapa', 'prioridade_manual', 'motivo_ajuste',
-  'endereco', 'coord_x', 'coord_y', 'coord_x_texto', 'coord_y_texto',
+  'endereco', 'coord_x', 'coord_y', 'coord_x_texto', 'coord_y_texto', 'vistoria', 'vistoriada_em',
 ];
 const ENDERECO_MAX = 200;
 
@@ -87,6 +87,23 @@ function normalizarLocalizacao(dados, limpo, erros) {
   }
 }
 
+// Situação da vistoria (RF50), em todas as demandas menos a operação (os pontos dela têm a etapa deles). Vazio ou "não requer" não grava
+// nada. "Vistoriada" pede a data da vistoria. Não tem efeito na prioridade.
+function normalizarVistoria(dados, limpo, erros) {
+  const situacao = texto(dados.vistoria);
+  if (!situacao || situacao === 'nao_requer') return;
+  if (!(situacao in VISTORIA)) {
+    erros.vistoria = 'Escolha uma situação da vistoria da lista.';
+    return;
+  }
+  limpo.vistoria = situacao;
+  if (situacao === 'vistoriada') {
+    const data = texto(dados.data_vistoria);
+    if (!dataValida(data)) erros.data_vistoria = 'Informe a data da vistoria.';
+    else limpo.vistoriada_em = data;
+  }
+}
+
 // O ajuste manual escolhido repete a faixa que o cálculo já dá? Sem prazo válido, sobrestada ou concluída não há faixa: não repete.
 export function manualIgualACalculada(rascunho, dados, hoje, contexto = {}) {
   const manual = texto(dados.prioridade_manual);
@@ -108,6 +125,7 @@ function normalizar(tipo, dados, hoje, contexto = {}) {
   const rascunho = { id: 'previa', tipo, origem: dados.origem, prazo: texto(dados.prazo), status: dados.status };
   normalizarComuns(dados, limpo, erros, hoje, { municipios: contexto.municipios, igualCalculada: manualIgualACalculada(rascunho, dados, hoje, contexto) });
   normalizarLocalizacao(dados, limpo, erros);
+  normalizarVistoria(dados, limpo, erros);
 
   limpo.origem = dados.origem;
   if (!origensDoTipo(tipo).includes(limpo.origem)) erros.origem = 'Escolha uma origem válida para este tipo.';
@@ -194,6 +212,7 @@ function semAnotacoesOmitidas(original, dados) {
     const decimal = (v) => (Number.isFinite(v) ? String(v) : undefined);
     completo = { ...completo, endereco: original.endereco, latitude: original.coord_y_texto ?? decimal(original.coord_y), longitude: original.coord_x_texto ?? decimal(original.coord_x) };
   }
+  if (completo.vistoria === undefined) completo = { ...completo, vistoria: original.vistoria, data_vistoria: original.vistoriada_em };
   return completo;
 }
 
@@ -213,6 +232,9 @@ function eventosEdicao(original, limpo, hoje) {
   }
   const local = (x) => [x.endereco ?? '', x.coord_y ?? '', x.coord_x ?? ''].join('|');
   if (local(original) !== local(limpo)) eventos.push({ data: hoje, evento: 'Localização alterada' });
+  if ((original.vistoria ?? 'nao_requer') !== (limpo.vistoria ?? 'nao_requer')) {
+    eventos.push({ data: hoje, evento: `Vistoria: ${VISTORIA[original.vistoria ?? 'nao_requer']} → ${VISTORIA[limpo.vistoria ?? 'nao_requer']}` });
+  }
   for (const evento of eventosDeConclusao(original.anotacoes, limpo.anotacoes)) eventos.push({ data: hoje, evento });
   return eventos;
 }
@@ -355,7 +377,7 @@ function textoPesquisavel(d) {
 }
 
 // Estado padrão dos filtros: é o que "Limpar filtros" restaura. O status padrão é a fila ativa, não "todos".
-export const FILTROS_PADRAO = Object.freeze({ busca: '', tipo: '', status: 'abertas', prioridade: '', prazo: '' });
+export const FILTROS_PADRAO = Object.freeze({ busca: '', tipo: '', status: 'abertas', prioridade: '', prazo: '', vistoria: '' });
 
 // Recortes do filtro "prazo": cada um é um indicador da tela e usa a mesma lista dele (itensDosIndicadores).
 const RECORTE_DO_PRAZO = { vencidas: 'vencidas', proximos7: 'proximos7', semana: 'concluidasSemana' };
@@ -363,22 +385,25 @@ const RECORTE_DO_PRAZO = { vencidas: 'vencidas', proximos7: 'proximos7', semana:
 // Há algum filtro diferente do padrão? Busca só com espaços não conta, porque não filtra nada.
 export function filtrosEmUso(filtros) {
   const f = { ...FILTROS_PADRAO, ...filtros };
-  return f.busca.trim() !== '' || f.tipo !== FILTROS_PADRAO.tipo || f.status !== FILTROS_PADRAO.status || f.prioridade !== FILTROS_PADRAO.prioridade || f.prazo !== FILTROS_PADRAO.prazo;
+  return f.busca.trim() !== '' || f.tipo !== FILTROS_PADRAO.tipo || f.status !== FILTROS_PADRAO.status || f.prioridade !== FILTROS_PADRAO.prioridade || f.prazo !== FILTROS_PADRAO.prazo || f.vistoria !== FILTROS_PADRAO.vistoria;
 }
 
 // Lista a fila conforme os filtros.
-// filtros: { busca, tipo, status, prioridade, prazo }
+// filtros: { busca, tipo, status, prioridade, prazo, vistoria }
+//   vistoria: '' | 'pede' (pendente ou programada) | uma situação da vistoria (nao_requer inclui as demandas sem o campo e a operação)
 //   status: 'abertas' (padrão: fila ativa) | a_fazer | em_andamento | aguardando (sobrestadas) | concluida
 //   prioridade: faixa ('Crítica' | 'Alta' | 'Média' | 'Baixa'); só existe para demandas abertas.
 //   prazo: '' | 'vencidas' | 'proximos7' (com status abertas) | 'semana' (com status concluida): os mesmos itens do indicador.
 //     Fora dessas combinações (ex.: vencidas com concluída) a lista fica vazia.
 export function listarDemandas(demandas, filtros, hoje, contexto = {}) {
-  const { busca = '', tipo = '', status = 'abertas', prioridade = '', prazo = '' } = filtros;
+  const { busca = '', tipo = '', status = 'abertas', prioridade = '', prazo = '', vistoria = '' } = filtros;
   const termos = normalizarBusca(busca).split(/\s+/).filter(Boolean);
   const chave = RECORTE_DO_PRAZO[prazo];
   const idsDoRecorte = chave ? new Set(itensDosIndicadores(demandas, hoje)[chave].map((x) => x.demanda.id)) : null;
+  const situacaoDaVistoria = (d) => d.vistoria ?? 'nao_requer';
+  const confereVistoria = (d) => !vistoria || (vistoria === 'pede' ? ['pendente', 'programada'].includes(situacaoDaVistoria(d)) : situacaoDaVistoria(d) === vistoria);
   const confere = (d) =>
-    (!tipo || d.tipo === tipo) && (!idsDoRecorte || idsDoRecorte.has(d.id)) && termos.every((t) => textoPesquisavel(d).includes(t));
+    (!tipo || d.tipo === tipo) && confereVistoria(d) && (!idsDoRecorte || idsDoRecorte.has(d.id)) && termos.every((t) => textoPesquisavel(d).includes(t));
 
   if (status === 'concluida') {
     const itens = prioridade

@@ -73,6 +73,10 @@
             <label for="filtro-prazo">Prazo</label>
             <select id="filtro-prazo"></select>
           </div>
+          <div class="campo">
+            <label for="filtro-vistoria">Vistoria</label>
+            <select id="filtro-vistoria"></select>
+          </div>
           <div class="campo campo-acao">
             <button type="button" id="limpar-filtros" disabled>Limpar filtros</button>
           </div>
@@ -375,6 +379,18 @@
             <span class="dica" id="d-longitude">Decimal ou graus, minutos e segundos. Sem hemisfério, vale O.</span>
             <span class="aviso-campo" id="a-longitude" aria-live="polite"></span>
             <span class="erro-campo" id="e-longitude"></span>
+          </div>
+
+          <div class="campo" id="campo-vistoria" data-campo="vistoria" data-tipos="processo licenciamento reuniao palestra outra">
+            <label for="f-vistoria">Situação da vistoria</label>
+            <select id="f-vistoria" name="vistoria" aria-describedby="d-vistoria"></select>
+            <span class="dica" id="d-vistoria">Não muda a prioridade.</span>
+            <span class="erro-campo" id="e-vistoria"></span>
+          </div>
+          <div class="campo" data-campo="data_vistoria" id="campo-data-vistoria" hidden>
+            <label for="f-data_vistoria" class="obrig">Data da vistoria</label>
+            <input id="f-data_vistoria" name="data_vistoria" type="date" aria-required="true">
+            <span class="erro-campo" id="e-data_vistoria"></span>
           </div>
 
           <div class="campo inteira" data-campo="anotacoes">

@@ -6,6 +6,13 @@ export const ORIGENS = {
 };
 export const STATUS = { a_fazer: 'A fazer', em_andamento: 'Em andamento', aguardando: 'Sobrestado (aguardando)', concluida: 'Concluída' };
 
+// Situação da vistoria (RF50). Sem o campo, a demanda é "Não requer vistoria". Não muda a prioridade.
+export const VISTORIA = {
+  nao_requer: 'Não requer vistoria', pendente: 'Vistoria pendente', programada: 'Vistoria programada', vistoriada: 'Vistoriada', nao_acessada: 'Não acessada',
+};
+// Filtro da lista: "pede" reúne as que ainda aguardam a vistoria (pendente ou programada).
+export const FILTRO_VISTORIA = { '': 'Todas', pede: 'Pede vistoria (pendente ou programada)', ...VISTORIA };
+
 export const ETAPAS_PONTO = {
   planejado: 'Planejado',
   vistoriado: 'Vistoriado (relatório pendente)',

@@ -20,10 +20,10 @@ test.describe('resumo da semana e exportações', () => {
     expect(l[0]).toMatch(/^ID;TIPO;TITULO;/);
     const colunaSobrestada = l[0].split(';').indexOf('SOBRESTADA');
     expect(l.some((x) => x.includes('Sobrestado (aguardando)') && x.split(';')[colunaSobrestada] === 'sim')).toBe(true);
-    expect(l[0]).toMatch(/;ENDERECO;COORD_X;COORD_Y$/); // endereço e coordenadas no fim, só nas demandas que têm localização
+    expect(l[0]).toMatch(/;ENDERECO;COORD_X;COORD_Y;VISTORIA$/); // endereço, coordenadas e vistoria no fim, só nas demandas que têm
     const dem3 = l.find((x) => x.startsWith('DEM-0003;'));
-    expect(dem3.endsWith(';Rodovia Fictícia, km 40 (referência fictícia);-27.2;-12.5')).toBe(true);
-    expect(l.find((x) => x.startsWith('DEM-0011;'))).toMatch(/;;;$/); // sem localização: três células vazias
+    expect(dem3.endsWith(';Rodovia Fictícia, km 40 (referência fictícia);-27.2;-12.5;Vistoriada (10/10/2026)')).toBe(true);
+    expect(l.find((x) => x.startsWith('DEM-0011;'))).toMatch(/;;;;$/); // sem localização nem vistoria: quatro células vazias
     await expect(page.locator('#mensagem')).toContainText('Arquivo gerado: demandas-2026-10-15.csv');
   });
 
