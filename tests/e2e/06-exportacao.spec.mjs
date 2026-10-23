@@ -22,7 +22,7 @@ test.describe('resumo da semana e exportações', () => {
     expect(l.some((x) => x.includes('Sobrestado (aguardando)') && x.split(';')[colunaSobrestada] === 'sim')).toBe(true);
     expect(l[0]).toMatch(/;ENDERECO;COORD_X;COORD_Y$/); // endereço e coordenadas no fim, só nas demandas que têm localização
     const dem3 = l.find((x) => x.startsWith('DEM-0003;'));
-    expect(dem3.endsWith(';Rodovia Fictícia, km 40 (referência fictícia);-27,2;-12,5')).toBe(true);
+    expect(dem3.endsWith(';Rodovia Fictícia, km 40 (referência fictícia);-27.2;-12.5')).toBe(true);
     expect(l.find((x) => x.startsWith('DEM-0011;'))).toMatch(/;;;$/); // sem localização: três células vazias
     await expect(page.locator('#mensagem')).toContainText('Arquivo gerado: demandas-2026-10-15.csv');
   });
@@ -34,7 +34,7 @@ test.describe('resumo da semana e exportações', () => {
     const l = linhas(conteudo);
     expect(l).toHaveLength(22); // 13 + 8 pontos
     expect(l[0].startsWith('N_PONTO;EQUIPE;COORD_X;COORD_Y;MUNICIPIO;DAT_SAIDA;DAT_RETOR;NOT_PLANEJ;')).toBe(true);
-    expect(l[1].startsWith('1;Equipe Fictícia Norte;-20,113;-15,193;')).toBe(true);
+    expect(l[1].startsWith('1;Equipe Fictícia Norte;-20.113;-15.193;')).toBe(true);
   });
 
   test('o resumo semanal em texto traz os mesmos números da tela', async ({ page }) => {
@@ -77,7 +77,7 @@ test.describe('resumo da semana e exportações', () => {
     const { conteudo } = await baixar(page, 'Exportar pontos (CSV)');
     const leste = linhas(conteudo).filter((x) => x.includes(';DEM-0015;'));
     expect(leste).toHaveLength(13);
-    expect(leste[0].startsWith('1;Equipe Fictícia Leste;-20,5137;-15,5937;Município Fictício A;09/11/2026;13/11/2026;')).toBe(true);
+    expect(leste[0].startsWith('1;Equipe Fictícia Leste;-20.5137;-15.5937;Município Fictício A;09/11/2026;13/11/2026;')).toBe(true);
 
     const csv = [linhas(conteudo)[0], ...leste].join('\r\n');
     await irParaAba(page, 'Demandas');

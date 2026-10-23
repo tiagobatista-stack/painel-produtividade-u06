@@ -49,7 +49,7 @@ Página própria, para imprimir ou salvar em PDF. Ordem do modelo:
 
 Textos para campo vazio: "A identificar em campo" (sem responsável), "A medir em campo" (sem área), "Fora de CAR", "—".
 
-**Exportações do roteiro:** CSV, KML e GPX (RF61). O CSV tem o mesmo aviso de dados sensíveis dos demais.
+**Exportações do roteiro:** CSV e KML (RF61). O CSV tem o mesmo aviso de dados sensíveis dos demais.
 
 **Implementação:** fontes do sistema (a política de conteúdo tem `font-src 'self'`), sem estilo ou script embutido, cartões gerados dos dados, tema único claro com cores explícitas para impressão.
 

@@ -11,7 +11,7 @@ Estado: o SVG local da aba Pontos e o **mapa v1** (Leaflet local, OpenStreetMap,
 | v1 (entregue) | Mapa dos pontos das operações com Leaflet local: Lista \| Mapa, filtros da lista, OpenStreetMap e satélite da SEMA; popup; escala; coordenada em GMS sob o cursor, com botão de copiar | RF41 |
 | 2 (entregue) | PR B: coordenada (decimal ou GMS) e endereço na Nova demanda e na edição; demandas com coordenada aparecem no mapa | RF42, RF48 |
 | 3 | Clicar no mapa para preencher a coordenada | RF63 |
-| 4 | Exportar GeoJSON, KML e GPX | RF64 |
+| 4 | Exportar GeoJSON e KML | RF64 |
 | 5 | Camadas da SEMA via WMS (UC, TI, embargos, CAR) | RF65 |
 | (entregue) | Mini-mapa do ponto da demanda no painel lateral, sob o botão Editar: só o ponto, começa sem mapa-base (RNF15), com seletor de camada | RF66 |
 
@@ -48,12 +48,12 @@ img-src 'self' data: https://tile.openstreetmap.org https://<servidor-do-satéli
 - **WFS no navegador:** depende de CORS no servidor da SEMA e exigiria `connect-src`; não entra no v1.
 - **Corredor da rota** e **agrupamento automático** de demandas próximas: planejados para depois (RF54).
 
-## Formato das coordenadas fora da tela (decisão registrada, a implementar)
+## Formato das coordenadas fora da tela (entregue nos CSV e no botão de copiar)
 
 - **Na tela** as coordenadas continuam com **vírgula decimal** (pt-BR): `-11,053889`, `11° 03' 14" S`.
-- **Exportações CSV, GeoJSON e KML (e GPX): sempre com ponto decimal**, que é o que os formatos e as ferramentas de SIG esperam: `-11.053889`. GeoJSON, KML e GPX já exigem o ponto; a decisão estende a regra às colunas de coordenada dos CSV.
-- **Botão "copiar coordenada" do mapa:** no PR do mapa que vem a seguir passa a copiar `-11.053889, -58.847500` (latitude, vírgula e espaço, longitude, ponto decimal, 6 casas), em vez do texto em graus, minutos e segundos que o v1 copia hoje. Assim a cópia cola direto no QGIS, no GPS e em planilha.
-- **Atenção ao CSV atual:** hoje os CSV de demandas e de pontos escrevem as coordenadas com vírgula decimal, para abrir no Excel em português, e os testes esperam isso (`tests/exportacao.test.mjs`, `tests/e2e/06-exportacao.spec.mjs`). Trocar para ponto muda `COORD_X` e `COORD_Y` e a ida e volta do CSV de pontos com a importação da planilha. Isso fica para um PR próprio, com os testes atualizados.
+- **Exportações CSV, GeoJSON e KML: sempre com ponto decimal**, que é o que os formatos e as ferramentas de SIG esperam: `-11.053889`. GeoJSON e KML já exigem o ponto; a regra vale também para as colunas `COORD_X` e `COORD_Y` dos CSV (**entregue**). O formato GPX foi retirado do projeto.
+- **Botão "copiar coordenada" do mapa (entregue):** copia `-11.053889, -58.847500` (latitude, vírgula e espaço, longitude, ponto decimal, 6 casas), em vez do texto em graus, minutos e segundos do v1. Assim a cópia cola direto no QGIS, no GPS e em planilha. O texto mostrado sob o cursor continua em graus, minutos e segundos e em decimal com vírgula.
+- **Atenção ao CSV:** só `COORD_X` e `COORD_Y` saem com ponto; os demais números (esforço, score, público) seguem com vírgula, para o Excel em português. No Excel em português, uma coluna com `-27.2` pode abrir como texto (não soma sem converter). A ida e volta do CSV de pontos com a importação da planilha continua igual (a importação aceita ponto e vírgula); há teste (`tests/exportacao.test.mjs`).
 
 ## Privacidade
 

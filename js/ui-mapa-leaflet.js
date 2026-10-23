@@ -2,7 +2,7 @@
 // Só é usado quando o usuário escolhe uma camada: sem escolha, nenhum pedido de blocos sai da página.
 // Popups e textos são montados com nós DOM e textContent (nada interpretado como HTML), e o estilo vai por classe CSS.
 import { CAMADAS_EXTERNAS, ROTULOS_CAMADA } from './camadas-mapa.js';
-import { coordenadaDecimal, coordenadaEmGms } from './coordenadas.js';
+import { coordenadaDecimal, coordenadaEmGms, coordenadaParaCopiar } from './coordenadas.js';
 import { chaveDoConjunto, limitesDosMarcadores } from './mapa.js';
 import { SITUACOES_PONTO } from './rotulos.js';
 import { $, classeFaixa, elemento, estado, hojeAtual, mostrarAviso, mostrarMensagem, textoPrazo } from './ui-comum.js';
@@ -130,7 +130,7 @@ export function iniciarCopiaDaCoordenada() {
   $('mapa-copiar').addEventListener('click', async () => {
     if (!pontoFixado) return;
     const { lat, lng } = pontoFixado;
-    const copia = coordenadaEmGms(lat, lng);
+    const copia = coordenadaParaCopiar(lat, lng);
     try {
       await navigator.clipboard.writeText(copia);
       mostrarMensagem(`Coordenada copiada: ${copia}`);

@@ -58,10 +58,10 @@ test('CSV de demandas: BOM, CRLF, cabeçalho, 14 linhas, ordenado por id, com en
   assert.deepEqual(linhas.slice(1).map((l) => celulas(l)[0]), seed.demandas.map((d) => d.id).sort());
   assert.deepEqual(CABECALHO_DEMANDAS.slice(-3), ['ENDERECO', 'COORD_X', 'COORD_Y']);
   const col = (id, nome) => celulas(linhaDoId(csv, id))[CABECALHO_DEMANDAS.indexOf(nome)];
-  // Demanda com localização no exemplo (fictícia, no Atlântico): endereço e decimal com vírgula; longitude é X e latitude é Y.
+  // Demanda com localização no exemplo (fictícia, no Atlântico): endereço e coordenada com ponto decimal; longitude é X e latitude é Y.
   assert.equal(col('DEM-0003', 'ENDERECO'), 'Rodovia Fictícia, km 40 (referência fictícia)');
-  assert.equal(col('DEM-0003', 'COORD_X'), '-27,2');
-  assert.equal(col('DEM-0003', 'COORD_Y'), '-12,5');
+  assert.equal(col('DEM-0003', 'COORD_X'), '-27.2');
+  assert.equal(col('DEM-0003', 'COORD_Y'), '-12.5');
   // Sem localização, e a operação (que tem coordenada nos pontos), ficam vazias.
   for (const id of ['DEM-0011', 'DEM-0001']) for (const nome of ['ENDERECO', 'COORD_X', 'COORD_Y']) assert.equal(col(id, nome), '', `${id} ${nome}`);
 });
@@ -96,7 +96,7 @@ test('CSV de pontos: 21 linhas, 8 primeiras colunas iguais às da planilha, com 
   assert.equal(linhas[0], CABECALHO_PONTOS.join(';'));
   assert.deepEqual(CABECALHO_PONTOS.slice(0, 8), ['N_PONTO', 'EQUIPE', 'COORD_X', 'COORD_Y', 'MUNICIPIO', 'DAT_SAIDA', 'DAT_RETOR', 'NOT_PLANEJ']);
   assert.ok(linhas.every((l) => celulas(l).length === CABECALHO_PONTOS.length));
-  assert.equal(linhas[1], '1;Equipe Fictícia Norte;-20,113;-15,193;Município Fictício A;03/10/2026;07/10/2026;Possível corte raso;Auto lavrado;09/10/2026;13/10/2026;DEM-0001;Relatórios de vistoria — operação de outubro (Norte);;Auto (tipo não informado) (13/10/2026);');
+  assert.equal(linhas[1], '1;Equipe Fictícia Norte;-20.113;-15.193;Município Fictício A;03/10/2026;07/10/2026;Possível corte raso;Auto lavrado;09/10/2026;13/10/2026;DEM-0001;Relatórios de vistoria — operação de outubro (Norte);;Auto (tipo não informado) (13/10/2026);');
   assert.equal(celulas(linhas[13])[11], 'DEM-0001'); // último ponto da operação Norte
   assert.equal(celulas(linhas[14])[11], 'DEM-0002'); // depois da operação Norte vem a Sul
 });
@@ -113,7 +113,7 @@ test('CSV de pontos: texto da planilha não vira fórmula, e coordenadas negativ
     pontos: [{ n: 1, coord_x: -20.5, coord_y: -15.5, municipio: '+cmd|calc', nota: '=HYPERLINK("http://exemplo")', etapa: 'planejado', data_relatorio: null, data_auto: null }],
   };
   const linha = linhasDe(csvPontos([op]))[1];
-  assert.ok(linha.startsWith('1;Eq;-20,5;-15,5;'), linha);
+  assert.ok(linha.startsWith('1;Eq;-20.5;-15.5;'), linha); // coordenadas com ponto decimal
   assert.ok(linha.includes(";'+cmd|calc;"), linha);
   assert.ok(linha.includes(`;"'=HYPERLINK(""http://exemplo"")";`), linha);
 });
@@ -195,4 +195,27 @@ test('JSON completo leva todos os campos novos', () => {
   const salva = json.demandas[0];
   for (const campo of ['descricao', 'responsavel', 'municipio', 'protocolo', 'prioridade_manual', 'motivo_ajuste', 'anotacoes']) assert.ok(campo in salva, campo);
   assert.equal(salva.anotacoes.length, 3);
+});
+
+test('CSV de demandas: só as coordenadas saem com ponto decimal; esforço e demais números seguem com vírgula', () => {
+  const base = seed.demandas.find((d) => d.id === 'DEM-0003');
+  const d = { ...base, esforco_h: 1.5, coord_x: -58.8475123, coord_y: -11.053889 };
+  const csv = csvDemandas([d], HOJE, ctx);
+  const col = (nome) => celulas(linhaDoId(csv, 'DEM-0003'))[CABECALHO_DEMANDAS.indexOf(nome)];
+  assert.equal(col('ESFORCO_H'), '1,5');
+  assert.equal(col('COORD_X'), '-58.8475123'); // sem arredondar nem perder casa
+  assert.equal(col('COORD_Y'), '-11.053889');
+  assert.equal(celulas(linhaDoId(csv, 'DEM-0003')).filter((c) => /^-?\d+\.\d+$/.test(c)).length, 2); // nenhuma outra célula com ponto decimal
+});
+
+test('CSV de pontos: coordenada com ponto decimal volta igual pela importação', () => {
+  const op = {
+    id: 'DEM-0050', tipo: 'operacao', titulo: 'Op', equipe: 'Eq', saida: '2026-11-01', retorno: '2026-11-05',
+    pontos: [{ n: 1, coord_x: -20.5123456, coord_y: -15.25, municipio: 'Município X', nota: '', etapa: 'planejado', data_relatorio: null, data_auto: null }],
+  };
+  const csv = csvPontos([op]);
+  assert.ok(linhasDe(csv)[1].startsWith('1;Eq;-20.5123456;-15.25;'));
+  const volta = lerPlanilha(csv);
+  assert.equal(volta.ok, true, JSON.stringify(volta.erros));
+  assert.deepEqual([volta.operacao.pontos[0].coord_x, volta.operacao.pontos[0].coord_y], [-20.5123456, -15.25]);
 });
