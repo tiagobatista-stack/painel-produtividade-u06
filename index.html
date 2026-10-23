@@ -479,6 +479,114 @@
     </form>
   </dialog>
 
+  <dialog id="dialogo-ponto" class="dialogo-demanda" aria-labelledby="pt-titulo">
+    <form id="formulario-ponto" novalidate>
+      <header class="dlg-cabecalho">
+        <h2 id="pt-titulo">Editar ponto</h2>
+        <button type="button" id="pt-fechar" class="fechar" aria-label="Fechar">×</button>
+      </header>
+
+      <div class="dlg-corpo">
+        <p class="nota" id="pt-contexto"></p>
+        <p class="nota">Use apenas dados fictícios: a publicação na internet é pública.</p>
+        <div id="pt-resumo-erros" class="erro" role="alert" tabindex="-1" hidden></div>
+
+        <div class="grade-campos">
+          <div class="campo" data-campo="municipio">
+            <label for="pt-municipio" class="obrig">Município</label>
+            <input id="pt-municipio" name="municipio" maxlength="120" autocomplete="off" list="lista-municipios" aria-required="true">
+            <span class="aviso-campo" id="pt-a-municipio" aria-live="polite"></span>
+            <span class="erro-campo" id="pt-e-municipio"></span>
+          </div>
+          <div class="campo" data-campo="nota">
+            <label for="pt-nota">Assunto (nota do planejamento)</label>
+            <input id="pt-nota" name="nota" maxlength="200" autocomplete="off" placeholder="Ex.: Possível corte raso">
+            <span class="erro-campo" id="pt-e-nota"></span>
+          </div>
+          <div class="campo" data-campo="processo">
+            <label for="pt-processo">Processo</label>
+            <input id="pt-processo" name="processo" maxlength="60" autocomplete="off" placeholder="Ex.: SEMA-PRO-FICT-0101">
+            <span class="erro-campo" id="pt-e-processo"></span>
+          </div>
+          <div class="campo" data-campo="codigo">
+            <label for="pt-codigo">Código do alerta</label>
+            <input id="pt-codigo" name="codigo" maxlength="60" autocomplete="off" placeholder="Ex.: ALT-FICT-0001">
+            <span class="erro-campo" id="pt-e-codigo"></span>
+          </div>
+          <div class="campo" data-campo="imovel">
+            <label for="pt-imovel">Imóvel ou local</label>
+            <input id="pt-imovel" name="imovel" maxlength="120" autocomplete="off" placeholder="Ex.: Fazenda Exemplo Alfa">
+            <span class="erro-campo" id="pt-e-imovel"></span>
+          </div>
+          <div class="campo" data-campo="area_ha">
+            <label for="pt-area_ha">Área desmatada (ha)</label>
+            <input id="pt-area_ha" name="area_ha" inputmode="decimal" autocomplete="off" placeholder="Ex.: 12,4">
+            <span class="erro-campo" id="pt-e-area_ha"></span>
+          </div>
+          <div class="campo" data-campo="responsavel">
+            <label for="pt-responsavel">Responsável</label>
+            <input id="pt-responsavel" name="responsavel" maxlength="120" autocomplete="off" placeholder="Nome fictício">
+            <span class="dica">Nunca registre o denunciante.</span>
+            <span class="erro-campo" id="pt-e-responsavel"></span>
+          </div>
+          <div class="campo inteira" data-campo="endereco">
+            <label for="pt-endereco">Endereço ou referência espacial</label>
+            <input id="pt-endereco" name="endereco" maxlength="200" autocomplete="off" placeholder="Ex.: Estrada Fictícia, km 12">
+            <span class="erro-campo" id="pt-e-endereco"></span>
+          </div>
+          <div class="campo" data-campo="latitude">
+            <label for="pt-latitude">Latitude</label>
+            <input id="pt-latitude" name="latitude" maxlength="40" autocomplete="off" placeholder="11° 25' 12&quot; S ou -11,42" aria-describedby="pt-d-latitude">
+            <span class="dica" id="pt-d-latitude">Decimal ou graus, minutos e segundos. Sem hemisfério, vale S.</span>
+            <span class="aviso-campo" id="pt-a-latitude" aria-live="polite"></span>
+            <span class="erro-campo" id="pt-e-latitude"></span>
+          </div>
+          <div class="campo" data-campo="longitude">
+            <label for="pt-longitude">Longitude</label>
+            <input id="pt-longitude" name="longitude" maxlength="40" autocomplete="off" placeholder="58° 45' 00&quot; O ou -58,75" aria-describedby="pt-d-longitude">
+            <span class="dica" id="pt-d-longitude">Decimal ou graus, minutos e segundos. Sem hemisfério, vale O.</span>
+            <span class="aviso-campo" id="pt-a-longitude" aria-live="polite"></span>
+            <span class="erro-campo" id="pt-e-longitude"></span>
+          </div>
+          <div class="campo" data-campo="vistoria">
+            <label for="pt-vistoria">Situação da vistoria</label>
+            <select id="pt-vistoria" name="vistoria" aria-describedby="pt-d-vistoria"></select>
+            <span class="dica" id="pt-d-vistoria">Se não ocorrer, marque "Não realizada" e reagende com a nova data.</span>
+            <span class="erro-campo" id="pt-e-vistoria"></span>
+          </div>
+          <div class="campo" data-campo="data_vistoria" id="pt-campo-data_vistoria" hidden>
+            <label for="pt-data_vistoria" class="obrig">Data da vistoria</label>
+            <input id="pt-data_vistoria" name="data_vistoria" type="date" aria-required="true">
+            <span class="aviso-campo" id="pt-a-data_vistoria" aria-live="polite"></span>
+            <span class="erro-campo" id="pt-e-data_vistoria"></span>
+          </div>
+          <div class="campo" data-campo="etapa">
+            <label for="pt-etapa">Etapa</label>
+            <select id="pt-etapa" name="etapa" aria-describedby="pt-d-etapa"></select>
+            <span class="dica" id="pt-d-etapa"></span>
+            <span class="erro-campo" id="pt-e-etapa"></span>
+          </div>
+          <div class="campo" data-campo="autos">
+            <span class="rotulo-grupo">Autos do ponto</span>
+            <div id="pt-autos"></div>
+          </div>
+          <div class="campo inteira" data-campo="observacoes">
+            <label for="pt-observacoes">Anotações do ponto</label>
+            <textarea id="pt-observacoes" name="observacoes" rows="3" maxlength="500" placeholder="O que já foi feito e o que falta"></textarea>
+            <span class="erro-campo" id="pt-e-observacoes"></span>
+          </div>
+        </div>
+      </div>
+
+      <footer class="dlg-rodape">
+        <div class="acoes">
+          <button type="button" id="pt-cancelar">Cancelar</button>
+          <button type="submit" class="primario">Salvar ponto</button>
+        </div>
+      </footer>
+    </form>
+  </dialog>
+
   <dialog id="dialogo-retorno" aria-labelledby="ret-titulo">
     <form id="form-retorno" novalidate>
       <h2 id="ret-titulo">Registrar retorno</h2>

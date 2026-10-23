@@ -200,16 +200,17 @@ test('resumo semanal do exemplo continua igual (sem relatórios agrupados)', () 
 });
 
 test('CSV de pontos: colunas RELATORIO, AUTOS e OBSERVACOES ao fim da linha', () => {
-  assert.deepEqual(CABECALHO_PONTOS.slice(-3), ['RELATORIO', 'AUTOS', 'OBSERVACOES']);
+  const col = (nome) => CABECALHO_PONTOS.indexOf(nome);
+  assert.deepEqual(CABECALHO_PONTOS.slice(col('RELATORIO'), col('RELATORIO') + 3), ['RELATORIO', 'AUTOS', 'OBSERVACOES']); // as colunas de dados do ponto e a vistoria vêm depois
   const op = registrarAuto(registrarAuto(comR1Concluido(), 1, { tipo: 'auto_infracao', data: '2026-10-16' }, HOJE), 1, { tipo: 'termo_embargo', data: '2026-10-17' }, HOJE);
   const linhas = csvPontos([op]).split('\r\n').filter(Boolean);
   const celulas = (l) => l.split(';');
-  const fim = (l) => celulas(l).slice(-3, -1);
+  const fim = (l) => celulas(l).slice(col('RELATORIO'), col('RELATORIO') + 2);
   assert.deepEqual(fim(linhas[1]), ['R1', 'Auto de infração (16/10/2026) | Termo de embargo (17/10/2026)']);
   assert.deepEqual(fim(linhas[2]), ['R1', '']);
   assert.deepEqual(fim(linhas[4]), ['', '']); // ponto solto, sem auto
   const comNota = salvarObservacaoPonto(op, 4, 'Feito: vistoria. Pendente: fotos.', HOJE);
-  assert.equal(celulas(csvPontos([comNota]).split('\r\n').filter(Boolean)[4]).at(-1), 'Feito: vistoria. Pendente: fotos.');
+  assert.equal(celulas(csvPontos([comNota]).split('\r\n').filter(Boolean)[4])[col('OBSERVACOES')], 'Feito: vistoria. Pendente: fotos.');
 });
 
 // ---------- Anotações (observações) ----------

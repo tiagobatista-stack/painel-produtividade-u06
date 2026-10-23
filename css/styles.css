@@ -535,3 +535,8 @@ dialog.painel-lateral::backdrop { background: rgba(30, 42, 94, 0.45); }
 .mini-mapa-camadas { display: flex; flex-wrap: wrap; gap: 6px; }
 .mini-mapa-camadas button[aria-pressed="true"] { background: var(--azul); color: #fff; font-weight: 600; }
 .mini-mapa { height: 220px; border: 1px solid var(--borda); border-radius: 10px; font: inherit; z-index: 0; }
+
+/* Formulário do ponto e botões do cartão da aba Pontos (RF67). */
+.rotulo-grupo { font-size: var(--t12); font-weight: 600; }
+.ponto-card-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.lista-pontos .ponto-editar { margin-top: 4px; }

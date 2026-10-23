@@ -10,6 +10,10 @@ export const STATUS = { a_fazer: 'A fazer', em_andamento: 'Em andamento', aguard
 export const VISTORIA = {
   nao_requer: 'Não requer vistoria', pendente: 'Vistoria pendente', programada: 'Vistoria programada', vistoriada: 'Vistoriada', nao_acessada: 'Não acessada',
 };
+// Vistoria de cada ponto de operação (RF68): a data é escolhida pelo analista dentro da janela saída–retorno e pode ser reagendada.
+// Sem o campo o ponto está "a programar" (pendente).
+export const VISTORIA_PONTO = { pendente: 'A programar', programada: 'Vistoria programada', vistoriada: 'Vistoriada', nao_acessada: 'Não realizada' };
+
 // Filtro da lista: "pede" reúne as que ainda aguardam a vistoria (pendente ou programada).
 export const FILTRO_VISTORIA = { '': 'Todas', pede: 'Pede vistoria (pendente ou programada)', ...VISTORIA };
 

@@ -8,7 +8,7 @@ import { autosALavrar, autosDoPonto, estaConcluida, estaSobrestada, prazoDemanda
 import { faixaManual, priorizar } from './regras.js';
 import { anotacoesEmTexto } from './anotacoes.js';
 import { esforcoHoras } from './operacoes.js';
-import { ETAPAS_PONTO, ORIGENS, ROTULO_AUTO_SEM_TIPO, STATUS, TIPOS, TIPOS_AUTO, VISTORIA } from './rotulos.js';
+import { ETAPAS_PONTO, ORIGENS, ROTULO_AUTO_SEM_TIPO, STATUS, TIPOS, TIPOS_AUTO, VISTORIA, VISTORIA_PONTO } from './rotulos.js';
 
 const BOM = '﻿';
 const SEPARADOR = ';';
@@ -58,6 +58,12 @@ export const CABECALHO_DEMANDAS = [
 function rotuloDaVistoria(d) {
   if (!d.vistoria || d.vistoria === 'nao_requer') return '';
   return d.vistoria_em ? `${VISTORIA[d.vistoria]} (${celulaData(d.vistoria_em)})` : VISTORIA[d.vistoria];
+}
+
+// Vistoria do ponto (RF68): vazia quando a programar; com a data nas programadas e vistoriadas.
+function rotuloDaVistoriaDoPonto(p) {
+  if (!p.vistoria || p.vistoria === 'pendente') return '';
+  return p.vistoria_em ? `${VISTORIA_PONTO[p.vistoria]} (${celulaData(p.vistoria_em)})` : VISTORIA_PONTO[p.vistoria];
 }
 
 // Todas as demandas (inclusive concluídas e sobrestadas). ENDERECO, COORD_X (longitude) e COORD_Y (latitude) ficam no fim e só existem
@@ -121,6 +127,7 @@ function descreverAutos(ponto) {
 export const CABECALHO_PONTOS = [
   'N_PONTO', 'EQUIPE', 'COORD_X', 'COORD_Y', 'MUNICIPIO', 'DAT_SAIDA', 'DAT_RETOR', 'NOT_PLANEJ',
   'ETAPA', 'DATA_RELATORIO', 'DATA_AUTO', 'OPERACAO_ID', 'OPERACAO', 'RELATORIO', 'AUTOS', 'OBSERVACOES',
+  'ENDERECO', 'PROCESSO', 'CODIGO', 'IMOVEL', 'AREA_HA', 'RESPONSAVEL', 'VISTORIA',
 ];
 
 // Pontos de todas as operações, inclusive coordenadas.
@@ -148,6 +155,13 @@ export function csvPontos(demandas) {
           celulaTexto(relatorioDoPonto(d, p.n)?.id ?? ''),
           celulaTexto(descreverAutos(p)),
           celulaTexto(p.observacoes ?? ''),
+          celulaTexto(p.endereco),
+          celulaTexto(p.processo),
+          celulaTexto(p.codigo),
+          celulaTexto(p.imovel),
+          celulaNumero(p.area_ha),
+          celulaTexto(p.responsavel),
+          celulaTexto(rotuloDaVistoriaDoPonto(p)),
         ])
     );
   return montarCsv(CABECALHO_PONTOS, linhas);
