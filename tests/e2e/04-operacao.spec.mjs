@@ -20,19 +20,24 @@ test.describe('operação de alertas', () => {
     await expect(op).toContainText('13 relatórios pendentes');
     await expect(op.locator('details.pontos')).toHaveJSProperty('open', true);
 
-    // o auto só vem depois do relatório concluído
+    // "Auto lavrado" não é opção do seletor de etapa: só vem pelo "Registrar auto", depois do relatório concluído, e com o tipo do auto
     const ponto1 = page.locator('#ponto-DEM-0015-1');
-    await ponto1.selectOption({ label: 'Auto lavrado' });
-    await expect(page.locator('#painel-aviso')).toContainText('O auto só pode ser lavrado depois do relatório concluído.');
-    await expect(ponto1).toHaveValue('vistoriado');
+    await expect(ponto1.locator('option', { hasText: 'Auto lavrado' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Registrar auto no ponto 1' })).toHaveCount(0);
 
     await ponto1.selectOption({ label: 'Relatório concluído' });
     await expect(page.locator('#painel-aviso')).toBeHidden();
     expect((await complementares(page))[2]).toBe('3'); // autos a lavrar: 2 + 1
-    await page.locator('#ponto-DEM-0015-1').selectOption({ label: 'Auto lavrado' });
+    await page.getByRole('button', { name: 'Registrar auto no ponto 1' }).click();
+    const auto = page.getByRole('dialog', { name: 'Registrar auto' });
+    await expect(auto.getByLabel('Tipo do auto')).toHaveValue(''); // o tipo é obrigatório: nenhum vem marcado
+    await auto.getByRole('button', { name: 'Registrar auto' }).click();
+    await expect(auto.getByRole('alert')).toContainText('Escolha o tipo do auto.');
+    await auto.getByLabel('Tipo do auto').selectOption({ label: 'Auto de infração' });
+    await auto.getByRole('button', { name: 'Registrar auto' }).click();
+    await expect(auto).toBeHidden();
     expect((await complementares(page))[2]).toBe('2');
     await expect(page.locator('#ponto-DEM-0015-1')).toHaveValue('auto_lavrado');
-    await expect(page.locator('#ponto-DEM-0015-1')).toBeFocused();
 
     // o resumo da semana já conta o relatório e o auto de hoje (15/10/2026)
     await expect(page.locator('#resumo-semana .indicador-valor').nth(1)).toHaveText('6'); // 5 + 1

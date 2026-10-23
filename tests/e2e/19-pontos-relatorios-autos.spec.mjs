@@ -92,7 +92,10 @@ test.describe('relatório agrupado e autos de cada ponto', () => {
 
     await ponto(p, 5).getByRole('button', { name: 'Registrar auto no ponto 5' }).click();
     const d = page.getByRole('dialog', { name: 'Registrar auto' });
-    await expect(d.getByLabel('Tipo do auto')).toHaveValue('auto_infracao');
+    await expect(d.getByLabel('Tipo do auto')).toHaveValue(''); // obrigatório: nenhum tipo vem marcado
+    await d.getByRole('button', { name: 'Registrar auto' }).click();
+    await expect(d.getByRole('alert')).toContainText('Escolha o tipo do auto.');
+    await d.getByLabel('Tipo do auto').selectOption({ label: 'Auto de infração' });
     await d.getByLabel('Data do auto').fill('2026-10-01'); // antes do relatório (15/10)
     await d.getByRole('button', { name: 'Registrar auto' }).click();
     await expect(d.getByRole('alert')).toContainText('não pode ser anterior à do relatório');
@@ -114,9 +117,20 @@ test.describe('relatório agrupado e autos de cada ponto', () => {
     await expect(page.locator('#painel-aviso')).toContainText('mais de um auto');
     await expect(ponto(p, 5).getByLabel('Etapa')).toHaveValue('auto_lavrado');
 
-    await ponto(p, 5).getByRole('button', { name: 'Remover Auto de infração do ponto 5' }).click();
+    // Remover pede confirmação: cancelar não remove; confirmar remove.
+    const botaoRemover = ponto(p, 5).getByRole('button', { name: 'Remover auto Auto de infração do ponto 5' });
+    await expect(botaoRemover).toHaveText('Remover auto');
+    page.once('dialog', (dialogo) => {
+      expect(dialogo.message()).toContain('Remover o auto "Auto de infração" (16/10/2026) do ponto 5?');
+      dialogo.dismiss();
+    });
+    await botaoRemover.click();
+    await expect(ponto(p, 5).locator('.auto')).toHaveCount(2);
+    page.once('dialog', (dialogo) => dialogo.accept());
+    await botaoRemover.click();
     await expect(ponto(p, 5).locator('.auto')).toHaveText([/^Termo de embargo/]);
-    await ponto(p, 5).getByRole('button', { name: 'Remover Termo de embargo do ponto 5' }).click();
+    page.once('dialog', (dialogo) => dialogo.accept());
+    await ponto(p, 5).getByRole('button', { name: 'Remover auto Termo de embargo do ponto 5' }).click();
     await expect(ponto(p, 5).getByLabel('Etapa')).toHaveValue('relatorio_concluido');
     await expect(ponto(p, 5).locator('.auto')).toHaveCount(0);
     expect(await aLavrar(page)).toBe(antes);
@@ -141,6 +155,7 @@ test.describe('relatório agrupado e autos de cada ponto', () => {
     await agrupar(p, [1, 2, 3]);
     await situacaoDoRelatorio(p).selectOption({ label: 'Relatório concluído' });
     await ponto(p, 1).getByRole('button', { name: 'Registrar auto no ponto 1' }).click();
+    await page.getByRole('dialog', { name: 'Registrar auto' }).getByLabel('Tipo do auto').selectOption({ label: 'Auto de infração' });
     await page.getByRole('dialog', { name: 'Registrar auto' }).getByRole('button', { name: 'Registrar auto' }).click();
     const op = await guardada(page);
     expect(op.relatorios).toEqual([{ id: 'R1', pontos: [1, 2, 3], criado_em: '2026-10-15' }]);

@@ -1,5 +1,5 @@
 // Formulário "Editar ponto" (RF67) e vistoria por ponto, com data, aviso fora do período e reagendamento (RF68). Dados fictícios.
-import { test, expect, abrir, irParaAba, painel } from './apoio.mjs';
+import { test, expect, abrir, importarExemplo, irParaAba, painel } from './apoio.mjs';
 
 const lista = (page) => page.locator('#pontos-lista');
 const cartaoDoPonto = (page, trecho) => lista(page).locator('li', { hasText: trecho });
@@ -70,52 +70,61 @@ test.describe('editar o ponto pela aba Pontos', () => {
     await expect(dialogo(page, 8).locator('#pt-e-longitude')).toHaveText('Informe também a longitude.');
     await campo(page, 8, 'Município').fill('Município Fictício B');
     await campo(page, 8, 'Área desmatada (ha)').fill('');
-    await campo(page, 8, 'Longitude').fill('-20,3');
+    await campo(page, 8, 'Longitude').fill('-58,3');
+    await campo(page, 8, 'Latitude').fill('-11,5');
     await salvar(page, 8);
     await expect(dialogo(page, 8)).toBeHidden();
   });
 
   test('vistoria: programada exige a data; fora do período previsto só avisa; reagendar fica no histórico da operação', async ({ page }) => {
-    await abrirAbaPontos(page);
-    await cartaoDoPonto(page, PONTO_8_NORTE).filter({ hasText: 'Equipe Fictícia Norte' }).getByRole('button', { name: /^Editar o ponto 8/ }).click();
-    await campo(page, 8, 'Situação da vistoria').selectOption({ label: 'Vistoria programada' });
-    await campo(page, 8, 'Data da vistoria').fill('');
-    await salvar(page, 8);
-    await expect(dialogo(page, 8).locator('#pt-e-data_vistoria')).toHaveText('Informe a data da vistoria programada.');
-    await campo(page, 8, 'Data da vistoria').fill('2026-10-06');
-    await expect(dialogo(page, 8).locator('#pt-a-data_vistoria')).toHaveText('');
-    await campo(page, 8, 'Data da vistoria').fill('2026-10-20');
-    await expect(dialogo(page, 8).locator('#pt-a-data_vistoria')).toHaveText('fora do período previsto da operação (03/10/2026 a 07/10/2026)');
-    await salvar(page, 8);
-    await expect(dialogo(page, 8)).toBeHidden();
-    await expect(cartaoDoPonto(page, PONTO_8_NORTE).filter({ hasText: 'Equipe Fictícia Norte' })).toContainText('Vistoria: Vistoria programada · 20/10/2026');
+    await abrir(page);
+    await importarExemplo(page); // operação nova: pontos planejados, saída 09/11/2026 e retorno 13/11/2026
+    await irParaAba(page, 'Pontos');
+    const ponto3 = cartaoDoPonto(page, 'Ponto 3 ·').filter({ hasText: 'Equipe Fictícia Leste' });
+    await ponto3.getByRole('button', { name: /^Editar o ponto 3/ }).click();
+    await campo(page, 3, 'Situação da vistoria').selectOption({ label: 'Vistoria programada' });
+    await campo(page, 3, 'Data da vistoria').fill('');
+    await salvar(page, 3);
+    await expect(dialogo(page, 3).locator('#pt-e-data_vistoria')).toHaveText('Informe a data da vistoria programada.');
+    await campo(page, 3, 'Data da vistoria').fill('2026-11-10');
+    await expect(dialogo(page, 3).locator('#pt-a-data_vistoria')).toHaveText('');
+    await campo(page, 3, 'Data da vistoria').fill('2026-11-20');
+    await expect(dialogo(page, 3).locator('#pt-a-data_vistoria')).toHaveText('fora do período previsto da operação (09/11/2026 a 13/11/2026)');
+    await salvar(page, 3);
+    await expect(dialogo(page, 3)).toBeHidden();
+    await expect(ponto3).toContainText('Vistoria: Vistoria programada · 20/11/2026');
 
     // Reagendar de novo e abrir a operação para ver o histórico.
-    await cartaoDoPonto(page, PONTO_8_NORTE).filter({ hasText: 'Equipe Fictícia Norte' }).getByRole('button', { name: /^Editar o ponto 8/ }).click();
-    await campo(page, 8, 'Data da vistoria').fill('2026-10-22');
-    await salvar(page, 8);
-    await cartaoDoPonto(page, PONTO_8_NORTE).filter({ hasText: 'Equipe Fictícia Norte' }).getByRole('button', { name: /^Abrir a operação / }).click();
+    await ponto3.getByRole('button', { name: /^Editar o ponto 3/ }).click();
+    await campo(page, 3, 'Data da vistoria').fill('2026-11-22');
+    await salvar(page, 3);
+    await ponto3.getByRole('button', { name: /^Abrir a operação / }).click();
     await painel(page).getByText(/^Histórico \(/).click();
-    await expect(painel(page)).toContainText('Ponto 8: vistoria vistoriada → vistoria programada em 20/10/2026');
-    await expect(painel(page)).toContainText('Ponto 8: vistoria reprogramada 20/10/2026 → 22/10/2026');
+    await expect(painel(page)).toContainText('Ponto 3: vistoria a programar → vistoria programada em 20/11/2026');
+    await expect(painel(page)).toContainText('Ponto 3: vistoria reprogramada 20/11/2026 → 22/11/2026');
   });
 
   test('etapa pelo formulário: muda com as regras de sempre; etapa recusada mostra o motivo e não grava', async ({ page }) => {
     await abrirAbaPontos(page);
+    const ponto1 = cartaoDoPonto(page, 'Ponto 1 · Município Fictício A').filter({ hasText: 'Equipe Fictícia Norte' });
+    await ponto1.getByRole('button', { name: /^Editar o ponto 1/ }).click();
+    await campo(page, 1, 'Etapa').selectOption({ label: 'Encerrado: não constatado' });
+    await campo(page, 1, 'Assunto (nota do planejamento)').fill('Nota que não deve ser gravada');
+    await salvar(page, 1);
+    await expect(dialogo(page, 1).locator('#pt-e-etapa')).toHaveText('Volte o ponto para "Relatório concluído" antes de encerrá-lo sem auto.');
+    await expect(dialogo(page, 1)).toBeVisible();
+    await dialogo(page, 1).getByRole('button', { name: 'Cancelar' }).click();
+    await page.getByRole('search', { name: 'Buscar e filtrar pontos' }).getByLabel('Buscar').fill('Nota que não deve');
+    await expect(lista(page).locator('li')).toHaveCount(0); // o erro da etapa não gravou a nota
+
+    await page.getByRole('search', { name: 'Buscar e filtrar pontos' }).getByLabel('Buscar').fill('');
     const ponto11 = cartaoDoPonto(page, 'Ponto 11 · Município Fictício B').filter({ hasText: 'Equipe Fictícia Norte' });
     await ponto11.getByRole('button', { name: /^Editar o ponto 11/ }).click();
-    await campo(page, 11, 'Etapa').selectOption({ label: 'Auto lavrado' });
-    await campo(page, 11, 'Assunto (nota do planejamento)').fill('Nota que não deve ser gravada');
-    await salvar(page, 11);
-    await expect(dialogo(page, 11).locator('#pt-e-etapa')).toHaveText('O auto só pode ser lavrado depois do relatório concluído.');
-    await expect(dialogo(page, 11)).toBeVisible();
+    await expect(campo(page, 11, 'Etapa').locator('option', { hasText: 'Auto lavrado' })).toHaveCount(0); // só por "Registrar auto"
     await campo(page, 11, 'Etapa').selectOption({ label: 'Relatório em elaboração' });
     await salvar(page, 11);
     await expect(dialogo(page, 11)).toBeHidden();
     await expect(ponto11).toContainText('Relatório: relatório próprio · em elaboração');
-    // O erro anterior não gravou a nota.
-    await page.getByRole('search', { name: 'Buscar e filtrar pontos' }).getByLabel('Buscar').fill('Nota que não deve');
-    await expect(lista(page).locator('li')).toHaveCount(1); // gravou só no segundo salvar, que levou a nota digitada junto
   });
 
   test('os autos do ponto aparecem no formulário, com "Registrar outro auto" quando o ponto já tem auto', async ({ page }) => {
@@ -124,6 +133,7 @@ test.describe('editar o ponto pela aba Pontos', () => {
     await expect(dialogo(page, 1).locator('#pt-autos')).toContainText('Auto (tipo não informado) · 13/10/2026');
     await expect(dialogo(page, 1).getByRole('button', { name: 'Registrar outro auto' })).toBeVisible();
     await dialogo(page, 1).getByRole('button', { name: 'Registrar outro auto' }).click();
+    await page.getByRole('dialog', { name: 'Registrar auto' }).getByLabel('Tipo do auto').selectOption({ label: 'Termo de embargo' });
     await page.getByRole('dialog', { name: 'Registrar auto' }).getByRole('button', { name: 'Registrar auto' }).click();
     await expect(page.getByRole('dialog', { name: 'Registrar auto' })).toBeHidden();
     await expect(dialogo(page, 1)).toBeVisible(); // o formulário do ponto segue aberto e já lista os dois autos
